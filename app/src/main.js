@@ -79,10 +79,13 @@ async function init() {
  */
 async function checkAccessAndRender() {
   try {
+    // Show loading state BEFORE clearing content
+    app.innerHTML = '<div class="loading">Checking access...</div>'
+
     const accessStatus = await checkUserAccess()
     console.log('Access status:', accessStatus)
 
-    // Clear app
+    // Clear loading state
     app.innerHTML = ''
 
     // Render appropriate view based on access status
@@ -121,6 +124,7 @@ async function checkAccessAndRender() {
       <div class="error-state">
         <h1>⚠️ Error</h1>
         <p>Something went wrong. Please try refreshing the page.</p>
+        <p style="color: #888; font-size: 0.9rem; margin-top: 1rem;">Error: ${error.message}</p>
         <button onclick="window.location.reload()" class="btn-primary">
           Refresh
         </button>
