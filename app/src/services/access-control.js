@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase.js'
-import { getCurrentUser } from './auth.js'
+import { getCurrentUser, createUserProfile } from './auth.js'
 
 /**
  * Check user's access level and return status
@@ -18,16 +18,69 @@ export async function checkUserAccess() {
       }
     }
 
-    // Get user profile from database
-    const { data: userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
+    // Get user profile from database with timeout
+    const { data: userData, error } = await Promise.race([
+      supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Database query timeout')), 5000)
+      )
+    ])
 
     if (error) {
       console.error('Error fetching user data:', error)
+
+      // If user doesn't exist in database, try to create profile
+      if (error.code === 'PGRST116') {
+        console.log('User profile not found, creating...')
+        try {
+          await createUserProfile(user)
+          // Retry fetching user data
+          const retry = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single()
+
+          if (retry.error) throw retry.error
+
+          // New user, needs to submit prompt
+          return {
+            hasAccess: false,
+            reason: 'NO_PROMPT_SUBMITTED',
+            message: 'Submit your first prompt to unlock access to the library',
+            needsAction: 'SUBMIT_PROMPT',
+            userData: retry.data
+          }
+        } catch (createError) {
+          console.error('Failed to create user profile:', createError)
+          // Clear the bad session
+          await supabase.auth.signOut()
+          return {
+            hasAccess: false,
+            reason: 'NOT_AUTHENTICATED',
+            message: 'Session expired. Please sign in again.',
+            needsAction: 'SIGN_IN'
+          }
+        }
+      }
+
       throw error
+    }
+
+    if (!userData) {
+      console.error('User data is null')
+      // Clear the bad session
+      await supabase.auth.signOut()
+      return {
+        hasAccess: false,
+        reason: 'NOT_AUTHENTICATED',
+        message: 'Session expired. Please sign in again.',
+        needsAction: 'SIGN_IN'
+      }
     }
 
     // Check if user has submitted a prompt
