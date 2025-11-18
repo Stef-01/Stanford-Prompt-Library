@@ -82,7 +82,16 @@ async function checkAccessAndRender() {
     // Show loading state BEFORE clearing content
     app.innerHTML = '<div class="loading">Checking access...</div>'
 
-    const accessStatus = await checkUserAccess()
+    // Add timeout detection - if it takes more than 10 seconds, show error
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Loading timeout - this is taking too long. Please clear your browser cache and try again.')), 10000)
+    })
+
+    const accessStatus = await Promise.race([
+      checkUserAccess(),
+      timeoutPromise
+    ])
+
     console.log('Access status:', accessStatus)
 
     // Clear loading state
