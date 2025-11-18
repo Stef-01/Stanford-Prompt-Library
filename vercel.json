@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd app && npm install && npm run build",
+  "outputDirectory": "app/dist",
+  "devCommand": "cd app && npm run dev",
+  "installCommand": "cd app && npm install",
+  "framework": "vite",
+  "regions": ["sfo1"]
+}
