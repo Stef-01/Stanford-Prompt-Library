@@ -8,18 +8,24 @@ import {
   exportPromptAsMarkdown,
   getLeaderboard
 } from '../services/prompts.js'
+import { isAdmin } from '../services/admin.js'
+import { renderAdminPanel } from './AdminPanel.js'
 
-let currentView = 'explore' // explore, leaderboard, profile
+let currentView = 'explore' // explore, leaderboard, profile, admin
 let currentCategory = null
 let currentSearchQuery = ''
 let prompts = []
 let categories = []
 let leaderboardData = []
+let userIsAdmin = false
 
 /**
  * Render the main app for approved members
  */
 export async function renderMainApp(container, userData) {
+  // Check if user is admin
+  userIsAdmin = await isAdmin()
+
   // Load initial data
   categories = await getCategories()
   prompts = await getApprovedPrompts()
@@ -34,6 +40,7 @@ export async function renderMainApp(container, userData) {
         </div>
         <div class="header-right">
           <span class="user-greeting">Hi, ${userData.display_name || 'there'}!</span>
+          ${userIsAdmin ? '<span class="admin-badge">Admin</span>' : ''}
           <button id="signout-btn" class="btn-secondary btn-small">Sign Out</button>
         </div>
       </header>
@@ -43,6 +50,7 @@ export async function renderMainApp(container, userData) {
         <button class="nav-btn active" data-view="explore">🔍 Explore</button>
         <button class="nav-btn" data-view="leaderboard">🏆 Leaderboard</button>
         <button class="nav-btn" data-view="profile">👤 Profile</button>
+        ${userIsAdmin ? '<button class="nav-btn" data-view="admin">🛡️ Admin</button>' : ''}
       </nav>
 
       <!-- Main Content -->
@@ -67,18 +75,18 @@ export async function renderMainApp(container, userData) {
       currentView = btn.dataset.view
       navBtns.forEach(b => b.classList.remove('active'))
       btn.classList.add('active')
-      renderContent(container)
+      renderContent(container, userData)
     })
   })
 
   // Initial render
-  renderContent(container)
+  renderContent(container, userData)
 }
 
 /**
  * Render the current view content
  */
-function renderContent(container) {
+function renderContent(container, userData) {
   const contentArea = container.querySelector('#app-content')
 
   switch (currentView) {
@@ -90,6 +98,13 @@ function renderContent(container) {
       break
     case 'profile':
       renderProfileView(contentArea)
+      break
+    case 'admin':
+      if (userIsAdmin) {
+        renderAdminPanel(contentArea, userData)
+      } else {
+        contentArea.innerHTML = '<div class="error-state"><h2>Access Denied</h2><p>Admin privileges required</p></div>'
+      }
       break
   }
 }
