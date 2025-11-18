@@ -148,8 +148,14 @@ export async function renderSubmitPromptGate(container, userData) {
       })
 
       if (result.success) {
-        // Show success message and refresh to show pending approval gate
+        // Show success message
         alert(result.message)
+
+        // Small delay to ensure database trigger has completed
+        submitBtn.textContent = 'Redirecting...'
+        await new Promise(resolve => setTimeout(resolve, 500))
+
+        // Refresh to show pending approval gate
         await checkAccessAndRender()
       }
     } catch (error) {

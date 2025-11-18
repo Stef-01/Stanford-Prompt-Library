@@ -130,6 +130,11 @@ CREATE POLICY "Users can view all profiles"
   ON users FOR SELECT
   USING (true);
 
+-- Users can insert own profile on first sign in
+CREATE POLICY "Users can insert own profile"
+  ON users FOR INSERT
+  WITH CHECK (auth.uid() = id);
+
 -- Users can update own profile
 CREATE POLICY "Users can update own profile"
   ON users FOR UPDATE
