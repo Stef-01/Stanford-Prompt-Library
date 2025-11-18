@@ -1,4 +1,5 @@
 import './style.css'
+import { supabase } from './config/supabase.js'
 import { onAuthStateChange } from './services/auth.js'
 import { checkUserAccess } from './services/access-control.js'
 import { renderSignInGate } from './components/SignInGate.js'
@@ -32,6 +33,9 @@ window.addEventListener('unhandledrejection', (event) => {
 // Global state
 let currentUser = null
 let currentProfile = null
+let isInitialized = false
+let authListenerActive = false
+let isRendering = false // Prevent concurrent renders
 
 // Main app container
 const app = document.querySelector('#app')
@@ -46,19 +50,35 @@ async function init() {
     // Show loading state
     app.innerHTML = '<div class="loading">Loading...</div>'
 
-    // Set up auth state listener
+    // First, get the current session to check if user is already authenticated
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log('Initial session check:', session ? 'Session exists' : 'No session')
+
+    // Set up auth state listener FIRST, before checking access
+    // This prevents race conditions between listener and initial check
+    authListenerActive = true
     onAuthStateChange(async (event, session, profile) => {
-      console.log('Auth state changed:', event)
+      console.log('Auth event:', event, session?.user?.email || 'no user')
 
       currentUser = session?.user || null
       currentProfile = profile
 
-      // Check access and render appropriate view
-      await checkAccessAndRender()
+      // Only render if initialization is complete
+      // This prevents double-rendering during startup
+      if (isInitialized) {
+        await checkAccessAndRender()
+      }
     })
 
-    // Initial render
+    // Wait a brief moment for the auth listener to settle
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Mark as initialized
+    isInitialized = true
+
+    // Now do the initial access check and render
     await checkAccessAndRender()
+
   } catch (error) {
     console.error('Initialization error:', error)
     app.innerHTML = `
@@ -78,7 +98,15 @@ async function init() {
  * Check user access level and render appropriate gate/view
  */
 async function checkAccessAndRender() {
+  // Prevent concurrent renders - if already rendering, skip this call
+  if (isRendering) {
+    console.log('Render already in progress, skipping...')
+    return
+  }
+
   try {
+    isRendering = true
+
     // Show loading state BEFORE clearing content
     app.innerHTML = '<div class="loading">Checking access...</div>'
 
@@ -139,6 +167,9 @@ async function checkAccessAndRender() {
         </button>
       </div>
     `
+  } finally {
+    // Always reset rendering flag
+    isRendering = false
   }
 }
 

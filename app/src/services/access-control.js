@@ -18,68 +18,60 @@ export async function checkUserAccess() {
       }
     }
 
-    // Get user profile from database with timeout
-    const { data: userData, error } = await Promise.race([
-      supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Database query timeout')), 5000)
-      )
-    ])
+    // Get user profile from database
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle() // Use maybeSingle instead of single - won't error if no rows
 
     if (error) {
       console.error('Error fetching user data:', error)
-
-      // If user doesn't exist in database, try to create profile
-      if (error.code === 'PGRST116') {
-        console.log('User profile not found, creating...')
-        try {
-          await createUserProfile(user)
-          // Retry fetching user data
-          const retry = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single()
-
-          if (retry.error) throw retry.error
-
-          // New user, needs to submit prompt
-          return {
-            hasAccess: false,
-            reason: 'NO_PROMPT_SUBMITTED',
-            message: 'Submit your first prompt to unlock access to the library',
-            needsAction: 'SUBMIT_PROMPT',
-            userData: retry.data
-          }
-        } catch (createError) {
-          console.error('Failed to create user profile:', createError)
-          // Clear the bad session
-          await supabase.auth.signOut()
-          return {
-            hasAccess: false,
-            reason: 'NOT_AUTHENTICATED',
-            message: 'Session expired. Please sign in again.',
-            needsAction: 'SIGN_IN'
-          }
-        }
-      }
-
-      throw error
-    }
-
-    if (!userData) {
-      console.error('User data is null')
-      // Clear the bad session
+      // Database error - clear session and force re-auth
       await supabase.auth.signOut()
       return {
         hasAccess: false,
         reason: 'NOT_AUTHENTICATED',
-        message: 'Session expired. Please sign in again.',
+        message: 'Database error. Please sign in again.',
         needsAction: 'SIGN_IN'
+      }
+    }
+
+    // If user doesn't exist in database, create profile
+    if (!userData) {
+      console.log('User profile not found, creating...')
+      try {
+        await createUserProfile(user)
+
+        // Fetch the newly created profile
+        const { data: newUserData, error: retryError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle()
+
+        if (retryError || !newUserData) {
+          throw new Error('Failed to create user profile')
+        }
+
+        // New user, needs to submit prompt
+        return {
+          hasAccess: false,
+          reason: 'NO_PROMPT_SUBMITTED',
+          message: 'Submit your first prompt to unlock access to the library',
+          needsAction: 'SUBMIT_PROMPT',
+          userData: newUserData
+        }
+      } catch (createError) {
+        console.error('Failed to create user profile:', createError)
+        // Clear the bad session
+        await supabase.auth.signOut()
+        return {
+          hasAccess: false,
+          reason: 'NOT_AUTHENTICATED',
+          message: 'Failed to create profile. Please sign in again.',
+          needsAction: 'SIGN_IN'
+        }
       }
     }
 
