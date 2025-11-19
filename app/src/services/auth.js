@@ -139,32 +139,57 @@ export async function getUserProfile(userId) {
  */
 export function onAuthStateChange(callback) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('Auth event:', event, session?.user?.email)
+    console.log('🔐 Auth event:', event, 'User:', session?.user?.email || 'none')
+    console.log('🔐 Session details:', session ? 'exists' : 'null')
 
     if (event === 'SIGNED_IN' && session?.user) {
       try {
+        console.log('✅ User signed in:', session.user.email)
+
         // Validate Stanford email
         if (!isStanfordEmail(session.user.email)) {
-          await signOut()
-          alert('Only Stanford email addresses are allowed. Please sign in with your @stanford.edu email.')
+          console.error('❌ Non-Stanford email detected:', session.user.email)
+          // Don't auto sign out - let user see the error
+          alert(`❌ Access Denied\n\nOnly Stanford email addresses (@stanford.edu) are allowed.\n\nYou signed in with: ${session.user.email}\n\nPlease sign in with your Stanford email.`)
+          await supabase.auth.signOut({ scope: 'local' })
+          window.location.href = '/'
           return
         }
 
+        console.log('✅ Stanford email validated')
+
         // Create/update user profile
-        await createUserProfile(session.user)
+        console.log('📝 Creating/updating user profile...')
+        const profileData = await createUserProfile(session.user)
+        console.log('✅ Profile created/updated:', profileData)
 
         // Get full profile
+        console.log('📋 Fetching user profile...')
         const profile = await getUserProfile(session.user.id)
+        console.log('✅ Profile fetched:', profile ? 'success' : 'failed')
 
         callback(event, session, profile)
       } catch (error) {
-        console.error('Auth callback error:', error)
-        await signOut()
-        alert('Authentication error: ' + error.message)
+        console.error('❌ Auth callback error:', error)
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
+
+        // Show detailed error instead of generic message
+        alert(`❌ Authentication Error\n\n${error.message}\n\nPlease try again or contact support if the issue persists.`)
+
+        // Sign out locally without redirecting to avoid loops
+        await supabase.auth.signOut({ scope: 'local' })
+        window.location.href = '/'
       }
     } else if (event === 'SIGNED_OUT') {
+      console.log('👋 User signed out')
       callback(event, null, null)
     } else {
+      console.log('🔄 Other auth event:', event)
       callback(event, session, null)
     }
   })
