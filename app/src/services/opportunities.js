@@ -17,6 +17,13 @@ export async function getOpportunities({
   featured = false
 } = {}) {
   try {
+    console.log('[Opportunities Service] Fetching opportunities with filters:', {
+      category,
+      status,
+      limit,
+      featured
+    })
+
     let query = supabase
       .from('opportunities')
       .select('*')
@@ -40,13 +47,32 @@ export async function getOpportunities({
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching opportunities:', error)
+      console.error('[Opportunities Service] Supabase query error:', error)
+      console.error('[Opportunities Service] Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
+
+      // Check if it's an auth/connection error
+      if (error.message?.includes('JWT') || error.code === '401' || error.code === 'PGRST301') {
+        console.error('[Opportunities Service] ⚠️  AUTHENTICATION ERROR')
+        console.error('[Opportunities Service] This likely means:')
+        console.error('[Opportunities Service] 1. Missing .env file with Supabase credentials')
+        console.error('[Opportunities Service] 2. RLS policies blocking anonymous access')
+        console.error('[Opportunities Service] 3. Invalid VITE_SUPABASE_ANON_KEY')
+        console.error('[Opportunities Service] Check: app/.env file exists with correct values')
+      }
+
       throw error
     }
 
+    console.log('[Opportunities Service] ✅ Successfully fetched', data?.length || 0, 'opportunities')
     return data || []
   } catch (error) {
-    console.error('getOpportunities error:', error)
+    console.error('[Opportunities Service] Caught error in getOpportunities:', error)
+    console.error('[Opportunities Service] Returning empty array as fallback')
     return []
   }
 }
