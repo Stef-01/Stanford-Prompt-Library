@@ -4,7 +4,7 @@
  */
 
 import { prefersReducedMotion } from '../animations/config.js'
-import { getEasing, springAnimate } from '../animations/helpers.js'
+import { getEasing } from '../animations/helpers.js'
 
 let activeWindows = new Set()
 let windowZIndex = 100
