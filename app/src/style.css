@@ -1409,7 +1409,7 @@ body.desktop-mode {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .dock-icon::before {
@@ -1446,13 +1446,22 @@ body.desktop-mode {
 .dock-label {
   font-size: 10px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-align: center;
   opacity: 0;
   transition: opacity 0.3s ease;
   position: absolute;
-  bottom: -5px;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
   white-space: nowrap;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  z-index: 10001;
 }
 
 .dock-icon:hover .dock-label {
