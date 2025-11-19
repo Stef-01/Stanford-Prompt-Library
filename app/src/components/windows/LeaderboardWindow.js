@@ -6,6 +6,15 @@ import {
   getUserVote,
   getToolCategories
 } from '../../services/ai-tools.js'
+import {
+  staggerIn,
+  animateCounter,
+  createParticleExplosion,
+  showModal,
+  hideModal,
+  createRipple,
+  pulseElement
+} from '../../animations/helpers.js'
 
 let leaderboardData = []
 let currentFilter = 'all' // all, month, week
@@ -247,6 +256,14 @@ function renderToolsList() {
     `
   }
 
+  // Apply stagger animation after render
+  setTimeout(() => {
+    const toolCards = containerRef?.querySelectorAll('.tool-card')
+    if (toolCards) {
+      staggerIn(toolCards, 50)
+    }
+  }, 10)
+
   return aiTools.map((tool, index) => {
     const rankBadge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`
     const userVote = userVotes.get(tool.id)
@@ -256,7 +273,7 @@ function renderToolsList() {
     const submittedBy = tool.users?.display_name || 'Unknown'
 
     return `
-      <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-purple)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'">
+      <div class="tool-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-purple)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px rgba(0, 0, 0, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
         <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
           <!-- Voting Column -->
           <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px;">
@@ -264,20 +281,24 @@ function renderToolsList() {
               class="vote-btn upvote-btn"
               data-tool-id="${tool.id}"
               data-vote-type="upvote"
-              style="background: ${hasUpvoted ? 'var(--accent-green)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasUpvoted ? 'var(--accent-green)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; font-size: 16px;"
+              style="background: ${hasUpvoted ? 'var(--accent-green)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasUpvoted ? 'var(--accent-green)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 16px; position: relative; overflow: hidden;"
               title="Upvote"
+              onmouseover="this.style.transform='scale(1.15) rotate(5deg)'"
+              onmouseout="this.style.transform='scale(1) rotate(0deg)'"
             >
               ▲
             </button>
-            <span style="font-weight: 700; font-size: 16px; color: ${netScore > 0 ? 'var(--accent-green)' : netScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'};">
+            <span class="net-score" data-score="${netScore}" style="font-weight: 700; font-size: 16px; color: ${netScore > 0 ? 'var(--accent-green)' : netScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'}; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
               ${netScore > 0 ? '+' : ''}${netScore}
             </span>
             <button
               class="vote-btn downvote-btn"
               data-tool-id="${tool.id}"
               data-vote-type="downvote"
-              style="background: ${hasDownvoted ? 'var(--accent-red)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasDownvoted ? 'var(--accent-red)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; font-size: 16px;"
+              style="background: ${hasDownvoted ? 'var(--accent-red)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasDownvoted ? 'var(--accent-red)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 16px; position: relative; overflow: hidden;"
               title="Downvote"
+              onmouseover="this.style.transform='scale(1.15) rotate(-5deg)'"
+              onmouseout="this.style.transform='scale(1) rotate(0deg)'"
             >
               ▼
             </button>
@@ -428,8 +449,9 @@ function attachContentListeners(container) {
     const addToolBtn = container.querySelector('#add-tool-btn')
     addToolBtn?.addEventListener('click', () => {
       const modal = container.querySelector('#submit-tool-modal')
-      if (modal) {
-        modal.style.display = 'block'
+      const modalContent = modal?.querySelector('> div')
+      if (modal && modalContent) {
+        showModal(modal, modalContent)
       }
     })
 
@@ -437,8 +459,9 @@ function attachContentListeners(container) {
     const closeModalBtn = container.querySelector('#close-modal-btn')
     closeModalBtn?.addEventListener('click', () => {
       const modal = container.querySelector('#submit-tool-modal')
-      if (modal) {
-        modal.style.display = 'none'
+      const modalContent = modal?.querySelector('> div')
+      if (modal && modalContent) {
+        hideModal(modal, modalContent)
       }
     })
 
@@ -466,10 +489,11 @@ function attachContentListeners(container) {
         const result = await submitAITool(toolData)
 
         if (result.success) {
-          // Close modal
+          // Close modal with animation
           const modal = container.querySelector('#submit-tool-modal')
-          if (modal) {
-            modal.style.display = 'none'
+          const modalContent = modal?.querySelector('> div')
+          if (modal && modalContent) {
+            hideModal(modal, modalContent)
           }
 
           // Reset form
@@ -486,6 +510,7 @@ function attachContentListeners(container) {
             attachVoteListeners(container)
           }
 
+          // Show success message (could be enhanced with toast notification)
           alert(result.message)
         }
       } catch (error) {
@@ -501,7 +526,10 @@ function attachContentListeners(container) {
     const modal = container.querySelector('#submit-tool-modal')
     modal?.addEventListener('click', (e) => {
       if (e.target === modal) {
-        modal.style.display = 'none'
+        const modalContent = modal.querySelector('> div')
+        if (modalContent) {
+          hideModal(modal, modalContent)
+        }
       }
     })
 
@@ -516,18 +544,43 @@ function attachContentListeners(container) {
 function attachVoteListeners(container) {
   const voteButtons = container.querySelectorAll('.vote-btn')
   voteButtons.forEach(btn => {
+    // Add ripple effect on click
+    btn.addEventListener('click', (e) => {
+      createRipple(e, btn)
+    })
+
     btn.addEventListener('click', async (e) => {
       e.preventDefault()
 
       const toolId = btn.dataset.toolId
       const voteType = btn.dataset.voteType
+      const toolCard = btn.closest('.tool-card')
+      const scoreElement = toolCard?.querySelector('.net-score')
+      const oldScore = parseInt(scoreElement?.dataset.score || '0')
 
       try {
         btn.disabled = true
 
+        // Visual feedback: button animation
+        btn.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.3) rotate(' + (voteType === 'upvote' ? '10' : '-10') + 'deg)' },
+          { transform: 'scale(1) rotate(0deg)' }
+        ], {
+          duration: 300,
+          easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+        })
+
         const result = await voteOnTool(toolId, voteType)
 
         if (result.success) {
+          // Particle explosion at button position
+          const rect = btn.getBoundingClientRect()
+          const x = rect.left + rect.width / 2
+          const y = rect.top + rect.height / 2
+          const color = voteType === 'upvote' ? '#22c55e' : '#ef4444'
+          createParticleExplosion(x, y, color, 12)
+
           // Update local vote cache
           if (result.action === 'removed') {
             userVotes.delete(toolId)
@@ -536,7 +589,29 @@ function attachVoteListeners(container) {
           }
 
           // Reload tools to get updated counts
+          const oldTools = [...aiTools]
           aiTools = await getAIToolsLeaderboard(toolsFilter)
+
+          // Find the new score for this tool
+          const updatedTool = aiTools.find(t => t.id === toolId)
+          const newScore = updatedTool?.net_score || 0
+
+          // Animate the counter if score changed
+          if (scoreElement && newScore !== oldScore) {
+            animateCounter(scoreElement, oldScore, newScore)
+            scoreElement.dataset.score = newScore
+
+            // Update color
+            setTimeout(() => {
+              const color = newScore > 0 ? 'var(--accent-green)' : newScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'
+              scoreElement.style.color = color
+            }, 400)
+          }
+
+          // Pulse the tool card
+          if (toolCard) {
+            pulseElement(toolCard)
+          }
 
           // Re-render tools list
           const toolsList = container.querySelector('#tools-list')

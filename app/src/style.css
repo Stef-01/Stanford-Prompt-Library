@@ -17,13 +17,43 @@
   --text-primary: #ffffff;
   --text-secondary: #a0a0a0;
   --accent-blue: #3b82f6;
+  --accent-purple: #a855f7;
   --accent-green: #22c55e;
   --accent-red: #ef4444;
+  --accent-yellow: #eab308;
   --border-color: rgba(255, 255, 255, 0.1);
+
+  /* Animation Easings */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
 
   color-scheme: dark;
   color: var(--text-primary);
   background-color: var(--bg-primary);
+}
+
+/* Universal smooth transitions for interactive elements */
+button,
+a,
+input,
+select,
+textarea,
+.card,
+[role="button"] {
+  transition: all 0.3s var(--ease-spring);
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
@@ -1882,4 +1912,417 @@ body.desktop-mode {
     transform: scale(1) translateY(0);
     filter: blur(0px);
   }
+}
+
+/* ============================================================================
+   ENHANCED ANIMATIONS & MICRO-INTERACTIONS
+   ============================================================================ */
+
+/* Button Enhancements */
+button:hover:not(:disabled),
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Ripple effect base */
+button {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Link Animations */
+a {
+  position: relative;
+  text-decoration: none;
+}
+
+a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-blue);
+  transition: width 0.3s var(--ease-spring);
+}
+
+a:hover::after {
+  width: 100%;
+}
+
+/* Input Focus Enhancements */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  transform: scale(1.01);
+}
+
+input.error,
+textarea.error,
+select.error {
+  border-color: var(--accent-red);
+  animation: shake 0.4s ease-in-out;
+}
+
+input.success,
+textarea.success,
+select.success {
+  border-color: var(--accent-green);
+  animation: success-pulse 0.6s ease-out;
+}
+
+/* Badge/Tag Enhancements */
+.category-badge,
+[class*="badge"] {
+  position: relative;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.category-badge::before,
+[class*="badge"]::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.category-badge:hover::before,
+[class*="badge"]:hover::before {
+  opacity: 0.6;
+}
+
+/* Card Hover Enhancements */
+.card,
+[class*="card"] {
+  transition: all 0.4s var(--ease-spring);
+}
+
+.card:hover,
+[class*="card"]:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Tool Card Specific (additional to inline styles) */
+.tool-card {
+  position: relative;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tool-card:hover::before {
+  opacity: 1;
+}
+
+/* Scroll Animation Styles */
+[data-animate] {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s var(--ease-spring);
+}
+
+[data-animate].animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animate="fade-left"] {
+  transform: translateX(-30px);
+}
+
+[data-animate="fade-left"].animate-in {
+  transform: translateX(0);
+}
+
+[data-animate="fade-right"] {
+  transform: translateX(30px);
+}
+
+[data-animate="fade-right"].animate-in {
+  transform: translateX(0);
+}
+
+[data-animate="scale"] {
+  transform: scale(0.8);
+}
+
+[data-animate="scale"].animate-in {
+  transform: scale(1);
+}
+
+/* Loading Skeleton Shimmer */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-line,
+.skeleton-circle {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.05) 25%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 2s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+/* Shake Animation (for errors) */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Success Pulse */
+@keyframes success-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  100% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* Gradient Animation (for backgrounds) */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-animated {
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Fade In/Out */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s var(--ease-spring) forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s var(--ease-in) forwards;
+}
+
+/* Scale In/Out */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.4s var(--ease-spring) forwards;
+}
+
+.scale-out {
+  animation: scaleOut 0.3s var(--ease-in) forwards;
+}
+
+/* Rotate In */
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-180deg) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.rotate-in {
+  animation: rotateIn 0.5s var(--ease-spring) forwards;
+}
+
+/* Slide In from directions */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-up {
+  animation: slideInUp 0.4s var(--ease-spring) forwards;
+}
+
+.slide-in-down {
+  animation: slideInDown 0.4s var(--ease-spring) forwards;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.4s var(--ease-spring) forwards;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.4s var(--ease-spring) forwards;
+}
+
+/* Utility Classes */
+.smooth-transition {
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.spring-transition {
+  transition: all 0.4s var(--ease-spring);
+}
+
+.fast-transition {
+  transition: all 0.2s var(--ease-out);
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Remove will-change after animation */
+.animated {
+  will-change: transform, opacity;
+}
+
+.animated.animation-done {
+  will-change: auto;
 }
