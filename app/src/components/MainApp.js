@@ -25,18 +25,31 @@ let userIsAdmin = false
  * Render the main app for approved members
  */
 export async function renderMainApp(container, userData) {
-  // Add desktop mode class to body
-  document.body.classList.add('desktop-mode')
+  try {
+    // Add desktop mode class to body
+    document.body.classList.add('desktop-mode')
 
-  // Check if user is admin
-  userIsAdmin = await isAdmin()
+    console.log('🎨 Rendering main app for user:', userData.display_name)
 
-  // Load initial data
-  categories = await getCategories()
-  prompts = await getApprovedPrompts()
-  leaderboardData = await getLeaderboard()
+    // Check if user is admin
+    console.log('🔍 Checking admin status...')
+    userIsAdmin = await isAdmin()
+    console.log('✅ Admin status:', userIsAdmin)
 
-  const isInBypassMode = isBypassActive()
+    // Load initial data
+    console.log('📊 Loading categories...')
+    categories = await getCategories()
+    console.log('✅ Categories loaded:', categories?.length || 0)
+
+    console.log('📝 Loading prompts...')
+    prompts = await getApprovedPrompts()
+    console.log('✅ Prompts loaded:', prompts?.length || 0)
+
+    console.log('🏆 Loading leaderboard...')
+    leaderboardData = await getLeaderboard()
+    console.log('✅ Leaderboard loaded:', leaderboardData?.length || 0)
+
+    const isInBypassMode = isBypassActive()
 
   container.innerHTML = `
     <div class="desktop">
@@ -154,8 +167,39 @@ export async function renderMainApp(container, userData) {
     })
   })
 
-  // Initial render
-  renderContent(container, userData)
+    // Initial render
+    console.log('✅ Main app rendered successfully, rendering initial content...')
+    renderContent(container, userData)
+  } catch (error) {
+    console.error('❌ Error rendering main app:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack
+    })
+
+    // Show error to user
+    container.innerHTML = `
+      <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--bg-primary);">
+        <div style="max-width: 600px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 3rem; text-align: center;">
+          <h1 style="color: var(--accent-red); margin-bottom: 1rem;">❌ Error Loading App</h1>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Failed to load the main application. This might be due to:
+          </p>
+          <ul style="text-align: left; color: var(--text-secondary); margin-bottom: 2rem;">
+            <li>Missing seed data in database (run seed SQL)</li>
+            <li>Database connection issues</li>
+            <li>Browser console has more details (press F12)</li>
+          </ul>
+          <pre style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; overflow: auto; text-align: left; color: var(--accent-red); margin-bottom: 2rem; font-size: 0.875rem;">
+${error.message}
+          </pre>
+          <button onclick="window.location.reload()" class="btn-primary" style="padding: 0.75rem 1.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            Reload Page
+          </button>
+        </div>
+      </div>
+    `
+  }
 }
 
 /**

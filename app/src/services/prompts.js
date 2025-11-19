@@ -97,12 +97,15 @@ export async function getApprovedPrompts(options = {}) {
 
     const { data, error } = await query
 
-    if (error) throw error
+    if (error) {
+      console.error('Get prompts query error:', error)
+      return [] // Return empty array instead of throwing
+    }
     return data || []
 
   } catch (error) {
     console.error('Get prompts error:', error)
-    throw error
+    return [] // Return empty array on any error
   }
 }
 
