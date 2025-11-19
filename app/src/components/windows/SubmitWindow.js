@@ -1,5 +1,12 @@
 import { submitPrompt, getCategories } from '../../services/prompts.js'
 import { validatePromptSubmission } from '../../utils/validation.js'
+import {
+  initFormAnimations,
+  showInputError,
+  showInputSuccess,
+  setButtonLoading,
+  validateFormWithAnimations
+} from '../../animations/form-animations.js'
 
 let categories = []
 let selectedTags = []
@@ -195,6 +202,9 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
 
   // Set up event listeners
   setupSubmitWindowEventListeners(contentContainer, onSuccess)
+
+  // Initialize form animations
+  initFormAnimations(contentContainer)
 }
 
 /**
@@ -287,8 +297,8 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
     e.preventDefault()
 
     try {
-      submitBtn.disabled = true
-      submitBtn.textContent = 'Validating...'
+      // Set button loading state
+      setButtonLoading(submitBtn, true)
 
       const formData = new FormData(form)
 
@@ -300,16 +310,54 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         tags: selectedTags
       }
 
+      // Validate with animations
+      const titleInput = form.querySelector('#submit-title')
+      const descInput = form.querySelector('#submit-description')
+      const contentInput = form.querySelector('#submit-content')
+      const categorySelect = form.querySelector('#submit-category')
+
+      let hasErrors = false
+
+      if (!promptData.title || promptData.title.length < 3) {
+        showInputError(titleInput, 'Title must be at least 3 characters')
+        hasErrors = true
+      } else {
+        showInputSuccess(titleInput)
+      }
+
+      if (!promptData.description || promptData.description.length < 20) {
+        showInputError(descInput, 'Description must be at least 20 characters')
+        hasErrors = true
+      } else {
+        showInputSuccess(descInput)
+      }
+
+      if (!promptData.content || promptData.content.length < 50) {
+        showInputError(contentInput, 'Content must be at least 50 characters')
+        hasErrors = true
+      } else {
+        showInputSuccess(contentInput)
+      }
+
+      if (!promptData.category) {
+        showInputError(categorySelect, 'Please select a category')
+        hasErrors = true
+      } else {
+        showInputSuccess(categorySelect)
+      }
+
+      if (hasErrors) {
+        setButtonLoading(submitBtn, false)
+        return
+      }
+
       // Validate content quality to prevent spam
       const validation = validatePromptSubmission(promptData)
       if (!validation.isValid) {
         alert(`❌ Validation Failed:\n\n${validation.message}\n\nPlease revise your submission and try again.`)
-        submitBtn.disabled = false
-        submitBtn.textContent = 'Submit for Review'
+        setButtonLoading(submitBtn, false)
         return
       }
-
-      submitBtn.textContent = 'Submitting...'
 
       const result = await submitPrompt(promptData)
 
@@ -336,14 +384,12 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         }
       }
 
-      submitBtn.disabled = false
-      submitBtn.textContent = 'Submit for Review'
+      setButtonLoading(submitBtn, false)
 
     } catch (error) {
       console.error('Submit error:', error)
       alert('Failed to submit prompt: ' + error.message)
-      submitBtn.disabled = false
-      submitBtn.textContent = 'Submit for Review'
+      setButtonLoading(submitBtn, false)
     }
   })
 }
