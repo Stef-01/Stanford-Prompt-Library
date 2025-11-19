@@ -46,25 +46,37 @@ export function initWallpaper() {
  * Apply wallpaper to desktop
  */
 function applyWallpaper(wallpaper, intensity, palette) {
+  console.log('[Wallpaper Service] Applying wallpaper:', {
+    wallpaper: wallpaper.id,
+    type: wallpaper.type,
+    intensity,
+    palette
+  });
+
   const desktop = document.querySelector('body.desktop-mode');
   if (!desktop) {
-    console.warn('Desktop mode not active, wallpaper will apply when desktop mode is active');
+    console.warn('[Wallpaper Service] Desktop mode not active');
     currentWallpaper = wallpaper;
     return;
   }
 
+  console.log('[Wallpaper Service] Desktop element found:', desktop);
+
   // Stop current animation if any
   if (currentStopFunction) {
+    console.log('[Wallpaper Service] Stopping previous animation');
     currentStopFunction();
     currentStopFunction = null;
   }
 
   // Clean up existing elements
   if (backgroundCanvas) {
+    console.log('[Wallpaper Service] Removing previous canvas');
     backgroundCanvas.remove();
     backgroundCanvas = null;
   }
   if (backgroundContainer) {
+    console.log('[Wallpaper Service] Removing previous container');
     backgroundContainer.remove();
     backgroundContainer = null;
   }
@@ -74,11 +86,13 @@ function applyWallpaper(wallpaper, intensity, palette) {
 
   // Apply wallpaper based on type
   if (wallpaper.type === 'css') {
+    console.log('[Wallpaper Service] Applying CSS wallpaper');
     desktop.style.backgroundImage = wallpaper.css;
     desktop.style.backgroundSize = 'cover';
     desktop.style.backgroundPosition = 'center';
     desktop.style.backgroundRepeat = 'no-repeat';
   } else if (wallpaper.type === 'canvas') {
+    console.log('[Wallpaper Service] Creating canvas wallpaper');
     // Clear CSS background
     desktop.style.backgroundImage = 'none';
 
@@ -90,13 +104,18 @@ function applyWallpaper(wallpaper, intensity, palette) {
     backgroundCanvas.style.left = '0';
     backgroundCanvas.style.width = '100%';
     backgroundCanvas.style.height = '100%';
-    backgroundCanvas.style.zIndex = '-1';
+    backgroundCanvas.style.zIndex = '0';
     backgroundCanvas.style.pointerEvents = 'none';
-    desktop.appendChild(backgroundCanvas);
+    desktop.insertBefore(backgroundCanvas, desktop.firstChild);
+
+    console.log('[Wallpaper Service] Canvas created, starting animation:', wallpaper.animation);
 
     // Start animation
     currentStopFunction = startCanvasAnimation(wallpaper.animation, backgroundCanvas, intensity, palette);
+
+    console.log('[Wallpaper Service] Animation started, canvas in DOM:', document.getElementById('wallpaper-canvas') !== null);
   } else if (wallpaper.type === 'css-animation') {
+    console.log('[Wallpaper Service] Creating CSS animation wallpaper');
     // Clear CSS background
     desktop.style.backgroundImage = 'none';
 
@@ -108,15 +127,20 @@ function applyWallpaper(wallpaper, intensity, palette) {
     backgroundContainer.style.left = '0';
     backgroundContainer.style.width = '100%';
     backgroundContainer.style.height = '100%';
-    backgroundContainer.style.zIndex = '-1';
+    backgroundContainer.style.zIndex = '0';
     backgroundContainer.style.pointerEvents = 'none';
-    desktop.appendChild(backgroundContainer);
+    desktop.insertBefore(backgroundContainer, desktop.firstChild);
+
+    console.log('[Wallpaper Service] Container created, starting CSS animation');
 
     // Start CSS animation
     currentStopFunction = startGradientMesh(backgroundContainer, intensity, palette);
+
+    console.log('[Wallpaper Service] CSS animation started');
   }
 
   currentWallpaper = wallpaper;
+  console.log('[Wallpaper Service] Wallpaper applied successfully');
 }
 
 /**

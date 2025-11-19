@@ -140,10 +140,10 @@ export function renderOpportunitiesWindow(contentContainer) {
  */
 export function renderSettingsWindow(contentContainer, userData) {
   contentContainer.innerHTML = `
-    <div style="padding: 40px;">
+    <div style="padding: 40px; overflow-y: auto; height: 100%;">
       <div style="margin-bottom: 30px;">
         <h2 style="font-size: 24px; margin-bottom: 10px; color: var(--text-primary);">⚙️ Settings</h2>
-        <p style="color: var(--text-secondary); font-size: 14px;">Manage your account preferences</p>
+        <p style="color: var(--text-secondary); font-size: 14px;">Manage your account and appearance preferences</p>
       </div>
 
       <!-- Account Section -->
@@ -188,6 +188,14 @@ export function renderSettingsWindow(contentContainer, userData) {
         </div>
       </div>
 
+      <!-- Wallpaper Section -->
+      <div id="wallpaper-settings-section" style="margin-bottom: 30px;">
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">🎨 Desktop Wallpaper</h3>
+        <div id="wallpaper-settings-content">
+          <!-- Wallpaper UI will be injected here -->
+        </div>
+      </div>
+
       <!-- Appearance Section -->
       <div style="margin-bottom: 30px;">
         <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">Appearance</h3>
@@ -211,6 +219,223 @@ export function renderSettingsWindow(contentContainer, userData) {
       </div>
     </div>
   `
+
+  // Load wallpaper settings
+  loadWallpaperSettings()
+}
+
+/**
+ * Load wallpaper settings into settings window
+ */
+function loadWallpaperSettings() {
+  // Dynamically import wallpaper functions
+  import('../../services/wallpaper.js').then(wallpaperModule => {
+    import('../../config/wallpapers.js').then(configModule => {
+      const container = document.getElementById('wallpaper-settings-content')
+      if (!container) return
+
+      const { getAllWallpapers, getCurrentWallpaper, getCurrentIntensity, getCurrentPalette, setWallpaper, setIntensity, setColorPalette } = wallpaperModule
+      const { colorPalettes } = configModule
+
+      const wallpapers = getAllWallpapers()
+      const current = getCurrentWallpaper() || wallpapers[0]
+      const intensity = getCurrentIntensity()
+      const palette = getCurrentPalette()
+
+      const intensityLabels = ['Minimal', 'Very Low', 'Low', 'Medium-Low', 'Medium', 'Medium-High', 'High', 'Very High', 'Intense', 'Maximum']
+
+      container.innerHTML = `
+        <!-- Wallpaper Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-bottom: 24px;">
+          ${wallpapers.map(wallpaper => `
+            <div
+              class="wallpaper-option-settings"
+              data-wallpaper-id="${wallpaper.id}"
+              style="
+                position: relative;
+                aspect-ratio: 1;
+                border-radius: 10px;
+                overflow: hidden;
+                cursor: pointer;
+                border: 2px solid ${current && current.id === wallpaper.id ? 'var(--color-primary, #8B5CF6)' : 'var(--border-color)'};
+                background: var(--bg-secondary);
+                transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+              "
+            >
+              <div style="
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 36px;
+                background: ${wallpaper.backgroundColor || '#0A0F1E'};
+              ">
+                ${wallpaper.emoji}
+              </div>
+              ${current && current.id === wallpaper.id ? `
+                <div style="
+                  position: absolute;
+                  top: 6px;
+                  right: 6px;
+                  width: 18px;
+                  height: 18px;
+                  border-radius: 50%;
+                  background: var(--color-primary, #8B5CF6);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+                ">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4">
+                    <path d="M20 6L9 17L4 12" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              ` : ''}
+              <div style="
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 6px;
+                background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+                color: white;
+                font-size: 10px;
+                font-weight: 500;
+                text-align: center;
+              ">
+                ${wallpaper.name}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <!-- Intensity Control -->
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; margin-bottom: 12px;">
+          <div style="margin-bottom: 8px;">
+            <span style="font-size: 13px; color: var(--text-primary); font-weight: 500;">⚡ Animation Intensity</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input
+              type="range"
+              id="intensity-slider-settings"
+              min="1"
+              max="10"
+              value="${intensity}"
+              style="
+                flex: 1;
+                height: 4px;
+                border-radius: 2px;
+                background: var(--bg-tertiary, #2a2a2a);
+                outline: none;
+                -webkit-appearance: none;
+                cursor: pointer;
+              "
+            >
+            <span id="intensity-value-settings" style="
+              font-size: 11px;
+              color: var(--text-secondary);
+              min-width: 80px;
+              text-align: right;
+            ">
+              ${intensityLabels[intensity - 1]}
+            </span>
+          </div>
+        </div>
+
+        <!-- Color Palette Control -->
+        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px;">
+          <div style="margin-bottom: 10px;">
+            <span style="font-size: 13px; color: var(--text-primary); font-weight: 500;">🎨 Color Palette</span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            ${Object.entries(colorPalettes).map(([key, pal]) => `
+              <div
+                class="color-swatch-settings"
+                data-palette="${key}"
+                style="
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 8px;
+                  cursor: pointer;
+                  border: 2px solid ${palette === key ? 'white' : 'transparent'};
+                  background: ${pal.gradient};
+                  transition: all 0.2s ease;
+                  box-shadow: ${palette === key ? '0 0 0 3px rgba(255, 255, 255, 0.2)' : 'none'};
+                "
+                title="${pal.name}"
+              ></div>
+            `).join('')}
+          </div>
+        </div>
+      `
+
+      // Add event listeners
+      document.querySelectorAll('.wallpaper-option-settings').forEach(option => {
+        option.addEventListener('click', () => {
+          const wallpaperId = option.dataset.wallpaperId
+          const success = setWallpaper(wallpaperId)
+          if (success) {
+            // Reload wallpaper settings to update UI
+            loadWallpaperSettings()
+          }
+        })
+
+        option.addEventListener('mouseenter', () => {
+          if (!option.querySelector('svg')) {
+            option.style.borderColor = 'rgba(139, 92, 246, 0.5)'
+            option.style.transform = 'scale(1.05)'
+          }
+        })
+
+        option.addEventListener('mouseleave', () => {
+          if (!option.querySelector('svg')) {
+            option.style.borderColor = 'var(--border-color)'
+            option.style.transform = ''
+          }
+        })
+      })
+
+      const intensitySlider = document.getElementById('intensity-slider-settings')
+      const intensityValue = document.getElementById('intensity-value-settings')
+
+      if (intensitySlider) {
+        intensitySlider.addEventListener('input', (e) => {
+          const value = parseInt(e.target.value)
+          intensityValue.textContent = intensityLabels[value - 1]
+          setIntensity(value)
+        })
+      }
+
+      document.querySelectorAll('.color-swatch-settings').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          const paletteKey = swatch.dataset.palette
+          setColorPalette(paletteKey)
+          loadWallpaperSettings()
+        })
+
+        swatch.addEventListener('mouseenter', () => {
+          if (swatch.style.borderColor === 'transparent') {
+            swatch.style.transform = 'scale(1.1)'
+          }
+        })
+
+        swatch.addEventListener('mouseleave', () => {
+          swatch.style.transform = ''
+        })
+      })
+    })
+  }).catch(error => {
+    console.error('Error loading wallpaper settings:', error)
+    const container = document.getElementById('wallpaper-settings-content')
+    if (container) {
+      container.innerHTML = `
+        <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+          <p>Unable to load wallpaper settings</p>
+        </div>
+      `
+    }
+  })
 }
 
 /**
