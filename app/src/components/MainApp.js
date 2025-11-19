@@ -10,6 +10,8 @@ import {
 } from '../services/prompts.js'
 import { isAdmin } from '../services/admin.js'
 import { renderAdminPanel } from './AdminPanel.js'
+import { startClock } from '../utils/desktop-windows.js'
+import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
 
 let currentView = 'explore' // explore, leaderboard, profile, admin
 let currentCategory = null
@@ -23,6 +25,9 @@ let userIsAdmin = false
  * Render the main app for approved members
  */
 export async function renderMainApp(container, userData) {
+  // Add desktop mode class to body
+  document.body.classList.add('desktop-mode')
+
   // Check if user is admin
   userIsAdmin = await isAdmin()
 
@@ -31,44 +36,83 @@ export async function renderMainApp(container, userData) {
   prompts = await getApprovedPrompts()
   leaderboardData = await getLeaderboard()
 
+  const isInBypassMode = isBypassActive()
+
   container.innerHTML = `
-    <div class="main-app">
-      <!-- Header -->
-      <header class="app-header">
-        <div class="header-left">
-          <h1 class="app-logo">📚 Stanford Prompt Library</h1>
+    <div class="desktop">
+      <!-- Desktop Top Bar -->
+      <div class="desktop-top-bar">
+        <div class="desktop-top-bar-left">
+          <span class="desktop-logo">📚 Stanford Prompt Library</span>
+          ${isInBypassMode ? '<span style="margin-left: 10px; font-size: 11px; color: #f59e0b;">🔓 Testing Mode</span>' : ''}
         </div>
-        <div class="header-right">
-          <span class="user-greeting">Hi, ${userData.display_name || 'there'}!</span>
-          ${userIsAdmin ? '<span class="admin-badge">Admin</span>' : ''}
-          <button id="signout-btn" class="btn-secondary btn-small">Sign Out</button>
+        <div class="desktop-top-bar-right">
+          <span style="color: var(--text-secondary);">${userData.display_name || 'User'}</span>
+          <span style="color: var(--text-secondary);">|</span>
+          <span id="desktop-clock"></span>
         </div>
-      </header>
+      </div>
 
-      <!-- Navigation -->
-      <nav class="app-nav">
-        <button class="nav-btn active" data-view="explore">🔍 Explore</button>
-        <button class="nav-btn" data-view="leaderboard">🏆 Leaderboard</button>
-        <button class="nav-btn" data-view="profile">👤 Profile</button>
-        ${userIsAdmin ? '<button class="nav-btn" data-view="admin">🛡️ Admin</button>' : ''}
+      <!-- Desktop Area -->
+      <div class="desktop-area">
+        <div class="main-app">
+          <!-- Navigation -->
+          <nav class="app-nav">
+            <button class="nav-btn active" data-view="explore">🔍 Explore</button>
+            <button class="nav-btn" data-view="leaderboard">🏆 Leaderboard</button>
+            <button class="nav-btn" data-view="profile">👤 Profile</button>
+            ${userIsAdmin ? '<button class="nav-btn" data-view="admin">🛡️ Admin</button>' : ''}
+          </nav>
+
+          <!-- Main Content -->
+          <main class="app-main">
+            <div id="app-content"></div>
+          </main>
+        </div>
+      </div>
+
+      <!-- Bottom Dock -->
+      <nav class="navbar-dock">
+        <div class="dock-icon" data-action="explore" title="Explore Prompts">
+          <svg fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <span class="dock-label">Explore</span>
+        </div>
+        <div class="dock-icon" data-action="leaderboard" title="Leaderboard">
+          <svg fill="none" stroke="#eab308" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+          </svg>
+          <span class="dock-label">Leaderboard</span>
+        </div>
+        <div class="dock-icon" data-action="profile" title="Your Profile">
+          <svg fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          <span class="dock-label">Profile</span>
+        </div>
+        ${userIsAdmin ? `
+          <div class="dock-icon" data-action="admin" title="Admin Panel">
+            <svg fill="none" stroke="#a855f7" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            <span class="dock-label">Admin</span>
+          </div>
+        ` : ''}
+        <div class="dock-icon" data-action="signout" title="Sign Out">
+          <svg fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          <span class="dock-label">Sign Out</span>
+        </div>
       </nav>
-
-      <!-- Main Content -->
-      <main class="app-main">
-        <div id="app-content"></div>
-      </main>
     </div>
   `
 
-  // Attach event listeners
-  const signoutBtn = container.querySelector('#signout-btn')
-  signoutBtn.addEventListener('click', async () => {
-    if (confirm('Are you sure you want to sign out?')) {
-      await signOut()
-    }
-  })
+  // Start the desktop clock
+  startClock()
 
-  // Navigation
+  // Attach event listeners for navigation
   const navBtns = container.querySelectorAll('.nav-btn')
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -76,6 +120,37 @@ export async function renderMainApp(container, userData) {
       navBtns.forEach(b => b.classList.remove('active'))
       btn.classList.add('active')
       renderContent(container, userData)
+    })
+  })
+
+  // Dock icon event listeners
+  const dockIcons = container.querySelectorAll('.dock-icon[data-action]')
+  dockIcons.forEach(icon => {
+    icon.addEventListener('click', async () => {
+      const action = icon.dataset.action
+
+      if (action === 'signout') {
+        const confirmSignout = confirm(isInBypassMode
+          ? 'Exit testing mode and return to sign-in?'
+          : 'Are you sure you want to sign out?')
+
+        if (confirmSignout) {
+          if (isInBypassMode) {
+            deactivateBypass()
+            window.location.reload()
+          } else {
+            await signOut()
+          }
+        }
+      } else if (['explore', 'leaderboard', 'profile', 'admin'].includes(action)) {
+        currentView = action
+        navBtns.forEach(b => b.classList.remove('active'))
+        const correspondingBtn = Array.from(navBtns).find(b => b.dataset.view === action)
+        if (correspondingBtn) {
+          correspondingBtn.classList.add('active')
+        }
+        renderContent(container, userData)
+      }
     })
   })
 

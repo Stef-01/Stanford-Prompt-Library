@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase.js'
 import { getCurrentUser, createUserProfile } from './auth.js'
+import { isBypassActive } from '../utils/access-code.js'
 
 /**
  * Check user's access level and return status
@@ -7,6 +8,22 @@ import { getCurrentUser, createUserProfile } from './auth.js'
  */
 export async function checkUserAccess() {
   try {
+    // Check for access code bypass mode (for testing)
+    if (isBypassActive()) {
+      console.log('🔓 Bypass mode active - granting access')
+      return {
+        hasAccess: true,
+        userData: {
+          id: 'bypass-user',
+          display_name: 'Testing Mode',
+          email: 'test@stanford.edu',
+          is_approved_member: true,
+          has_submitted_prompt: true,
+          is_admin: false
+        }
+      }
+    }
+
     const user = await getCurrentUser()
 
     if (!user) {

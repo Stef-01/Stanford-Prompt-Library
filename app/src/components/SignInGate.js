@@ -1,4 +1,6 @@
 import { signInWithGoogle } from '../services/auth.js'
+import { showAccessCodeModal, activateBypass } from '../utils/access-code.js'
+import { checkAccessAndRender } from '../main.js'
 
 /**
  * Sign In Gate Component
@@ -29,7 +31,7 @@ export function renderSignInGate(container) {
             </div>
           </div>
           <div class="feature">
-            <span class="feature-icon">🏆</span>
+            <span class="feature-icon community-badge" id="community-trophy" title="Community Driven">🏆</span>
             <div>
               <h3>Community Driven</h3>
               <p>Built by Stanford, for Stanford</p>
@@ -62,7 +64,7 @@ export function renderSignInGate(container) {
     </div>
   `
 
-  // Add event listener
+  // Add event listener for sign in
   const signInBtn = container.querySelector('#signin-btn')
   signInBtn.addEventListener('click', async () => {
     try {
@@ -75,5 +77,14 @@ export function renderSignInGate(container) {
       signInBtn.innerHTML = 'Sign in with Stanford Email'
       alert('Sign in failed. Please try again.')
     }
+  })
+
+  // Add event listener for access code trigger (trophy icon)
+  const trophyIcon = container.querySelector('#community-trophy')
+  trophyIcon.addEventListener('click', () => {
+    showAccessCodeModal(() => {
+      // Bypass activated, reload the app
+      checkAccessAndRender()
+    })
   })
 }
