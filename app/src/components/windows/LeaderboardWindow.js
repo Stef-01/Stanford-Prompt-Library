@@ -1,14 +1,16 @@
-import { getLeaderboard } from '../../services/prompts.js'
+import { getTimeBasedLeaderboard } from '../../services/prompts.js'
 
 let leaderboardData = []
 let currentFilter = 'all'
+let containerRef = null
 
 /**
  * Render Leaderboard Window Content
  * @param {HTMLElement} contentContainer - Window content container
  */
 export async function renderLeaderboardWindow(contentContainer) {
-  leaderboardData = await getLeaderboard()
+  containerRef = contentContainer
+  leaderboardData = await getTimeBasedLeaderboard(currentFilter)
 
   contentContainer.innerHTML = `
     <h2 style="font-size: 24px; margin-bottom: 20px;">🏆 Top Contributors</h2>
@@ -100,7 +102,7 @@ function renderLeaderboardRows() {
 function attachEventListeners(container) {
   const filterBtns = container.querySelectorAll('[data-filter]')
   filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       currentFilter = btn.dataset.filter
 
       // Update button states
@@ -112,9 +114,27 @@ function attachEventListeners(container) {
         }
       })
 
-      // For now, all filters show the same data
-      // In the future, we'd fetch different data based on filter
-      console.log('Filter changed to:', currentFilter)
+      // Show loading state
+      const tableContainer = container.querySelector('tbody')
+      if (tableContainer) {
+        tableContainer.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+              Loading leaderboard data...
+            </td>
+          </tr>
+        `
+      }
+
+      // Reload data with new filter
+      leaderboardData = await getTimeBasedLeaderboard(currentFilter)
+
+      // Re-render table rows
+      if (tableContainer) {
+        tableContainer.innerHTML = renderLeaderboardRows()
+      }
+
+      console.log(`🏆 Leaderboard filter changed to: ${currentFilter}`)
     })
   })
 }

@@ -284,6 +284,69 @@ export async function getLeaderboard(limit = 10) {
 }
 
 /**
+ * Get time-based leaderboard data
+ * @param {string} timeFilter - 'all', 'month', or 'week'
+ * @param {number} limit - Maximum number of users to return
+ */
+export async function getTimeBasedLeaderboard(timeFilter = 'all', limit = 10) {
+  try {
+    // For 'all' time, use the optimized query with aggregated counts
+    if (timeFilter === 'all') {
+      return await getLeaderboard(limit)
+    }
+
+    // Calculate date threshold
+    const now = new Date()
+    let dateThreshold
+
+    if (timeFilter === 'week') {
+      dateThreshold = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    } else if (timeFilter === 'month') {
+      dateThreshold = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    } else {
+      return await getLeaderboard(limit) // fallback to all-time
+    }
+
+    // Get prompts created within the time period
+    const { data: prompts, error: promptsError } = await supabase
+      .from('prompts')
+      .select('user_id, likes_count, users(display_name, avatar_url)')
+      .eq('status', 'approved')
+      .gte('created_at', dateThreshold.toISOString())
+
+    if (promptsError) throw promptsError
+
+    // Aggregate data by user
+    const userStats = {}
+
+    prompts.forEach(prompt => {
+      const userId = prompt.user_id
+      if (!userStats[userId]) {
+        userStats[userId] = {
+          display_name: prompt.users?.display_name || 'Unknown',
+          avatar_url: prompt.users?.avatar_url || null,
+          total_prompts: 0,
+          total_likes_received: 0
+        }
+      }
+      userStats[userId].total_prompts += 1
+      userStats[userId].total_likes_received += prompt.likes_count || 0
+    })
+
+    // Convert to array and sort by likes
+    const leaderboard = Object.values(userStats)
+      .sort((a, b) => b.total_likes_received - a.total_likes_received)
+      .slice(0, limit)
+
+    return leaderboard
+
+  } catch (error) {
+    console.error('Get time-based leaderboard error:', error)
+    return []
+  }
+}
+
+/**
  * Copy prompt to clipboard
  */
 export async function copyPromptToClipboard(prompt) {

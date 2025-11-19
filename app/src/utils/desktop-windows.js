@@ -100,8 +100,14 @@ export function closeWindow(windowId) {
   const windowEl = document.getElementById(`window-${windowId}`)
   if (!windowEl) return
 
-  windowEl.classList.remove('active')
-  activeWindows.delete(windowId)
+  // Add closing animation class
+  windowEl.classList.add('closing')
+
+  // Wait for animation to complete before hiding
+  setTimeout(() => {
+    windowEl.classList.remove('active', 'closing')
+    activeWindows.delete(windowId)
+  }, 150) // Match animation duration
 }
 
 /**
