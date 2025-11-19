@@ -552,11 +552,28 @@ function stopCarousel() {
 }
 
 /**
- * Update carousel display
+ * Update carousel display with smooth fade transition
  */
 function updateCarousel() {
   const carouselContainer = document.getElementById('prompt-carousel')
-  if (carouselContainer) {
+  if (!carouselContainer) return
+
+  // Fade out current slide
+  const currentSlide = carouselContainer.querySelector('.carousel-slide')
+  if (currentSlide) {
+    currentSlide.style.animation = 'fadeOutSlide 0.4s cubic-bezier(0.4, 0, 0.6, 1) forwards'
+
+    // Wait for fade out to complete, then update content
+    setTimeout(() => {
+      carouselContainer.innerHTML = renderCarousel()
+      const newSlide = carouselContainer.querySelector('.carousel-slide')
+      if (newSlide) {
+        newSlide.style.animation = 'fadeInSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
+      }
+      attachCarouselListeners(carouselContainer)
+    }, 400)
+  } else {
+    // First render, no animation needed
     carouselContainer.innerHTML = renderCarousel()
     attachCarouselListeners(carouselContainer)
   }

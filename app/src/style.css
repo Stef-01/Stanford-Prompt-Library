@@ -1848,3 +1848,38 @@ body.desktop-mode {
     height: 24px;
   }
 }
+
+/* ============================================================================
+   CAROUSEL TRANSITION ANIMATIONS
+   ============================================================================ */
+
+/* Fade out animation for carousel slide transitions */
+@keyframes fadeOutSlide {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) translateY(-10px);
+    filter: blur(4px);
+  }
+}
+
+/* Fade in animation for carousel slide transitions with spring effect */
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(15px);
+    filter: blur(6px);
+  }
+  60% {
+    transform: scale(1.02) translateY(-3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
