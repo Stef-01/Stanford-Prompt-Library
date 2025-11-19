@@ -87,6 +87,6 @@ export const colorPalettes = {
   }
 };
 
-export const DEFAULT_WALLPAPER = 'gradient-default';
+export const DEFAULT_WALLPAPER = 'gradient-mesh';
 export const DEFAULT_INTENSITY = 5;
 export const DEFAULT_PALETTE = 'purple';
