@@ -3,7 +3,8 @@
  * Enhanced form field interactions and feedback
  */
 
-import { prefersReducedMotion, getEasing } from './config.js'
+import { prefersReducedMotion } from './config.js'
+import { getEasing } from './helpers.js'
 
 /**
  * Initialize form field animations for all inputs in a container
