@@ -3,7 +3,7 @@
  * API layer for opportunities CRUD operations
  */
 
-import { supabase } from './supabase.js'
+import { supabase } from '../config/supabase.js'
 
 /**
  * Get all public opportunities with optional filters
