@@ -11,6 +11,7 @@ import {
 import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
 import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 import { initAnimationSystem } from '../animations/config.js'
+import { initDockMagnification } from '../utils/dock-magnification.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -162,6 +163,9 @@ export async function renderMainApp(container, user) {
 
     // Attach dock icon event listeners
     setupDockEventListeners(isInBypassMode)
+
+    // Initialize dock magnification effect
+    initDockMagnification()
 
     // Open Explore window by default
     openWindow('explore')

@@ -3,6 +3,9 @@
  * Provides draggable, resizable windows with desktop-like UI
  */
 
+import { prefersReducedMotion } from '../animations/config.js'
+import { getEasing, springAnimate } from '../animations/helpers.js'
+
 let activeWindows = new Set()
 let windowZIndex = 100
 let isDragging = false
@@ -87,9 +90,44 @@ export function openWindow(windowId) {
   const windowEl = document.getElementById(`window-${windowId}`)
   if (!windowEl) return
 
+  // Get dock icon position for animation origin
+  const dockIcon = document.querySelector(`.dock-icon[data-window="${windowId}"]`)
+
   windowEl.classList.add('active')
   activeWindows.add(windowId)
   bringToFront(windowEl)
+
+  // Animate window open from dock icon position
+  if (!prefersReducedMotion() && dockIcon) {
+    const dockRect = dockIcon.getBoundingClientRect()
+    const windowRect = windowEl.getBoundingClientRect()
+
+    // Calculate transform origin (center of dock icon)
+    const originX = dockRect.left + dockRect.width / 2 - windowRect.left
+    const originY = dockRect.top + dockRect.height / 2 - windowRect.top
+
+    windowEl.style.transformOrigin = `${originX}px ${originY}px`
+    windowEl.style.willChange = 'transform, opacity'
+
+    // Spring animation from dock icon
+    windowEl.animate([
+      {
+        transform: 'scale(0)',
+        opacity: 0
+      },
+      {
+        transform: 'scale(1)',
+        opacity: 1
+      }
+    ], {
+      duration: 400,
+      easing: getEasing('spring'),
+      fill: 'forwards'
+    }).onfinish = () => {
+      windowEl.style.willChange = 'auto'
+      windowEl.style.transformOrigin = ''
+    }
+  }
 }
 
 /**
@@ -100,14 +138,51 @@ export function closeWindow(windowId) {
   const windowEl = document.getElementById(`window-${windowId}`)
   if (!windowEl) return
 
+  // Get dock icon position for animation target
+  const dockIcon = document.querySelector(`.dock-icon[data-window="${windowId}"]`)
+
   // Add closing animation class
   windowEl.classList.add('closing')
 
-  // Wait for animation to complete before hiding
-  setTimeout(() => {
-    windowEl.classList.remove('active', 'closing')
-    activeWindows.delete(windowId)
-  }, 150) // Match animation duration
+  // Animate window close to dock icon position
+  if (!prefersReducedMotion() && dockIcon) {
+    const dockRect = dockIcon.getBoundingClientRect()
+    const windowRect = windowEl.getBoundingClientRect()
+
+    // Calculate transform origin (center of dock icon)
+    const originX = dockRect.left + dockRect.width / 2 - windowRect.left
+    const originY = dockRect.top + dockRect.height / 2 - windowRect.top
+
+    windowEl.style.transformOrigin = `${originX}px ${originY}px`
+    windowEl.style.willChange = 'transform, opacity'
+
+    // Scale down to dock icon
+    windowEl.animate([
+      {
+        transform: 'scale(1)',
+        opacity: 1
+      },
+      {
+        transform: 'scale(0)',
+        opacity: 0
+      }
+    ], {
+      duration: 300,
+      easing: getEasing('easeIn'),
+      fill: 'forwards'
+    }).onfinish = () => {
+      windowEl.classList.remove('active', 'closing')
+      activeWindows.delete(windowId)
+      windowEl.style.willChange = 'auto'
+      windowEl.style.transformOrigin = ''
+    }
+  } else {
+    // Fallback for reduced motion
+    setTimeout(() => {
+      windowEl.classList.remove('active', 'closing')
+      activeWindows.delete(windowId)
+    }, 150)
+  }
 }
 
 /**
@@ -147,6 +222,25 @@ function handleMouseDown(e) {
   dragOffset.y = e.clientY - rect.top
 
   document.body.style.userSelect = 'none'
+
+  // Enhanced drag start animation
+  if (!prefersReducedMotion()) {
+    currentWindow.style.willChange = 'transform, box-shadow'
+    currentWindow.animate([
+      {
+        transform: 'scale(1)',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+      },
+      {
+        transform: 'scale(1.02)',
+        boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)'
+      }
+    ], {
+      duration: 200,
+      easing: getEasing('easeOut'),
+      fill: 'forwards'
+    })
+  }
 }
 
 /**
@@ -173,6 +267,28 @@ function handleMouseUp() {
   if (currentWindow) {
     // Re-enable transitions after dragging
     currentWindow.classList.remove('dragging')
+
+    // Enhanced drag end animation
+    if (!prefersReducedMotion()) {
+      currentWindow.animate([
+        {
+          transform: 'scale(1.02)',
+          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)'
+        },
+        {
+          transform: 'scale(1)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+        }
+      ], {
+        duration: 300,
+        easing: getEasing('spring'),
+        fill: 'forwards'
+      }).onfinish = () => {
+        if (currentWindow) {
+          currentWindow.style.willChange = 'auto'
+        }
+      }
+    }
   }
 
   isDragging = false

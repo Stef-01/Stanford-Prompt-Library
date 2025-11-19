@@ -1505,7 +1505,7 @@ body.desktop-mode {
 }
 
 .dock-icon:hover {
-  transform: translateY(-12px) scale(1.15);
+  /* Transform handled by JavaScript magnification system */
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.4),
     0 8px 16px rgba(0, 0, 0, 0.3),
@@ -1527,7 +1527,7 @@ body.desktop-mode {
 }
 
 .dock-icon:active {
-  transform: translateY(-8px) scale(1.08);
+  /* Active state with slight reduction from hover */
   transition: all 0.1s ease-out;
 }
 
