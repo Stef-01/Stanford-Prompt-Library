@@ -96,26 +96,50 @@ vercel --prod
 
 ---
 
-## Step 3: Update Google OAuth Redirect URLs
+## Step 3: Configure OAuth for Production
 
-After deployment, you'll have a production URL. Update Google OAuth:
+**CRITICAL:** This step prevents the "redirect to localhost" error after sign-in.
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Navigate to **APIs & Services** → **Credentials**
-3. Click on your OAuth 2.0 Client ID
-4. Under **Authorized redirect URIs**, add:
-   ```
-   https://daptpijlyyojkkizkxpa.supabase.co/auth/v1/callback
-   ```
-5. Also add your Vercel domain:
+### A. Update Supabase URLs (REQUIRED)
+
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard/project/daptpijlyyojkkizkxpa)
+2. Click **Authentication** → **URL Configuration**
+3. Update these fields:
+
+   **Site URL:** (This is where users go after OAuth)
    ```
    https://your-app-name.vercel.app
    ```
+
+   **Redirect URLs:** (Comma-separated, both needed)
+   ```
+   https://your-app-name.vercel.app/**,http://localhost:5173/**
+   ```
+
+4. Click **Save**
+
+### B. Update Google Cloud Console
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Navigate to **APIs & Services** → **Credentials**
+3. Click on your OAuth 2.0 Client ID
+4. Under **Authorized JavaScript origins**, add:
+   ```
+   https://your-app-name.vercel.app
+   ```
+5. Under **Authorized redirect URIs**, verify this exists:
+   ```
+   https://daptpijlyyojkkizkxpa.supabase.co/auth/v1/callback
+   ```
 6. Click **Save**
 
-7. Go back to Supabase → **Authentication** → **Providers** → **Google**
-8. Verify the redirect URL is set correctly
-9. Add your production domain to **Site URL** and **Redirect URLs**
+### C. Test OAuth Flow
+
+1. Visit your production URL
+2. Sign out if already signed in
+3. Click "Sign in with Google"
+4. After approving Google OAuth, you should **stay on your Vercel domain**
+5. If you're redirected to localhost, see `OAUTH_REDIRECT_FIX.md`
 
 ---
 

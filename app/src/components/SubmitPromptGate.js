@@ -1,6 +1,7 @@
 import { signOut } from '../services/auth.js'
 import { submitPrompt, getCategories } from '../services/prompts.js'
 import { checkAccessAndRender } from '../main.js'
+import { validatePromptSubmission } from '../utils/validation.js'
 
 /**
  * Render the submit prompt gate for users who haven't submitted their first prompt
@@ -132,20 +133,33 @@ export async function renderSubmitPromptGate(container, userData) {
 
     try {
       submitBtn.disabled = true
-      submitBtn.textContent = 'Submitting...'
+      submitBtn.textContent = 'Validating...'
 
       const formData = new FormData(form)
       const tags = formData.get('tags')
         ? formData.get('tags').split(',').map(t => t.trim()).filter(Boolean)
         : []
 
-      const result = await submitPrompt({
+      const promptData = {
         title: formData.get('title'),
         description: formData.get('description'),
         content: formData.get('content'),
         category: formData.get('category'),
         tags
-      })
+      }
+
+      // Validate content quality to prevent spam
+      const validation = validatePromptSubmission(promptData)
+      if (!validation.isValid) {
+        alert(`❌ Validation Failed:\n\n${validation.message}\n\nPlease revise your submission and try again.`)
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Submit Prompt for Review'
+        return
+      }
+
+      submitBtn.textContent = 'Submitting...'
+
+      const result = await submitPrompt(promptData)
 
       if (result.success) {
         // Show success message
