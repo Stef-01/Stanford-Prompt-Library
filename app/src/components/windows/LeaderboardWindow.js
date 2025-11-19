@@ -1,4 +1,11 @@
 import { getTimeBasedLeaderboard } from '../../services/prompts.js'
+import {
+  getAIToolsLeaderboard,
+  submitAITool,
+  voteOnTool,
+  getUserVote,
+  getToolCategories
+} from '../../services/ai-tools.js'
 
 let leaderboardData = []
 let currentFilter = 'all' // all, month, week
@@ -6,60 +13,8 @@ let currentView = 'users' // users, tools
 let aiTools = [] // AI tools recommendations
 let toolsFilter = 'all' // all, week
 let containerRef = null
-
-// Sample AI tools data (in production, this would come from a database)
-const sampleAITools = [
-  {
-    id: 1,
-    name: 'Claude 3.5 Sonnet',
-    description: 'Anthropic\'s most intelligent model, excellent for coding, writing, and complex analysis.',
-    category: 'Language Model',
-    url: 'https://claude.ai',
-    submittedBy: 'John Doe',
-    recommendationCount: 47,
-    date: '2024-01-10'
-  },
-  {
-    id: 2,
-    name: 'Cursor',
-    description: 'AI-powered code editor built on VS Code with inline autocomplete and chat features.',
-    category: 'Development Tool',
-    url: 'https://cursor.sh',
-    submittedBy: 'Sarah Chen',
-    recommendationCount: 38,
-    date: '2024-01-12'
-  },
-  {
-    id: 3,
-    name: 'Perplexity AI',
-    description: 'AI search engine that provides citations and sources for all answers.',
-    category: 'Search & Research',
-    url: 'https://perplexity.ai',
-    submittedBy: 'Mike Zhang',
-    recommendationCount: 35,
-    date: '2024-01-08'
-  },
-  {
-    id: 4,
-    name: 'Midjourney',
-    description: 'Advanced AI image generation with stunning artistic results.',
-    category: 'Image Generation',
-    url: 'https://midjourney.com',
-    submittedBy: 'Emily Tran',
-    recommendationCount: 29,
-    date: '2024-01-05'
-  },
-  {
-    id: 5,
-    name: 'NotebookLM',
-    description: 'Google\'s AI research assistant that helps you understand and synthesize information from documents.',
-    category: 'Research Tool',
-    url: 'https://notebooklm.google',
-    submittedBy: 'Alex Kim',
-    recommendationCount: 24,
-    date: '2024-01-15'
-  }
-]
+let toolCategories = []
+let userVotes = new Map() // Cache user's votes: toolId -> 'upvote'|'downvote'
 
 /**
  * Render Leaderboard Window Content
@@ -67,8 +22,14 @@ const sampleAITools = [
  */
 export async function renderLeaderboardWindow(contentContainer) {
   containerRef = contentContainer
+
+  // Load data
   leaderboardData = await getTimeBasedLeaderboard(currentFilter)
-  aiTools = [...sampleAITools] // In production, fetch from database
+  aiTools = await getAIToolsLeaderboard(toolsFilter)
+  toolCategories = await getToolCategories()
+
+  // Load user's votes for all tools
+  await loadUserVotes()
 
   contentContainer.innerHTML = `
     <div style="padding: 20px;">
@@ -205,13 +166,7 @@ function renderToolsLeaderboard() {
             <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Category *</label>
             <select name="category" required style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer;">
               <option value="">Select category...</option>
-              <option value="Language Model">Language Model</option>
-              <option value="Development Tool">Development Tool</option>
-              <option value="Search & Research">Search & Research</option>
-              <option value="Image Generation">Image Generation</option>
-              <option value="Research Tool">Research Tool</option>
-              <option value="Productivity">Productivity</option>
-              <option value="Other">Other</option>
+              ${toolCategories.map(cat => `<option value="${cat.name}">${cat.icon || ''} ${cat.name}</option>`).join('')}
             </select>
           </div>
 
@@ -282,19 +237,7 @@ function renderLeaderboardRows() {
  * Render tools list
  */
 function renderToolsList() {
-  let filteredTools = [...aiTools]
-
-  // Filter by time if needed
-  if (toolsFilter === 'week') {
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    filteredTools = filteredTools.filter(tool => new Date(tool.date) >= oneWeekAgo)
-  }
-
-  // Sort by recommendation count
-  filteredTools.sort((a, b) => b.recommendationCount - a.recommendationCount)
-
-  if (filteredTools.length === 0) {
+  if (aiTools.length === 0) {
     return `
       <div style="text-align: center; padding: 60px 20px;">
         <p style="font-size: 48px; margin-bottom: 15px;">🛠️</p>
@@ -304,14 +247,45 @@ function renderToolsList() {
     `
   }
 
-  return filteredTools.map((tool, index) => {
+  return aiTools.map((tool, index) => {
     const rankBadge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`
+    const userVote = userVotes.get(tool.id)
+    const hasUpvoted = userVote === 'upvote'
+    const hasDownvoted = userVote === 'downvote'
+    const netScore = tool.net_score || 0
+    const submittedBy = tool.users?.display_name || 'Unknown'
 
     return `
       <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-purple)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'">
         <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+          <!-- Voting Column -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px;">
+            <button
+              class="vote-btn upvote-btn"
+              data-tool-id="${tool.id}"
+              data-vote-type="upvote"
+              style="background: ${hasUpvoted ? 'var(--accent-green)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasUpvoted ? 'var(--accent-green)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; font-size: 16px;"
+              title="Upvote"
+            >
+              ▲
+            </button>
+            <span style="font-weight: 700; font-size: 16px; color: ${netScore > 0 ? 'var(--accent-green)' : netScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'};">
+              ${netScore > 0 ? '+' : ''}${netScore}
+            </span>
+            <button
+              class="vote-btn downvote-btn"
+              data-tool-id="${tool.id}"
+              data-vote-type="downvote"
+              style="background: ${hasDownvoted ? 'var(--accent-red)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasDownvoted ? 'var(--accent-red)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; font-size: 16px;"
+              title="Downvote"
+            >
+              ▼
+            </button>
+          </div>
+
+          <!-- Content Column -->
           <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
               <span style="font-size: 18px; font-weight: 700;">${rankBadge}</span>
               <h4 style="margin: 0; font-size: 18px; color: var(--text-primary);">${escapeHtml(tool.name)}</h4>
               <span style="font-size: 11px; padding: 4px 8px; background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); border-radius: 8px; font-weight: 600;">
@@ -323,17 +297,21 @@ function renderToolsList() {
               ${escapeHtml(tool.description)}
             </p>
 
-            <div style="display: flex; gap: 15px; align-items: center; font-size: 12px; color: var(--text-secondary);">
-              <span>👥 ${tool.recommendationCount} recommendations</span>
+            <div style="display: flex; gap: 15px; align-items: center; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap;">
+              <span>👍 ${tool.upvotes_count || 0} upvotes</span>
               <span>•</span>
-              <span>Recommended by ${escapeHtml(tool.submittedBy)}</span>
+              <span>👎 ${tool.downvotes_count || 0} downvotes</span>
+              <span>•</span>
+              <span>Recommended by ${escapeHtml(submittedBy)}</span>
             </div>
           </div>
 
+          <!-- Action Column -->
           <a
             href="${tool.url}"
             target="_blank"
-            style="padding: 10px 16px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap;"
+            rel="noopener noreferrer"
+            style="padding: 10px 16px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform 0.2s;"
             onmouseover="this.style.transform='scale(1.05)'"
             onmouseout="this.style.transform='scale(1)'"
           >
@@ -412,7 +390,7 @@ function attachContentListeners(container) {
     // Tools filter buttons
     const toolsFilterBtns = container.querySelectorAll('.tools-filter-btn')
     toolsFilterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         toolsFilter = btn.dataset.toolsFilter
 
         // Update button states
@@ -424,10 +402,24 @@ function attachContentListeners(container) {
           }
         })
 
-        // Re-render tools list
+        // Show loading state
         const toolsList = container.querySelector('#tools-list')
         if (toolsList) {
+          toolsList.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px;">
+              <p style="color: var(--text-secondary);">Loading tools...</p>
+            </div>
+          `
+        }
+
+        // Reload tools data with new filter
+        aiTools = await getAIToolsLeaderboard(toolsFilter)
+        await loadUserVotes()
+
+        // Re-render tools list
+        if (toolsList) {
           toolsList.innerHTML = renderToolsList()
+          attachVoteListeners(container)
         }
       })
     })
@@ -452,40 +444,57 @@ function attachContentListeners(container) {
 
     // Submit tool form
     const submitToolForm = container.querySelector('#submit-tool-form')
-    submitToolForm?.addEventListener('submit', (e) => {
+    submitToolForm?.addEventListener('submit', async (e) => {
       e.preventDefault()
 
-      const formData = new FormData(submitToolForm)
-      const newTool = {
-        id: aiTools.length + 1,
-        name: formData.get('name'),
-        description: formData.get('description'),
-        category: formData.get('category'),
-        url: formData.get('url'),
-        submittedBy: 'You', // In production, use actual user name
-        recommendationCount: 1,
-        date: new Date().toISOString().split('T')[0]
+      const submitBtn = submitToolForm.querySelector('button[type="submit"]')
+      const originalText = submitBtn.textContent
+
+      try {
+        submitBtn.disabled = true
+        submitBtn.textContent = 'Submitting...'
+
+        const formData = new FormData(submitToolForm)
+        const toolData = {
+          name: formData.get('name'),
+          description: formData.get('description'),
+          category: formData.get('category'),
+          url: formData.get('url')
+        }
+
+        // Submit to database
+        const result = await submitAITool(toolData)
+
+        if (result.success) {
+          // Close modal
+          const modal = container.querySelector('#submit-tool-modal')
+          if (modal) {
+            modal.style.display = 'none'
+          }
+
+          // Reset form
+          submitToolForm.reset()
+
+          // Reload tools data
+          aiTools = await getAIToolsLeaderboard(toolsFilter)
+          await loadUserVotes()
+
+          // Re-render tools list
+          const toolsList = container.querySelector('#tools-list')
+          if (toolsList) {
+            toolsList.innerHTML = renderToolsList()
+            attachVoteListeners(container)
+          }
+
+          alert(result.message)
+        }
+      } catch (error) {
+        console.error('Error submitting tool:', error)
+        alert('❌ Failed to submit tool. Please try again.')
+      } finally {
+        submitBtn.disabled = false
+        submitBtn.textContent = originalText
       }
-
-      // Add tool to list (in production, save to database)
-      aiTools.unshift(newTool)
-
-      // Close modal
-      const modal = container.querySelector('#submit-tool-modal')
-      if (modal) {
-        modal.style.display = 'none'
-      }
-
-      // Reset form
-      submitToolForm.reset()
-
-      // Re-render tools list
-      const toolsList = container.querySelector('#tools-list')
-      if (toolsList) {
-        toolsList.innerHTML = renderToolsList()
-      }
-
-      alert('✅ Tool recommendation submitted successfully!')
     })
 
     // Click outside modal to close
@@ -495,6 +504,73 @@ function attachContentListeners(container) {
         modal.style.display = 'none'
       }
     })
+
+    // Attach vote listeners
+    attachVoteListeners(container)
+  }
+}
+
+/**
+ * Attach vote listeners to vote buttons
+ */
+function attachVoteListeners(container) {
+  const voteButtons = container.querySelectorAll('.vote-btn')
+  voteButtons.forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault()
+
+      const toolId = btn.dataset.toolId
+      const voteType = btn.dataset.voteType
+
+      try {
+        btn.disabled = true
+
+        const result = await voteOnTool(toolId, voteType)
+
+        if (result.success) {
+          // Update local vote cache
+          if (result.action === 'removed') {
+            userVotes.delete(toolId)
+          } else {
+            userVotes.set(toolId, voteType)
+          }
+
+          // Reload tools to get updated counts
+          aiTools = await getAIToolsLeaderboard(toolsFilter)
+
+          // Re-render tools list
+          const toolsList = container.querySelector('#tools-list')
+          if (toolsList) {
+            toolsList.innerHTML = renderToolsList()
+            attachVoteListeners(container)
+          }
+        }
+      } catch (error) {
+        console.error('Error voting:', error)
+        alert('Failed to record vote. Please try again.')
+      } finally {
+        btn.disabled = false
+      }
+    })
+  })
+}
+
+/**
+ * Load user's votes for all tools
+ */
+async function loadUserVotes() {
+  userVotes.clear()
+
+  // Load votes for each tool
+  for (const tool of aiTools) {
+    try {
+      const vote = await getUserVote(tool.id)
+      if (vote) {
+        userVotes.set(tool.id, vote.vote_type)
+      }
+    } catch (error) {
+      console.error('Error loading user vote for tool:', tool.id, error)
+    }
   }
 }
 
