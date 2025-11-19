@@ -1611,6 +1611,11 @@ body.desktop-mode {
   transform-style: preserve-3d;
 }
 
+/* Disable transitions during dragging for smooth movement */
+.desktop-window.dragging {
+  transition: none !important;
+}
+
 .desktop-window.active {
   display: flex;
   flex-direction: column;

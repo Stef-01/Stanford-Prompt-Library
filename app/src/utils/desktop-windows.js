@@ -139,6 +139,9 @@ function handleMouseDown(e) {
   currentWindow = windowEl
   bringToFront(windowEl)
 
+  // Disable transitions during dragging for smooth movement
+  currentWindow.classList.add('dragging')
+
   const rect = windowEl.getBoundingClientRect()
   dragOffset.x = e.clientX - rect.left
   dragOffset.y = e.clientY - rect.top
@@ -167,6 +170,11 @@ function handleMouseMove(e) {
  * Handle mouse up for dragging
  */
 function handleMouseUp() {
+  if (currentWindow) {
+    // Re-enable transitions after dragging
+    currentWindow.classList.remove('dragging')
+  }
+
   isDragging = false
   currentWindow = null
   document.body.style.userSelect = ''

@@ -10,6 +10,43 @@ let currentCarouselIndex = 0
 let carouselInterval = null
 let currentView = 'discover' // discover, myPrompts
 
+// Placeholder prompts for carousel demo (shown when no prompts in database)
+const placeholderPrompts = [
+  {
+    id: 'placeholder-1',
+    title: 'Code Review Assistant',
+    description: 'A comprehensive prompt for reviewing code with best practices and security considerations.',
+    content: 'You are an expert code reviewer. Review the following code for:\n- Code quality and readability\n- Performance optimizations\n- Security vulnerabilities\n- Best practices adherence\n\nProvide specific, actionable feedback.',
+    category: 'coding',
+    users: { display_name: 'Demo User', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=coding' },
+    likes_count: 42,
+    tags: ['code-review', 'best-practices', 'security'],
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'placeholder-2',
+    title: 'Creative Story Writer',
+    description: 'Generate engaging short stories with vivid imagery and compelling narratives.',
+    content: 'Write a creative short story (500-800 words) about [TOPIC]. Include:\n- Rich, descriptive language\n- Character development\n- An unexpected twist\n- Emotional depth',
+    category: 'creative',
+    users: { display_name: 'Creative Writer', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=creative' },
+    likes_count: 38,
+    tags: ['creative-writing', 'storytelling'],
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'placeholder-3',
+    title: 'Research Paper Analyzer',
+    description: 'Analyze academic papers and extract key insights, methodologies, and findings.',
+    content: 'Analyze this research paper and provide:\n1. Main hypothesis and research questions\n2. Methodology overview\n3. Key findings and results\n4. Limitations and future work\n5. Practical applications',
+    category: 'research',
+    users: { display_name: 'Academic', avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=research' },
+    likes_count: 29,
+    tags: ['research', 'academic', 'analysis'],
+    created_at: new Date().toISOString()
+  }
+]
+
 /**
  * Render Library Window Content
  * Primary prompt discovery and search area
@@ -17,15 +54,24 @@ let currentView = 'discover' // discover, myPrompts
  * @param {Object} userData - User data
  */
 export async function renderLibraryWindow(contentContainer, userData) {
+  // Remove default window-content padding for custom layout
+  contentContainer.style.padding = '0'
+
   // Load all approved prompts and user's prompts
   allPrompts = await getApprovedPrompts()
   myPrompts = await getMyPrompts()
+
+  // Use placeholder prompts if database is empty (for demo purposes)
+  if (allPrompts.length === 0) {
+    allPrompts = placeholderPrompts
+  }
+
   filteredPrompts = allPrompts
 
   contentContainer.innerHTML = `
     <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
       <!-- Rotating Prompt Discovery Carousel -->
-      <div id="prompt-carousel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; position: relative; overflow: hidden; flex-shrink: 0;">
+      <div id="prompt-carousel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
         ${renderCarousel()}
       </div>
 
