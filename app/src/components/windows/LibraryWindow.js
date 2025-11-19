@@ -70,9 +70,16 @@ export async function renderLibraryWindow(contentContainer, userData) {
 
   contentContainer.innerHTML = `
     <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
-      <!-- Rotating Prompt Discovery Carousel -->
-      <div id="prompt-carousel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+      <!-- Recipe-Book Style Prompt Discovery Carousel -->
+      <div id="prompt-carousel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0; position: relative; overflow: hidden; flex-shrink: 0; height: 280px; cursor: pointer;">
         ${renderCarousel()}
+      </div>
+
+      <!-- Prompt Details Modal -->
+      <div id="prompt-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div id="modal-content" style="background: linear-gradient(135deg, rgba(30, 30, 40, 0.98) 0%, rgba(20, 20, 30, 0.98) 100%); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; max-width: 800px; max-height: 85vh; overflow-y: auto; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8); padding: 40px; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;">
+          <!-- Modal content will be injected here -->
+        </div>
       </div>
 
       <!-- View Toggle Tabs -->
@@ -106,93 +113,86 @@ export async function renderLibraryWindow(contentContainer, userData) {
 }
 
 /**
- * Render rotating prompt discovery carousel
+ * Render recipe-book style carousel - minimal with hover-to-reveal
  */
 function renderCarousel() {
   if (allPrompts.length === 0) {
     return `
-      <div style="text-align: center; color: white;">
-        <p style="font-size: 18px; margin-bottom: 10px;">🎨 No prompts available yet</p>
-        <p style="font-size: 14px; opacity: 0.9;">Be the first to submit a prompt!</p>
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;">
+        <div style="text-align: center;">
+          <p style="font-size: 18px; margin-bottom: 10px; opacity: 0.9;">🎨 No prompts yet</p>
+          <p style="font-size: 13px; opacity: 0.6;">Submit your first prompt!</p>
+        </div>
       </div>
     `
   }
 
   const prompt = allPrompts[currentCarouselIndex]
+  const categoryIcons = {
+    coding: '💻',
+    writing: '✍️',
+    research: '🔬',
+    creative: '🎨',
+    other: '📦'
+  }
+  const categoryColors = {
+    coding: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    writing: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+    research: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)',
+    creative: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+    other: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
+  }
 
   return `
-    <div style="position: relative; z-index: 1;">
-      <!-- Carousel Navigation -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div style="color: white; font-size: 12px; font-weight: 600; opacity: 0.9;">
-          ✨ PROMPT DISCOVERY
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <span style="color: white; font-size: 12px; opacity: 0.9;">
-            ${currentCarouselIndex + 1} / ${allPrompts.length}
-          </span>
-          <button id="carousel-prev" style="background: rgba(255, 255, 255, 0.2); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
-            ◀
-          </button>
-          <button id="carousel-next" style="background: rgba(255, 255, 255, 0.2); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
-            ▶
-          </button>
-          <button id="carousel-pause" style="background: rgba(255, 255, 255, 0.2); border: none; border-radius: 6px; padding: 6px 12px; cursor: pointer; color: white; font-size: 12px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
-            ${carouselInterval ? '⏸ Pause' : '▶ Play'}
-          </button>
-        </div>
+    <div class="carousel-slide" data-prompt-id="${prompt.id}" style="position: relative; width: 100%; height: 100%; background: ${categoryColors[prompt.category] || categoryColors.other}; overflow: hidden;">
+
+      <!-- Background Icon (always visible) -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 180px; opacity: 0.15; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none;">
+        ${categoryIcons[prompt.category] || categoryIcons.other}
       </div>
 
-      <!-- Prompt Display -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center;">
-        <!-- Prompt Info -->
-        <div style="color: white;">
-          <div style="display: inline-block; padding: 4px 12px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; font-size: 11px; font-weight: 600; margin-bottom: 15px;">
-            ${prompt.category}
-          </div>
-          <h2 style="font-size: 24px; margin-bottom: 12px; line-height: 1.3; font-weight: 700;">
-            ${escapeHtml(prompt.title)}
-          </h2>
-          <p style="font-size: 14px; opacity: 0.95; line-height: 1.6; margin-bottom: 20px;">
-            ${escapeHtml(prompt.description || prompt.content.substring(0, 150))}${prompt.description ? '' : '...'}
-          </p>
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
-            <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid white;">
-            <span style="font-size: 13px; font-weight: 600;">
-              ${prompt.users?.display_name || 'Anonymous'}
-            </span>
-            <span style="font-size: 13px; opacity: 0.8;">
-              ❤️ ${prompt.likes_count || 0}
-            </span>
-          </div>
-          <button id="carousel-view-btn" data-id="${prompt.id}" style="padding: 10px 24px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.2)'">
-            View Details →
-          </button>
-        </div>
-
-        <!-- Prompt Output Preview (Placeholder for images) -->
-        <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 12px; padding: 20px; text-align: center; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px solid rgba(255, 255, 255, 0.2);">
-          ${prompt.image_url ? `
-            <img src="${prompt.image_url}" alt="Prompt output" style="max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: contain;">
-          ` : `
-            <div style="font-size: 48px; margin-bottom: 10px; opacity: 0.7;">🎨</div>
-            <p style="color: white; font-size: 13px; opacity: 0.8;">Output preview</p>
-            <pre style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: 6px; font-size: 11px; line-height: 1.4; color: white; margin-top: 15px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: pre-wrap; max-height: 120px; overflow-y: auto;">${escapeHtml(prompt.content.substring(0, 200))}...</pre>
-          `}
-        </div>
-      </div>
-
-      <!-- Progress Dots -->
-      <div style="display: flex; gap: 6px; justify-content: center; margin-top: 20px;">
+      <!-- Subtle progress indicator -->
+      <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2;">
         ${allPrompts.slice(0, Math.min(10, allPrompts.length)).map((_, index) => `
-          <div style="width: ${index === currentCarouselIndex ? '24px' : '8px'}; height: 8px; background: rgba(255, 255, 255, ${index === currentCarouselIndex ? '1' : '0.3'}); border-radius: 4px; transition: all 0.3s; cursor: pointer;" data-carousel-dot="${index}"></div>
+          <div style="width: ${index === currentCarouselIndex ? '32px' : '8px'}; height: 3px; background: rgba(255, 255, 255, ${index === currentCarouselIndex ? '0.9' : '0.3'}); border-radius: 2px; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
         `).join('')}
-        ${allPrompts.length > 10 ? `<span style="color: white; font-size: 12px; opacity: 0.8; margin-left: 5px;">+${allPrompts.length - 10}</span>` : ''}
       </div>
-    </div>
 
-    <!-- Decorative Background Pattern -->
-    <div style="position: absolute; inset: 0; opacity: 0.1; background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 20px 20px; pointer-events: none;"></div>
+      <!-- Hover overlay with details (hidden by default, revealed on hover) -->
+      <div class="carousel-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.85) 100%); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; opacity: 0; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none;">
+
+        <!-- Category badge -->
+        <div style="padding: 6px 16px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; font-size: 11px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s, opacity 0.5s ease 0.1s;">
+          ${prompt.category}
+        </div>
+
+        <!-- Title -->
+        <h2 style="font-size: 32px; font-weight: 800; color: white; text-align: center; margin-bottom: 16px; line-height: 1.2; max-width: 600px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s, opacity 0.5s ease 0.15s;">
+          ${escapeHtml(prompt.title)}
+        </h2>
+
+        <!-- Description -->
+        <p style="font-size: 15px; color: rgba(255, 255, 255, 0.85); text-align: center; max-width: 500px; line-height: 1.6; margin-bottom: 24px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s, opacity 0.5s ease 0.2s;">
+          ${escapeHtml(prompt.description || prompt.content.substring(0, 120))}${(prompt.description || prompt.content.length > 120) ? '...' : ''}
+        </p>
+
+        <!-- Author & Stats -->
+        <div style="display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-bottom: 28px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s, opacity 0.5s ease 0.25s;">
+          <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.4);">
+          <span style="font-weight: 600;">${prompt.users?.display_name || 'Anonymous'}</span>
+          <span style="opacity: 0.7;">•</span>
+          <span>❤️ ${prompt.likes_count || 0}</span>
+        </div>
+
+        <!-- CTA hint -->
+        <div style="padding: 10px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 12px; font-size: 13px; color: white; font-weight: 600; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s, opacity 0.5s ease 0.3s;">
+          Click to view full prompt
+        </div>
+      </div>
+
+      <!-- Decorative gradient overlay (always visible) -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%); pointer-events: none;"></div>
+    </div>
   `
 }
 
@@ -529,7 +529,7 @@ function filterPrompts() {
 }
 
 /**
- * Start carousel auto-rotation
+ * Start carousel auto-rotation (continuous, no pause)
  */
 function startCarousel() {
   stopCarousel()
@@ -537,7 +537,7 @@ function startCarousel() {
     carouselInterval = setInterval(() => {
       currentCarouselIndex = (currentCarouselIndex + 1) % allPrompts.length
       updateCarousel()
-    }, 5000) // Rotate every 5 seconds
+    }, 3500) // Rotate every 3.5 seconds for smooth discovery
   }
 }
 
@@ -566,59 +566,169 @@ function updateCarousel() {
  * Attach carousel event listeners
  */
 function attachCarouselListeners(container) {
-  // Previous button
-  const prevBtn = container.querySelector('#carousel-prev')
-  prevBtn?.addEventListener('click', () => {
-    stopCarousel()
-    currentCarouselIndex = (currentCarouselIndex - 1 + allPrompts.length) % allPrompts.length
-    updateCarousel()
-  })
-
-  // Next button
-  const nextBtn = container.querySelector('#carousel-next')
-  nextBtn?.addEventListener('click', () => {
-    stopCarousel()
-    currentCarouselIndex = (currentCarouselIndex + 1) % allPrompts.length
-    updateCarousel()
-  })
-
-  // Pause/Play button
-  const pauseBtn = container.querySelector('#carousel-pause')
-  pauseBtn?.addEventListener('click', () => {
-    if (carouselInterval) {
-      stopCarousel()
-    } else {
-      startCarousel()
-    }
-    updateCarousel()
-  })
-
-  // View details button
-  const viewBtn = container.querySelector('#carousel-view-btn')
-  viewBtn?.addEventListener('click', () => {
-    const promptId = viewBtn.dataset.id
-    showPromptDetails(promptId)
-  })
-
-  // Dot navigation
-  const dots = container.querySelectorAll('[data-carousel-dot]')
-  dots.forEach(dot => {
-    dot.addEventListener('click', () => {
-      stopCarousel()
-      currentCarouselIndex = parseInt(dot.dataset.carouselDot)
-      updateCarousel()
+  // Click anywhere on carousel to view details
+  const carouselSlide = container.querySelector('.carousel-slide')
+  if (carouselSlide) {
+    carouselSlide.addEventListener('click', () => {
+      const promptId = carouselSlide.dataset.promptId
+      showPromptModal(promptId)
     })
-  })
+
+    // Hover effect to show overlay
+    carouselSlide.addEventListener('mouseenter', () => {
+      const overlay = carouselSlide.querySelector('.carousel-overlay')
+      if (overlay) {
+        overlay.style.opacity = '1'
+        overlay.style.pointerEvents = 'auto'
+        // Animate text elements in
+        const elements = overlay.querySelectorAll('div, h2, p')
+        elements.forEach((el, index) => {
+          el.style.transform = 'translateY(0)'
+          el.style.opacity = '1'
+        })
+      }
+    })
+
+    carouselSlide.addEventListener('mouseleave', () => {
+      const overlay = carouselSlide.querySelector('.carousel-overlay')
+      if (overlay) {
+        overlay.style.opacity = '0'
+        overlay.style.pointerEvents = 'none'
+        // Reset text elements
+        const elements = overlay.querySelectorAll('div, h2, p')
+        elements.forEach(el => {
+          el.style.transform = 'translateY(20px)'
+          el.style.opacity = '0'
+        })
+      }
+    })
+  }
 }
 
 /**
- * Show prompt details modal
+ * Show prompt details in animated modal
  */
-function showPromptDetails(promptId) {
+function showPromptModal(promptId) {
   const prompt = allPrompts.find(p => p.id === promptId) || myPrompts.find(p => p.id === promptId)
   if (!prompt) return
 
-  alert(`📋 Prompt Details\n\n${prompt.title}\n\n${prompt.description || ''}\n\nPrompt content:\n${prompt.content.substring(0, 200)}...\n\n(Full prompt modal coming soon!)`)
+  const modal = document.getElementById('prompt-modal')
+  const modalContent = document.getElementById('modal-content')
+  if (!modal || !modalContent) return
+
+  // Category info
+  const categoryIcons = {
+    coding: '💻',
+    writing: '✍️',
+    research: '🔬',
+    creative: '🎨',
+    other: '📦'
+  }
+  const categoryColors = {
+    coding: '#10b981',
+    writing: '#8b5cf6',
+    research: '#eab308',
+    creative: '#ec4899',
+    other: '#64748b'
+  }
+
+  // Render modal content
+  modalContent.innerHTML = `
+    <div style="position: relative;">
+      <!-- Close button -->
+      <button id="modal-close" style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='scale(1)'">
+        ✕
+      </button>
+
+      <!-- Header -->
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; padding: 8px 20px; background: ${categoryColors[prompt.category]}; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
+          ${categoryIcons[prompt.category]} ${prompt.category}
+        </div>
+        <h1 style="font-size: 36px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; line-height: 1.2;">
+          ${escapeHtml(prompt.title)}
+        </h1>
+        ${prompt.description ? `
+          <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.6;">
+            ${escapeHtml(prompt.description)}
+          </p>
+        ` : ''}
+      </div>
+
+      <!-- Author & Meta -->
+      <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 20px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; margin-bottom: 30px;">
+        <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid ${categoryColors[prompt.category]};">
+        <div>
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">
+            ${prompt.users?.display_name || 'Anonymous'}
+          </div>
+          <div style="font-size: 12px; color: var(--text-secondary);">
+            ${formatDate(prompt.created_at)}
+          </div>
+        </div>
+        <div style="flex: 1;"></div>
+        <div style="display: flex; gap: 16px; font-size: 14px; color: var(--text-secondary);">
+          <span>❤️ ${prompt.likes_count || 0} likes</span>
+        </div>
+      </div>
+
+      <!-- Prompt Content -->
+      <div style="margin-bottom: 30px;">
+        <h3 style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
+          📋 Prompt Content
+        </h3>
+        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
+          <pre style="font-size: 14px; line-height: 1.7; color: var(--text-primary); white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', monospace; margin: 0; max-height: 300px; overflow-y: auto;">${escapeHtml(prompt.content)}</pre>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      ${prompt.tags && prompt.tags.length > 0 ? `
+        <div style="margin-bottom: 30px;">
+          <h3 style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
+            🏷️ Tags
+          </h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${prompt.tags.map(tag => `
+              <span style="padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 12px; color: var(--text-secondary);">
+                ${escapeHtml(tag)}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button style="padding: 12px 28px; background: ${categoryColors[prompt.category]}; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;" onclick="navigator.clipboard.writeText(\`${escapeHtml(prompt.content).replace(/`/g, '\\`')}\`); this.textContent='✓ Copied!'; setTimeout(() => this.textContent='📋 Copy Prompt', 2000)" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          📋 Copy Prompt
+        </button>
+      </div>
+    </div>
+  `
+
+  // Show modal with animation
+  modal.style.display = 'flex'
+  setTimeout(() => {
+    modal.style.opacity = '1'
+    modalContent.style.transform = 'scale(1)'
+    modalContent.style.opacity = '1'
+  }, 10)
+
+  // Attach close listener
+  const closeBtn = document.getElementById('modal-close')
+  const closeModal = () => {
+    modal.style.opacity = '0'
+    modalContent.style.transform = 'scale(0.9)'
+    setTimeout(() => {
+      modal.style.display = 'none'
+    }, 300)
+  }
+
+  closeBtn?.addEventListener('click', closeModal)
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal()
+  })
 }
 
 /**
