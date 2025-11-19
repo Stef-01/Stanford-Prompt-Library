@@ -2561,3 +2561,174 @@ input[type="file"]::-webkit-file-upload-button:hover {
   }
 }
 
+/* ===================================
+   SKELETON LOADERS (Phase 5)
+   =================================== */
+
+/* Skeleton pulse animation */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Skeleton shimmer animation */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Base skeleton elements */
+.skeleton-line,
+.skeleton-circle,
+.skeleton-badge {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 60%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 2s infinite linear;
+  border-radius: 4px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+.skeleton-badge {
+  border-radius: 12px;
+}
+
+/* Skeleton card container */
+.skeleton-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shine 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes skeleton-shine {
+  0% {
+    left: -150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+/* Loading container */
+.loading-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Empty state */
+.empty-state {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.empty-state > div:first-child {
+  animation: bounce 0.6s ease-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Fade animations for content transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion preferences for skeletons */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line,
+  .skeleton-circle,
+  .skeleton-badge,
+  .skeleton-card::before {
+    animation: none !important;
+  }
+
+  .skeleton-card {
+    opacity: 0.6;
+  }
+}
+
+/* Skeleton grid layouts */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Skeleton table rows */
+table tr.skeleton-row td {
+  padding: 16px;
+}
+
+/* Skeleton voting component (for tool cards) */
+.skeleton-voting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+}
+

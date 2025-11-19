@@ -21,6 +21,13 @@ import {
   showInputSuccess,
   setButtonLoading
 } from '../../animations/form-animations.js'
+import {
+  ToolCardSkeleton,
+  LeaderboardRowSkeleton,
+  TableSkeleton,
+  showLoadingState,
+  hideLoadingState
+} from '../SkeletonLoader.js'
 
 let leaderboardData = []
 let currentFilter = 'all' // all, month, week
@@ -38,14 +45,7 @@ let userVotes = new Map() // Cache user's votes: toolId -> 'upvote'|'downvote'
 export async function renderLeaderboardWindow(contentContainer) {
   containerRef = contentContainer
 
-  // Load data
-  leaderboardData = await getTimeBasedLeaderboard(currentFilter)
-  aiTools = await getAIToolsLeaderboard(toolsFilter)
-  toolCategories = await getToolCategories()
-
-  // Load user's votes for all tools
-  await loadUserVotes()
-
+  // Render UI structure first
   contentContainer.innerHTML = `
     <div style="padding: 20px;">
       <!-- View Tabs -->
@@ -68,12 +68,77 @@ export async function renderLeaderboardWindow(contentContainer) {
 
       <!-- Content Area -->
       <div id="leaderboard-content">
-        ${renderCurrentView()}
+        ${renderSkeletonView()}
       </div>
     </div>
   `
 
   attachEventListeners(contentContainer)
+
+  // Load data asynchronously
+  await loadLeaderboardData()
+}
+
+/**
+ * Load leaderboard data and update view
+ */
+async function loadLeaderboardData() {
+  // Load data
+  leaderboardData = await getTimeBasedLeaderboard(currentFilter)
+  aiTools = await getAIToolsLeaderboard(toolsFilter)
+  toolCategories = await getToolCategories()
+
+  // Load user's votes for all tools
+  await loadUserVotes()
+
+  // Update content with actual data
+  const contentArea = containerRef?.querySelector('#leaderboard-content')
+  if (contentArea) {
+    hideLoadingState(contentArea, renderCurrentView())
+
+    // Re-attach event listeners for the new content
+    if (currentView === 'tools') {
+      attachVoteListeners(containerRef)
+    }
+  }
+}
+
+/**
+ * Render skeleton view based on current view
+ */
+function renderSkeletonView() {
+  if (currentView === 'users') {
+    return `
+      <h2 style="font-size: 20px; margin-bottom: 15px;">Top Contributors</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+        Loading leaderboard...
+      </p>
+      <div class="leaderboard-table-container">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border-color);">
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Rank</th>
+              <th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-secondary);">User</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Prompts</th>
+              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${TableSkeleton(10)}
+          </tbody>
+        </table>
+      </div>
+    `
+  } else {
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 20px; margin: 0;">Top AI Tools</h2>
+      </div>
+      <div id="tools-list" style="display: flex; flex-direction: column; gap: 15px;">
+        ${[0, 1, 2, 3, 4, 5].map(i => ToolCardSkeleton(i)).join('')}
+      </div>
+    `
+  }
 }
 
 /**
@@ -357,13 +422,32 @@ function attachEventListeners(container) {
   // View tabs
   const viewTabs = container.querySelectorAll('.view-tab')
   viewTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      currentView = tab.dataset.view
+    tab.addEventListener('click', async () => {
+      const newView = tab.dataset.view
+      if (newView === currentView) return // Already on this view
+
+      currentView = newView
       const content = container.querySelector('#leaderboard-content')
       if (content) {
-        content.innerHTML = renderCurrentView()
+        // Show skeleton while switching
+        content.innerHTML = renderSkeletonView()
+
+        // Small delay to show skeleton (simulate data loading)
+        await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Update with actual content
+        hideLoadingState(content, renderCurrentView())
         attachContentListeners(container)
       }
+
+      // Update active tab styling
+      viewTabs.forEach(t => {
+        const isActive = t.dataset.view === currentView
+        t.style.borderBottomColor = isActive
+          ? (currentView === 'users' ? 'var(--accent-blue)' : 'var(--accent-purple)')
+          : 'transparent'
+        t.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
+      })
     })
   })
 
