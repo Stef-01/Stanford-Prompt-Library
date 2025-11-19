@@ -15,6 +15,12 @@ import {
   createRipple,
   pulseElement
 } from '../../animations/helpers.js'
+import {
+  initFormAnimations,
+  showInputError,
+  showInputSuccess,
+  setButtonLoading
+} from '../../animations/form-animations.js'
 
 let leaderboardData = []
 let currentFilter = 'all' // all, month, week
@@ -452,6 +458,8 @@ function attachContentListeners(container) {
       const modalContent = modal?.querySelector('> div')
       if (modal && modalContent) {
         showModal(modal, modalContent)
+        // Initialize form animations for modal
+        initFormAnimations(modalContent)
       }
     })
 
@@ -471,11 +479,10 @@ function attachContentListeners(container) {
       e.preventDefault()
 
       const submitBtn = submitToolForm.querySelector('button[type="submit"]')
-      const originalText = submitBtn.textContent
 
       try {
-        submitBtn.disabled = true
-        submitBtn.textContent = 'Submitting...'
+        // Set loading state with animation
+        setButtonLoading(submitBtn, true)
 
         const formData = new FormData(submitToolForm)
         const toolData = {
@@ -483,6 +490,47 @@ function attachContentListeners(container) {
           description: formData.get('description'),
           category: formData.get('category'),
           url: formData.get('url')
+        }
+
+        // Validate with animations
+        const nameInput = submitToolForm.querySelector('input[name="name"]')
+        const descInput = submitToolForm.querySelector('textarea[name="description"]')
+        const categorySelect = submitToolForm.querySelector('select[name="category"]')
+        const urlInput = submitToolForm.querySelector('input[name="url"]')
+
+        let hasErrors = false
+
+        if (!toolData.name || toolData.name.length < 2) {
+          showInputError(nameInput, 'Tool name must be at least 2 characters')
+          hasErrors = true
+        } else {
+          showInputSuccess(nameInput)
+        }
+
+        if (!toolData.description || toolData.description.length < 20) {
+          showInputError(descInput, 'Description must be at least 20 characters')
+          hasErrors = true
+        } else {
+          showInputSuccess(descInput)
+        }
+
+        if (!toolData.category) {
+          showInputError(categorySelect, 'Please select a category')
+          hasErrors = true
+        } else {
+          showInputSuccess(categorySelect)
+        }
+
+        if (!toolData.url || !toolData.url.match(/^https?:\/\//)) {
+          showInputError(urlInput, 'Please enter a valid URL')
+          hasErrors = true
+        } else {
+          showInputSuccess(urlInput)
+        }
+
+        if (hasErrors) {
+          setButtonLoading(submitBtn, false)
+          return
         }
 
         // Submit to database
@@ -517,8 +565,7 @@ function attachContentListeners(container) {
         console.error('Error submitting tool:', error)
         alert('❌ Failed to submit tool. Please try again.')
       } finally {
-        submitBtn.disabled = false
-        submitBtn.textContent = originalText
+        setButtonLoading(submitBtn, false)
       }
     })
 

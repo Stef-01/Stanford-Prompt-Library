@@ -2326,3 +2326,238 @@ select.success {
 .animated.animation-done {
   will-change: auto;
 }
+
+/* ===================================
+   FORM ANIMATIONS (Phase 4)
+   =================================== */
+
+/* Enhanced Form Input States */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+  position: relative;
+  transition: all 0.3s var(--ease-spring);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Error State with Shake Animation */
+input.error,
+textarea.error,
+select.error {
+  border-color: var(--accent-red) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-10px); }
+  80% { transform: translateX(10px); }
+}
+
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Success State with Pulse Animation */
+input.success,
+textarea.success,
+select.success {
+  border-color: var(--accent-green) !important;
+}
+
+@keyframes success-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+.success-pulse {
+  animation: success-pulse 0.6s ease-out;
+}
+
+/* Error Message Animation */
+.error-message {
+  color: var(--accent-red);
+  font-size: 12px;
+  margin-top: 4px;
+  animation: slideDown 0.2s var(--ease-out);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enhanced Button States */
+button,
+.btn-primary,
+.btn-secondary {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease-spring);
+}
+
+button:hover:not(:disabled),
+.btn-primary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+button:active:not(:disabled),
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Button Ripple Effect */
+.button-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+  from {
+    width: 0;
+    height: 0;
+    opacity: 1;
+  }
+  to {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+  }
+}
+
+/* Button Loading State */
+button.loading,
+.btn-primary.loading,
+.btn-secondary.loading {
+  pointer-events: none;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.button-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-left: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Animated Label (Float on Focus) */
+.animated-label {
+  transition: all 0.3s var(--ease-spring);
+  transform-origin: left top;
+}
+
+/* Checkbox and Radio Button Enhancements */
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+  transition: all 0.2s var(--ease-spring);
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  animation: checkBounce 0.3s var(--ease-spring);
+}
+
+@keyframes checkBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Select Dropdown Enhancement */
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  appearance: none;
+}
+
+select:hover {
+  border-color: var(--accent-blue);
+}
+
+/* File Input Enhancement */
+input[type="file"] {
+  cursor: pointer;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  padding: 8px 16px;
+  margin-right: 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent-blue);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-spring);
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  background: var(--accent-purple);
+  transform: translateY(-2px);
+}
+
+/* Focus Visible Enhancement (for keyboard navigation) */
+*:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Form Group Animation */
+.form-group {
+  animation: fadeInUp 0.3s var(--ease-out);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
