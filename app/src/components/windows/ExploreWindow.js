@@ -1,54 +1,127 @@
-import {
-  getApprovedPrompts,
-  getCategories,
-  copyPromptToClipboard,
-  exportPromptAsMarkdown
-} from '../../services/prompts.js'
+/**
+ * Explore Window - AI News and Student Articles
+ * Shows curated AI news, research, and student-written content
+ */
 
-let currentCategory = null
+let currentFilter = 'all' // all, news, research, tutorials, student-work
 let currentSearchQuery = ''
-let prompts = []
-let categories = []
+
+// Curated articles (in production, these would come from a database or API)
+const articles = [
+  {
+    id: 1,
+    title: 'OpenAI Announces GPT-4.5 with Enhanced Reasoning',
+    description: 'OpenAI releases their latest model with improved logical reasoning and reduced hallucinations, marking a significant leap in AI capabilities.',
+    author: 'OpenAI Team',
+    date: '2024-01-15',
+    category: 'news',
+    url: 'https://openai.com/blog',
+    imageUrl: null,
+    tags: ['GPT-4.5', 'Language Models', 'OpenAI']
+  },
+  {
+    id: 2,
+    title: 'Stanford CS224N: Advanced Prompt Engineering Techniques',
+    description: 'A comprehensive guide to advanced prompting strategies, including chain-of-thought, few-shot learning, and prompt optimization.',
+    author: 'Stanford CS Department',
+    date: '2024-01-10',
+    category: 'tutorials',
+    url: '#',
+    imageUrl: null,
+    tags: ['Prompt Engineering', 'Education', 'Stanford']
+  },
+  {
+    id: 3,
+    title: 'My Journey Building an AI-Powered Study Assistant',
+    description: 'A Stanford student shares their experience developing a personalized AI tutor using GPT-4 and RAG architecture.',
+    author: 'Sarah Chen, CS \'25',
+    date: '2024-01-08',
+    category: 'student-work',
+    url: '#',
+    imageUrl: null,
+    tags: ['Student Project', 'RAG', 'Education']
+  },
+  {
+    id: 4,
+    title: 'Anthropic Introduces Constitutional AI Framework',
+    description: 'New research on aligning AI systems with human values through constitutional principles and harmlessness training.',
+    author: 'Anthropic Research Team',
+    date: '2024-01-05',
+    category: 'research',
+    url: 'https://anthropic.com/research',
+    imageUrl: null,
+    tags: ['AI Safety', 'Anthropic', 'Constitutional AI']
+  },
+  {
+    id: 5,
+    title: 'Prompt Injection Attacks: What You Need to Know',
+    description: 'Understanding security vulnerabilities in LLM applications and best practices for mitigation.',
+    author: 'Stanford AI Lab',
+    date: '2024-01-03',
+    category: 'research',
+    url: '#',
+    imageUrl: null,
+    tags: ['Security', 'Research', 'Best Practices']
+  },
+  {
+    id: 6,
+    title: 'How I Built a Multi-Agent System for Course Planning',
+    description: 'Using LangChain and multiple specialized agents to help students plan their academic path at Stanford.',
+    author: 'Michael Zhang, MS \'24',
+    date: '2023-12-28',
+    category: 'student-work',
+    url: '#',
+    imageUrl: null,
+    tags: ['Multi-Agent', 'LangChain', 'Education']
+  }
+]
 
 /**
  * Render Explore Window Content
  * @param {HTMLElement} contentContainer - Window content container
  */
 export async function renderExploreWindow(contentContainer) {
-  // Load data
-  categories = await getCategories()
-  prompts = await getApprovedPrompts()
-
   contentContainer.innerHTML = `
-    <h2 style="font-size: 24px; margin-bottom: 20px;">Discover Amazing Prompts</h2>
+    <div style="padding: 20px;">
+      <!-- Header -->
+      <div style="margin-bottom: 25px;">
+        <h2 style="font-size: 24px; margin-bottom: 10px; color: var(--text-primary);">🌟 Explore AI News & Articles</h2>
+        <p style="color: var(--text-secondary); font-size: 14px;">Stay updated with the latest AI developments and Stanford community insights</p>
+      </div>
 
-    <!-- Search Bar -->
-    <input
-      type="text"
-      id="explore-search"
-      class="search-bar"
-      placeholder="Search prompts, categories, or techniques..."
-      value="${currentSearchQuery}"
-    />
+      <!-- Search Bar -->
+      <input
+        type="text"
+        id="explore-search"
+        class="search-bar"
+        placeholder="Search articles, authors, or topics..."
+        value="${currentSearchQuery}"
+        style="width: 100%; padding: 12px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 14px; margin-bottom: 20px;"
+      />
 
-    <!-- Category Filters -->
-    <div class="category-filters" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-      <button class="category-btn ${!currentCategory ? 'active' : ''}" data-category="">
-        All
-      </button>
-      ${categories.map(cat => `
-        <button
-          class="category-btn ${currentCategory === cat.name ? 'active' : ''}"
-          data-category="${cat.name}"
-        >
-          ${cat.icon} ${cat.name}
+      <!-- Category Filters -->
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 25px;">
+        <button class="filter-btn ${currentFilter === 'all' ? '' : 'inactive'}" data-filter="all">
+          📰 All
         </button>
-      `).join('')}
-    </div>
+        <button class="filter-btn ${currentFilter === 'news' ? '' : 'inactive'}" data-filter="news">
+          🔥 AI News
+        </button>
+        <button class="filter-btn ${currentFilter === 'research' ? '' : 'inactive'}" data-filter="research">
+          🔬 Research
+        </button>
+        <button class="filter-btn ${currentFilter === 'tutorials' ? '' : 'inactive'}" data-filter="tutorials">
+          📚 Tutorials
+        </button>
+        <button class="filter-btn ${currentFilter === 'student-work' ? '' : 'inactive'}" data-filter="student-work">
+          ✨ Student Work
+        </button>
+      </div>
 
-    <!-- Prompts Grid -->
-    <div class="content-grid" id="explore-prompts-grid" style="margin-top: 20px;">
-      ${renderPromptCards()}
+      <!-- Articles Grid -->
+      <div id="articles-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        ${renderArticleCards()}
+      </div>
     </div>
   `
 
@@ -57,178 +130,176 @@ export async function renderExploreWindow(contentContainer) {
 }
 
 /**
- * Render prompt cards
+ * Render article cards
  */
-function renderPromptCards() {
-  if (prompts.length === 0) {
+function renderArticleCards() {
+  const filteredArticles = filterArticles()
+
+  if (filteredArticles.length === 0) {
     return `
-      <div class="content-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-        <h3 style="color: var(--text-secondary); margin-bottom: 1rem;">No prompts found</h3>
-        <p style="color: var(--text-secondary);">Try different filters or check back later!</p>
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+        <p style="font-size: 48px; margin-bottom: 15px;">📭</p>
+        <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No articles found</h3>
+        <p style="color: var(--text-secondary); font-size: 14px;">Try adjusting your filters or search query</p>
       </div>
     `
   }
 
-  return prompts.map(prompt => `
-    <div class="content-card prompt-detail-card">
-      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-        <span style="font-size: 11px; background: ${getCategoryColor(prompt.category)}; padding: 4px 8px; border-radius: 4px; color: white;">
-          ${prompt.category}
-        </span>
-        <span style="font-size: 11px; color: var(--text-secondary);">
-          ❤️ ${prompt.likes_count || 0}
-        </span>
-      </div>
+  return filteredArticles.map(article => {
+    const categoryInfo = getCategoryInfo(article.category)
 
-      <h3 style="color: var(--accent-blue); margin-bottom: 10px; font-size: 16px;">
-        ${escapeHtml(prompt.title)}
-      </h3>
-
-      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">
-        ${escapeHtml(prompt.description || 'No description')}
-      </p>
-
-      ${prompt.tags && prompt.tags.length > 0 ? `
-        <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 15px;">
-          ${prompt.tags.slice(0, 3).map(tag => `
-            <span style="font-size: 11px; background: rgba(59, 130, 246, 0.2); padding: 3px 6px; border-radius: 3px;">
-              ${escapeHtml(tag)}
-            </span>
-          `).join('')}
-          ${prompt.tags.length > 3 ? `<span style="font-size: 11px; color: var(--text-secondary);">+${prompt.tags.length - 3} more</span>` : ''}
+    return `
+      <div class="article-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.2s; cursor: pointer;" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'" onclick="window.openArticle('${article.url}')">
+        <!-- Category Badge -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <span style="font-size: 11px; padding: 4px 10px; background: ${categoryInfo.color}; color: white; border-radius: 12px; font-weight: 600;">
+            ${categoryInfo.icon} ${categoryInfo.label}
+          </span>
+          <span style="font-size: 11px; color: var(--text-secondary);">
+            ${formatDate(article.date)}
+          </span>
         </div>
-      ` : ''}
 
-      <div style="display: flex; gap: 8px; margin-top: auto;">
-        <button class="btn-primary" style="flex: 1; padding: 8px 12px; font-size: 12px;" onclick="window.viewPrompt('${prompt.id}')">
-          View
-        </button>
-        <button class="btn-primary" style="background: rgba(255, 255, 255, 0.1); padding: 8px 12px; font-size: 12px;" onclick="window.copyPrompt('${prompt.id}')">
-          📋
-        </button>
-        <button class="btn-primary" style="background: rgba(255, 255, 255, 0.1); padding: 8px 12px; font-size: 12px;" onclick="window.exportPrompt('${prompt.id}')">
-          ⬇️
-        </button>
+        <!-- Title -->
+        <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-primary); line-height: 1.4;">
+          ${escapeHtml(article.title)}
+        </h3>
+
+        <!-- Description -->
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 15px;">
+          ${escapeHtml(article.description)}
+        </p>
+
+        <!-- Author & Tags -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="font-size: 12px; color: var(--text-secondary);">
+            <strong>By:</strong> ${escapeHtml(article.author)}
+          </div>
+
+          ${article.tags && article.tags.length > 0 ? `
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              ${article.tags.map(tag => `
+                <span style="font-size: 10px; padding: 3px 8px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; color: var(--text-secondary);">
+                  ${escapeHtml(tag)}
+                </span>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
       </div>
-    </div>
-  `).join('')
+    `
+  }).join('')
+}
+
+/**
+ * Filter articles based on current filter and search query
+ */
+function filterArticles() {
+  let filtered = articles
+
+  // Filter by category
+  if (currentFilter !== 'all') {
+    filtered = filtered.filter(article => article.category === currentFilter)
+  }
+
+  // Filter by search query
+  if (currentSearchQuery.trim()) {
+    const query = currentSearchQuery.toLowerCase()
+    filtered = filtered.filter(article =>
+      article.title.toLowerCase().includes(query) ||
+      article.description.toLowerCase().includes(query) ||
+      article.author.toLowerCase().includes(query) ||
+      article.tags.some(tag => tag.toLowerCase().includes(query))
+    )
+  }
+
+  return filtered
+}
+
+/**
+ * Get category information
+ */
+function getCategoryInfo(category) {
+  const categoryMap = {
+    'news': { icon: '🔥', label: 'AI News', color: '#ef4444' },
+    'research': { icon: '🔬', label: 'Research', color: '#8b5cf6' },
+    'tutorials': { icon: '📚', label: 'Tutorial', color: '#10b981' },
+    'student-work': { icon: '✨', label: 'Student Work', color: '#3b82f6' }
+  }
+
+  return categoryMap[category] || { icon: '📰', label: 'Article', color: '#64748b' }
+}
+
+/**
+ * Format date for display
+ */
+function formatDate(dateString) {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now - date)
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 1) {
+    return 'Today'
+  } else if (diffDays < 2) {
+    return 'Yesterday'
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`
+  } else if (diffDays < 30) {
+    const weeks = Math.floor(diffDays / 7)
+    return `${weeks} week${weeks !== 1 ? 's' : ''} ago`
+  } else {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
 }
 
 /**
  * Attach event listeners
  */
-function attachEventListeners(container) {
+function attachEventListeners(contentContainer) {
   // Search input
-  const searchInput = container.querySelector('#explore-search')
-  searchInput?.addEventListener('input', debounce(async (e) => {
+  const searchInput = contentContainer.querySelector('#explore-search')
+  searchInput?.addEventListener('input', debounce((e) => {
     currentSearchQuery = e.target.value
-    await filterAndRenderPrompts(container)
+    const grid = contentContainer.querySelector('#articles-grid')
+    if (grid) {
+      grid.innerHTML = renderArticleCards()
+    }
   }, 300))
 
-  // Category buttons
-  const categoryBtns = container.querySelectorAll('.category-btn')
-  categoryBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      currentCategory = btn.dataset.category || null
-      categoryBtns.forEach(b => b.classList.remove('active'))
-      btn.classList.add('active')
-      await filterAndRenderPrompts(container)
+  // Filter buttons
+  const filterBtns = contentContainer.querySelectorAll('[data-filter]')
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentFilter = btn.dataset.filter
+
+      // Update button states
+      filterBtns.forEach(b => {
+        if (b.dataset.filter === currentFilter) {
+          b.classList.remove('inactive')
+        } else {
+          b.classList.add('inactive')
+        }
+      })
+
+      // Re-render articles
+      const grid = contentContainer.querySelector('#articles-grid')
+      if (grid) {
+        grid.innerHTML = renderArticleCards()
+      }
     })
   })
-
-  // Global functions for buttons (using window object to avoid event listener cleanup issues)
-  window.viewPrompt = (promptId) => {
-    const prompt = prompts.find(p => p.id === promptId)
-    if (prompt) {
-      alert(`Viewing: ${prompt.title}\n\n${prompt.content}`)
-    }
-  }
-
-  window.copyPrompt = async (promptId) => {
-    const prompt = prompts.find(p => p.id === promptId)
-    if (prompt) {
-      const success = await copyPromptToClipboard(prompt)
-      if (success) {
-        showNotification('Copied to clipboard!')
-      }
-    }
-  }
-
-  window.exportPrompt = async (promptId) => {
-    const prompt = prompts.find(p => p.id === promptId)
-    if (prompt) {
-      await exportPromptAsMarkdown(prompt)
-      showNotification('Exported as markdown!')
-    }
-  }
 }
 
 /**
- * Filter and re-render prompts
+ * Open article (global function for onclick)
  */
-async function filterAndRenderPrompts(container) {
-  const filters = {
-    search: currentSearchQuery,
-    category: currentCategory
+window.openArticle = function(url) {
+  if (url && url !== '#') {
+    window.open(url, '_blank')
+  } else {
+    alert('📰 Article content coming soon!\n\nThis is a placeholder article. In production, this would link to the full article or open in a reader.')
   }
-
-  prompts = await getApprovedPrompts(filters)
-
-  const grid = container.querySelector('#explore-prompts-grid')
-  if (grid) {
-    grid.innerHTML = renderPromptCards()
-  }
-}
-
-/**
- * Get category color
- */
-function getCategoryColor(category) {
-  const colors = {
-    'Research & Academia': '#3b82f6',
-    'Data Science & ML': '#10b981',
-    'Business Strategy': '#ec4899',
-    'Finance & Investment': '#f59e0b',
-    'Consulting': '#8b5cf6',
-    'Software Engineering': '#06b6d4',
-    'Product & Design': '#f97316',
-    'Legal & Policy': '#64748b',
-    'Medical & Healthcare': '#ef4444',
-    'Content & Marketing': '#a855f7',
-    'Education & Teaching': '#14b8a6',
-    'Startups & Ventures': '#f43f5e',
-    'Career Development': '#0ea5e9',
-    'Academic Writing': '#84cc16'
-  }
-  return colors[category] || '#3b82f6'
-}
-
-/**
- * Show notification
- */
-function showNotification(message) {
-  const notification = document.createElement('div')
-  notification.style.cssText = `
-    position: fixed;
-    top: 50px;
-    right: 20px;
-    background: rgba(20, 20, 30, 0.95);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 12px 20px;
-    color: var(--text-primary);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 99999;
-    animation: slideIn 0.3s ease-out;
-  `
-  notification.textContent = message
-
-  document.body.appendChild(notification)
-
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-in'
-    setTimeout(() => notification.remove(), 300)
-  }, 2000)
 }
 
 /**
@@ -250,6 +321,7 @@ function debounce(func, wait) {
  * Escape HTML
  */
 function escapeHtml(text) {
+  if (!text) return ''
   const div = document.createElement('div')
   div.textContent = text
   return div.innerHTML

@@ -9,6 +9,7 @@ import {
   startClock
 } from '../utils/desktop-windows.js'
 import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
+import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -148,6 +149,9 @@ export async function renderMainApp(container, user) {
 
     // Start the desktop clock
     startClock()
+
+    // Initialize keyboard shortcuts
+    initializeKeyboardShortcuts(userIsAdmin)
 
     // Create all windows
     await createAllWindows()

@@ -103,6 +103,41 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
           <small style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">Minimum 50 characters</small>
         </div>
 
+        <!-- Image Upload (Optional) -->
+        <div class="form-group">
+          <label for="submit-image" style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary);">
+            Example Image <span style="font-size: 11px; font-weight: 400; color: var(--text-secondary);">(optional)</span>
+          </label>
+          <div style="display: flex; gap: 10px; align-items: start;">
+            <label for="submit-image" style="cursor: pointer; padding: 10px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; font-size: 13px; color: var(--text-primary); transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='var(--accent-blue)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span id="image-upload-label">Choose Image</span>
+            </label>
+            <input
+              type="file"
+              id="submit-image"
+              name="image"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              style="display: none;"
+            />
+            <button
+              type="button"
+              id="clear-image-btn"
+              style="display: none; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 6px; color: var(--accent-red); cursor: pointer; font-size: 13px;"
+              onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
+              onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"
+            >
+              Remove
+            </button>
+          </div>
+          <div id="image-preview" style="display: none; margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 6px;">
+            <!-- Image preview will appear here -->
+          </div>
+          <small style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">Upload an example screenshot or diagram (PNG, JPG, WebP • Max 5MB)</small>
+        </div>
+
         <!-- Tags - Visual Tag Picker -->
         <div class="form-group">
           <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-primary);">
@@ -195,6 +230,56 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
       // Update selected tags display
       renderSelectedTags(selectedTagsContainer)
     })
+  })
+
+  // Image upload handling
+  const imageInput = contentContainer.querySelector('#submit-image')
+  const imagePreview = contentContainer.querySelector('#image-preview')
+  const imageLabel = contentContainer.querySelector('#image-upload-label')
+  const clearImageBtn = contentContainer.querySelector('#clear-image-btn')
+  let selectedImage = null
+
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image file is too large. Maximum size is 5MB.')
+      imageInput.value = ''
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, or WebP).')
+      imageInput.value = ''
+      return
+    }
+
+    selectedImage = file
+
+    // Show preview
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      imagePreview.style.display = 'block'
+      imagePreview.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 4px; display: block; margin: 0 auto;" />
+        <p style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--text-secondary);">${file.name} (${(file.size / 1024).toFixed(1)} KB)</p>
+      `
+      imageLabel.textContent = '✓ Image Selected'
+      clearImageBtn.style.display = 'inline-block'
+    }
+    reader.readAsDataURL(file)
+  })
+
+  clearImageBtn.addEventListener('click', () => {
+    imageInput.value = ''
+    selectedImage = null
+    imagePreview.style.display = 'none'
+    imagePreview.innerHTML = ''
+    imageLabel.textContent = 'Choose Image'
+    clearImageBtn.style.display = 'none'
   })
 
   // Form submission
