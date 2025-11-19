@@ -10,6 +10,7 @@ import {
 } from '../utils/desktop-windows.js'
 import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
 import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
+import { initAnimationSystem } from '../animations/config.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -143,6 +144,9 @@ export async function renderMainApp(container, user) {
         </nav>
       </div>
     `
+
+    // Initialize animation system
+    initAnimationSystem()
 
     // Initialize desktop window system
     initializeDesktopWindows()
