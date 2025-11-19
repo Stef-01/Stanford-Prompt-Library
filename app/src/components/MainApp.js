@@ -12,6 +12,7 @@ import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
 import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 import { initAnimationSystem } from '../animations/config.js'
 import { initDockMagnification } from '../utils/dock-magnification.js'
+import { initWallpaper } from '../services/wallpaper.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -26,6 +27,7 @@ import {
   renderSettingsWindow
 } from './windows/PlaceholderWindows.js'
 import { renderOpportunitiesWindow, initOpportunitiesWindow } from './windows/OpportunitiesWindow.js'
+import { renderWallpaperWindow } from './windows/WallpaperWindow.js'
 
 let userIsAdmin = false
 let userData = null
@@ -129,6 +131,12 @@ export async function renderMainApp(container, user) {
               <span class="dock-label">Admin</span>
             </div>
           ` : ''}
+          <div class="dock-icon" data-window="wallpaper" title="Wallpaper">
+            <svg fill="none" stroke="#7c3aed" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span class="dock-label">Wallpaper</span>
+          </div>
           <div class="dock-icon" data-window="settings" title="Settings">
             <svg fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -148,6 +156,9 @@ export async function renderMainApp(container, user) {
 
     // Initialize animation system
     initAnimationSystem()
+
+    // Initialize wallpaper system
+    initWallpaper()
 
     // Initialize desktop window system
     initializeDesktopWindows()
@@ -221,6 +232,7 @@ async function createAllWindows() {
     { id: 'games', title: 'Games', icon: '🎮', width: 700, height: 550, top: 180, left: 400 },
     { id: 'learn', title: 'Learn', icon: '📖', width: 700, height: 550, top: 200, left: 450 },
     { id: 'opportunities', title: 'Opportunities', icon: '💼', width: 700, height: 550, top: 220, left: 500 },
+    { id: 'wallpaper', title: 'Desktop Wallpaper', icon: '🎨', width: 600, height: 600, top: 120, left: 250 },
     { id: 'settings', title: 'Settings', icon: '⚙️', width: 600, height: 550, top: 240, left: 550 }
   ]
 
@@ -297,6 +309,9 @@ async function renderWindowContent(windowId, contentContainer) {
       case 'opportunities':
         contentContainer.innerHTML = await renderOpportunitiesWindow()
         await initOpportunitiesWindow()
+        break
+      case 'wallpaper':
+        renderWallpaperWindow(contentContainer)
         break
       case 'settings':
         renderSettingsWindow(contentContainer, userData)

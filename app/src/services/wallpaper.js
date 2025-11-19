@@ -1,0 +1,237 @@
+/**
+ * Wallpaper Service
+ * Manages wallpaper state, application, and persistence
+ */
+
+import { wallpapers, DEFAULT_WALLPAPER, DEFAULT_INTENSITY, DEFAULT_PALETTE } from '../config/wallpapers.js';
+import { startNeuralNetwork } from '../wallpapers/animations/neural-network.js';
+import { startWaveField } from '../wallpapers/animations/wave-field.js';
+import { startParticleField } from '../wallpapers/animations/particle-field.js';
+import { startGradientMesh } from '../wallpapers/animations/gradient-mesh.js';
+import { startFlowField } from '../wallpapers/animations/flow-field.js';
+
+// Storage keys
+const STORAGE_WALLPAPER = 'stanford-wallpaper-id';
+const STORAGE_INTENSITY = 'stanford-wallpaper-intensity';
+const STORAGE_PALETTE = 'stanford-wallpaper-palette';
+
+// State
+let currentWallpaper = null;
+let currentIntensity = DEFAULT_INTENSITY;
+let currentPalette = DEFAULT_PALETTE;
+let currentStopFunction = null;
+let backgroundCanvas = null;
+let backgroundContainer = null;
+
+/**
+ * Initialize wallpaper system
+ */
+export function initWallpaper() {
+  // Load saved settings
+  const savedWallpaperId = localStorage.getItem(STORAGE_WALLPAPER) || DEFAULT_WALLPAPER;
+  const savedIntensity = parseInt(localStorage.getItem(STORAGE_INTENSITY)) || DEFAULT_INTENSITY;
+  const savedPalette = localStorage.getItem(STORAGE_PALETTE) || DEFAULT_PALETTE;
+
+  currentIntensity = savedIntensity;
+  currentPalette = savedPalette;
+
+  // Find wallpaper
+  const wallpaper = wallpapers.find(w => w.id === savedWallpaperId) || wallpapers[0];
+
+  // Apply wallpaper
+  applyWallpaper(wallpaper, currentIntensity, currentPalette);
+}
+
+/**
+ * Apply wallpaper to desktop
+ */
+function applyWallpaper(wallpaper, intensity, palette) {
+  const desktop = document.querySelector('body.desktop-mode');
+  if (!desktop) {
+    console.warn('Desktop mode not active, wallpaper will apply when desktop mode is active');
+    currentWallpaper = wallpaper;
+    return;
+  }
+
+  // Stop current animation if any
+  if (currentStopFunction) {
+    currentStopFunction();
+    currentStopFunction = null;
+  }
+
+  // Clean up existing elements
+  if (backgroundCanvas) {
+    backgroundCanvas.remove();
+    backgroundCanvas = null;
+  }
+  if (backgroundContainer) {
+    backgroundContainer.remove();
+    backgroundContainer = null;
+  }
+
+  // Set background color
+  desktop.style.backgroundColor = wallpaper.backgroundColor || '#0A0F1E';
+
+  // Apply wallpaper based on type
+  if (wallpaper.type === 'css') {
+    desktop.style.backgroundImage = wallpaper.css;
+    desktop.style.backgroundSize = 'cover';
+    desktop.style.backgroundPosition = 'center';
+    desktop.style.backgroundRepeat = 'no-repeat';
+  } else if (wallpaper.type === 'canvas') {
+    // Clear CSS background
+    desktop.style.backgroundImage = 'none';
+
+    // Create canvas element
+    backgroundCanvas = document.createElement('canvas');
+    backgroundCanvas.id = 'wallpaper-canvas';
+    backgroundCanvas.style.position = 'fixed';
+    backgroundCanvas.style.top = '0';
+    backgroundCanvas.style.left = '0';
+    backgroundCanvas.style.width = '100%';
+    backgroundCanvas.style.height = '100%';
+    backgroundCanvas.style.zIndex = '-1';
+    backgroundCanvas.style.pointerEvents = 'none';
+    desktop.appendChild(backgroundCanvas);
+
+    // Start animation
+    currentStopFunction = startCanvasAnimation(wallpaper.animation, backgroundCanvas, intensity, palette);
+  } else if (wallpaper.type === 'css-animation') {
+    // Clear CSS background
+    desktop.style.backgroundImage = 'none';
+
+    // Create container element for gradient mesh
+    backgroundContainer = document.createElement('div');
+    backgroundContainer.id = 'wallpaper-container';
+    backgroundContainer.style.position = 'fixed';
+    backgroundContainer.style.top = '0';
+    backgroundContainer.style.left = '0';
+    backgroundContainer.style.width = '100%';
+    backgroundContainer.style.height = '100%';
+    backgroundContainer.style.zIndex = '-1';
+    backgroundContainer.style.pointerEvents = 'none';
+    desktop.appendChild(backgroundContainer);
+
+    // Start CSS animation
+    currentStopFunction = startGradientMesh(backgroundContainer, intensity, palette);
+  }
+
+  currentWallpaper = wallpaper;
+}
+
+/**
+ * Start canvas animation
+ */
+function startCanvasAnimation(animationName, canvas, intensity, palette) {
+  switch (animationName) {
+    case 'neural-network':
+      return startNeuralNetwork(canvas, intensity, palette);
+    case 'wave-field':
+      return startWaveField(canvas, intensity, palette);
+    case 'particle-field':
+      return startParticleField(canvas, intensity, palette);
+    case 'flow-field':
+      return startFlowField(canvas, intensity, palette);
+    default:
+      console.error('Unknown animation:', animationName);
+      return () => {};
+  }
+}
+
+/**
+ * Set wallpaper by ID
+ */
+export function setWallpaper(wallpaperId) {
+  const wallpaper = wallpapers.find(w => w.id === wallpaperId);
+  if (!wallpaper) {
+    console.error('Wallpaper not found:', wallpaperId);
+    return false;
+  }
+
+  applyWallpaper(wallpaper, currentIntensity, currentPalette);
+  localStorage.setItem(STORAGE_WALLPAPER, wallpaperId);
+  return true;
+}
+
+/**
+ * Set intensity (1-10)
+ */
+export function setIntensity(intensity) {
+  if (intensity < 1 || intensity > 10) {
+    console.error('Intensity must be between 1 and 10');
+    return false;
+  }
+
+  currentIntensity = intensity;
+  localStorage.setItem(STORAGE_INTENSITY, intensity.toString());
+
+  // Reapply current wallpaper with new intensity
+  if (currentWallpaper) {
+    applyWallpaper(currentWallpaper, currentIntensity, currentPalette);
+  }
+
+  return true;
+}
+
+/**
+ * Set color palette
+ */
+export function setColorPalette(palette) {
+  if (!['purple', 'teal', 'pink', 'mono'].includes(palette)) {
+    console.error('Invalid palette:', palette);
+    return false;
+  }
+
+  currentPalette = palette;
+  localStorage.setItem(STORAGE_PALETTE, palette);
+
+  // Reapply current wallpaper with new palette
+  if (currentWallpaper) {
+    applyWallpaper(currentWallpaper, currentIntensity, currentPalette);
+  }
+
+  return true;
+}
+
+/**
+ * Get current wallpaper
+ */
+export function getCurrentWallpaper() {
+  return currentWallpaper;
+}
+
+/**
+ * Get current intensity
+ */
+export function getCurrentIntensity() {
+  return currentIntensity;
+}
+
+/**
+ * Get current color palette
+ */
+export function getCurrentPalette() {
+  return currentPalette;
+}
+
+/**
+ * Get all wallpapers
+ */
+export function getAllWallpapers() {
+  return wallpapers;
+}
+
+/**
+ * Handle window resize
+ */
+export function handleResize() {
+  if (currentWallpaper && (currentWallpaper.type === 'canvas' || currentWallpaper.type === 'css-animation')) {
+    // Reapply to resize canvas/container
+    applyWallpaper(currentWallpaper, currentIntensity, currentPalette);
+  }
+}
+
+// Listen for window resize
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', handleResize);
+}
