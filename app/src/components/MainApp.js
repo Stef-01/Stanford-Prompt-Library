@@ -23,9 +23,9 @@ import { renderSubmitWindow } from './windows/SubmitWindow.js'
 import {
   renderGamesWindow,
   renderLearnWindow,
-  renderOpportunitiesWindow,
   renderSettingsWindow
 } from './windows/PlaceholderWindows.js'
+import { renderOpportunitiesWindow, initOpportunitiesWindow } from './windows/OpportunitiesWindow.js'
 
 let userIsAdmin = false
 let userData = null
@@ -295,7 +295,8 @@ async function renderWindowContent(windowId, contentContainer) {
         renderLearnWindow(contentContainer)
         break
       case 'opportunities':
-        renderOpportunitiesWindow(contentContainer)
+        contentContainer.innerHTML = await renderOpportunitiesWindow()
+        await initOpportunitiesWindow()
         break
       case 'settings':
         renderSettingsWindow(contentContainer, userData)
