@@ -10,7 +10,6 @@ let currentSortBy = 'newest'
 let currentCarouselIndex = 0
 let carouselInterval = null
 let currentView = 'discover' // discover, myPrompts
-let currentViewMode = 'details' // details, image
 
 // Placeholder prompts for carousel demo
 const placeholderPrompts = [
@@ -70,13 +69,11 @@ export async function renderLibraryWindow(contentContainer, userData) {
   contentContainer.innerHTML = `
     <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
 
-      <!-- Carousel Modal (Hidden) -->
-      <div id="carousel-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95);
-                                       backdrop-filter: blur(12px); z-index: 99999; opacity: 0; transition: opacity 0.3s ease;">
-        <div id="carousel-modal-content" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-                                                 transform: scale(0.95); transition: transform 0.4s var(--ease-spring), opacity 0.3s ease;">
-          <!-- Carousel content will be injected here -->
-        </div>
+      <!-- Featured Carousel - Monochrome -->
+      <div id="prompt-carousel" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+                                       padding: 0; position: relative; overflow: hidden; flex-shrink: 0; height: 280px; cursor: pointer;
+                                       border-bottom: 1px solid var(--border-subtle);">
+        ${renderCarousel()}
       </div>
 
       <!-- Prompt Details Modal -->
@@ -92,72 +89,28 @@ export async function renderLibraryWindow(contentContainer, userData) {
         </div>
       </div>
 
-      <!-- Header Controls -->
-      <div style="padding: 20px 24px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
-        <!-- View Toggle Tabs -->
-        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-          <button
-            class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
-            data-view="discover"
-            style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                   font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
-                   ${currentView === 'discover'
-                     ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
-                     : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-            ${Icon({ name: 'explore' })} Discover Prompts
-          </button>
-          <button
-            class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
-            data-view="myPrompts"
-            style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                   font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
-                   ${currentView === 'myPrompts'
-                     ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
-                     : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-            ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
-          </button>
-        </div>
-
-        <!-- Featured Prompts & View Mode Controls -->
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button
-            id="featured-prompts-btn"
-            style="padding: 10px 20px; background: var(--white-10); border: 1px solid var(--border-subtle);
-                   border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer;
-                   transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 8px;">
-            ${Icon({ name: 'stars', className: '!text-[18px]' })}
-            <span>Featured Prompts</span>
-          </button>
-
-          <div style="flex: 1;"></div>
-
-          <!-- View Mode Toggle -->
-          <div style="display: flex; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle);
-                      border-radius: 12px; padding: 4px;">
-            <button
-              class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
-              data-mode="details"
-              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                     ${currentViewMode === 'details'
-                       ? 'background: var(--primary); color: var(--background-dark);'
-                       : 'background: transparent; color: var(--text-subtle);'}">
-              ${Icon({ name: 'view_list', className: '!text-[16px]' })}
-              Details
-            </button>
-            <button
-              class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
-              data-mode="image"
-              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                     ${currentViewMode === 'image'
-                       ? 'background: var(--primary); color: var(--background-dark);'
-                       : 'background: transparent; color: var(--text-subtle);'}">
-              ${Icon({ name: 'image', className: '!text-[16px]' })}
-              Images
-            </button>
-          </div>
-        </div>
+      <!-- View Toggle Tabs - Monochrome -->
+      <div style="display: flex; gap: 12px; padding: 20px 24px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
+        <button
+          class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
+          data-view="discover"
+          style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                 font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                 ${currentView === 'discover'
+                   ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                   : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+          ${Icon({ name: 'explore' })} Discover Prompts
+        </button>
+        <button
+          class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
+          data-view="myPrompts"
+          style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                 font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                 ${currentView === 'myPrompts'
+                   ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                   : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+          ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
+        </button>
       </div>
 
       <!-- Content Area -->
@@ -168,6 +121,7 @@ export async function renderLibraryWindow(contentContainer, userData) {
   `
 
   setupLibraryEventListeners(contentContainer)
+  startCarousel()
 }
 
 /**
