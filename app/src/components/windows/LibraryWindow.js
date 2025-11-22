@@ -10,7 +10,7 @@ let currentSortBy = 'newest'
 let currentCarouselIndex = 0
 let carouselInterval = null
 let currentView = 'discover' // discover, myPrompts
-let currentViewMode = 'details' // details, image
+let currentViewMode = 'details' // details, image, featured
 
 // Placeholder prompts for carousel demo
 const placeholderPrompts = [
@@ -92,71 +92,69 @@ export async function renderLibraryWindow(contentContainer, userData) {
         </div>
       </div>
 
-      <!-- Header Controls -->
-      <div style="padding: 20px 24px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
-        <!-- Single Row: Tabs on Left, Controls on Right -->
+      <!-- Header Controls - Compact -->
+      <div style="padding: 12px 20px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
         <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between;">
           <!-- View Toggle Tabs (Left) -->
-          <div style="display: flex; gap: 12px;">
+          <div style="display: flex; gap: 8px;">
             <button
               class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
               data-view="discover"
-              style="padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                     font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+              style="padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
+                     font-weight: 600; font-size: 13px; transition: all 0.4s var(--ease-spring);
                      ${currentView === 'discover'
-                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);'
                        : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-              ${Icon({ name: 'explore' })} Discover Prompts
+              ${Icon({ name: 'explore', className: '!text-[16px]' })} Discover
             </button>
             <button
               class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
               data-view="myPrompts"
-              style="padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                     font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+              style="padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
+                     font-weight: 600; font-size: 13px; transition: all 0.4s var(--ease-spring);
                      ${currentView === 'myPrompts'
-                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);'
                        : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-              ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
+              ${Icon({ name: 'auto_stories', className: '!text-[16px]' })} My Submissions (${myPrompts.length})
             </button>
           </div>
 
-          <!-- Featured Prompts & View Mode Controls (Right) -->
-          <div style="display: flex; gap: 12px; align-items: center;">
+          <!-- View Mode Toggle (Right) -->
+          <div style="display: flex; gap: 4px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                      border-radius: 10px; padding: 3px;">
             <button
-              id="featured-prompts-btn"
-              style="padding: 10px 20px; background: var(--white-10); border: 1px solid var(--border-subtle);
-                     border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 8px;">
-              ${Icon({ name: 'stars', className: '!text-[18px]' })}
-              <span>Featured Prompts</span>
+              class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
+              data-mode="details"
+              style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
+                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     ${currentViewMode === 'details'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'view_list', className: '!text-[14px]' })}
+              Details
             </button>
-
-            <!-- View Mode Toggle -->
-            <div style="display: flex; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle);
-                        border-radius: 12px; padding: 4px;">
-              <button
-                class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
-                data-mode="details"
-                style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                       transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                       ${currentViewMode === 'details'
-                         ? 'background: var(--primary); color: var(--background-dark);'
-                         : 'background: transparent; color: var(--text-subtle);'}">
-                ${Icon({ name: 'view_list', className: '!text-[16px]' })}
-                Details
-              </button>
-              <button
-                class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
-                data-mode="image"
-                style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                       transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                       ${currentViewMode === 'image'
-                         ? 'background: var(--primary); color: var(--background-dark);'
-                         : 'background: transparent; color: var(--text-subtle);'}">
-                ${Icon({ name: 'image', className: '!text-[16px]' })}
-                Images
-              </button>
-            </div>
+            <button
+              class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
+              data-mode="image"
+              style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
+                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     ${currentViewMode === 'image'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'image', className: '!text-[14px]' })}
+              Images
+            </button>
+            <button
+              class="view-mode-btn ${currentViewMode === 'featured' ? 'active' : ''}"
+              data-mode="featured"
+              style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
+                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     ${currentViewMode === 'featured'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'stars', className: '!text-[14px]' })}
+              Featured
+            </button>
           </div>
         </div>
       </div>
@@ -270,6 +268,21 @@ function renderCurrentView() {
  * Render discover view - Monochrome
  */
 function renderDiscoverView() {
+  // If featured mode, show carousel fullscreen in content area
+  if (currentViewMode === 'featured') {
+    return `
+      <div id="featured-carousel-container" style="position: fixed; inset: 0; top: var(--notch-height, 32px);
+                                                     background: var(--background-dark); z-index: 1; margin: 0;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding-top: calc(12px + 42px);">
+          <div id="prompt-carousel" style="width: 100%; height: 100%; position: relative;">
+            ${renderCarousel()}
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  // Normal grid view (details or images)
   return `
     <!-- Search and Filters -->
     <div style="margin-bottom: 32px;">
@@ -1015,37 +1028,31 @@ function setupLibraryEventListeners(contentContainer) {
     })
   })
 
-  // Carousel listeners (only if carousel exists in DOM - it's now in a modal)
-  const carousel = contentContainer.querySelector('#prompt-carousel')
-  if (carousel) {
-    attachCarouselListeners(carousel)
-  }
-
-  // Featured Prompts button (in header)
-  const featuredBtn = contentContainer.querySelector('#featured-prompts-btn')
-  featuredBtn?.addEventListener('click', () => {
-    showCarouselModal(contentContainer)
-  })
-
-  featuredBtn?.addEventListener('mouseenter', (e) => {
-    e.currentTarget.style.background = 'var(--white-15)'
-    e.currentTarget.style.borderColor = 'var(--white-30)'
-  })
-
-  featuredBtn?.addEventListener('mouseleave', (e) => {
-    e.currentTarget.style.background = 'var(--white-10)'
-    e.currentTarget.style.borderColor = 'var(--border-subtle)'
-  })
-
   // View Mode Toggle (in header)
   const viewModeBtns = contentContainer.querySelectorAll('.view-mode-btn')
   viewModeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
+      const oldMode = currentViewMode
       currentViewMode = btn.dataset.mode
       const contentArea = contentContainer.querySelector('#library-content')
+
       if (contentArea) {
         contentArea.innerHTML = renderCurrentView()
         reattachContentListeners(contentArea)
+
+        // If entering featured mode, start carousel auto-rotation
+        if (currentViewMode === 'featured' && oldMode !== 'featured') {
+          const carousel = contentArea.querySelector('#prompt-carousel')
+          if (carousel) {
+            attachCarouselListeners(carousel)
+            startCarousel()
+          }
+        }
+
+        // If leaving featured mode, stop carousel
+        if (oldMode === 'featured' && currentViewMode !== 'featured') {
+          stopCarousel()
+        }
       }
 
       // Update button styles
@@ -1068,6 +1075,16 @@ function setupLibraryEventListeners(contentContainer) {
 
 function reattachContentListeners(contentArea) {
   if (!contentArea) return
+
+  // If in featured mode, attach carousel listeners
+  if (currentViewMode === 'featured') {
+    const carousel = contentArea.querySelector('#prompt-carousel')
+    if (carousel) {
+      attachCarouselListeners(carousel)
+      startCarousel()
+    }
+    return // No other listeners needed in featured mode
+  }
 
   // Search
   const searchInput = contentArea.querySelector('#prompt-search')
