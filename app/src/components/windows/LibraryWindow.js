@@ -94,68 +94,69 @@ export async function renderLibraryWindow(contentContainer, userData) {
 
       <!-- Header Controls -->
       <div style="padding: 20px 24px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
-        <!-- View Toggle Tabs -->
-        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-          <button
-            class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
-            data-view="discover"
-            style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                   font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
-                   ${currentView === 'discover'
-                     ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
-                     : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-            ${Icon({ name: 'explore' })} Discover Prompts
-          </button>
-          <button
-            class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
-            data-view="myPrompts"
-            style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
-                   font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
-                   ${currentView === 'myPrompts'
-                     ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
-                     : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-            ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
-          </button>
-        </div>
-
-        <!-- Featured Prompts & View Mode Controls -->
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button
-            id="featured-prompts-btn"
-            style="padding: 10px 20px; background: var(--white-10); border: 1px solid var(--border-subtle);
-                   border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer;
-                   transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 8px;">
-            ${Icon({ name: 'stars', className: '!text-[18px]' })}
-            <span>Featured Prompts</span>
-          </button>
-
-          <div style="flex: 1;"></div>
-
-          <!-- View Mode Toggle -->
-          <div style="display: flex; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle);
-                      border-radius: 12px; padding: 4px;">
+        <!-- Single Row: Tabs on Left, Controls on Right -->
+        <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between;">
+          <!-- View Toggle Tabs (Left) -->
+          <div style="display: flex; gap: 12px;">
             <button
-              class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
-              data-mode="details"
-              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                     ${currentViewMode === 'details'
-                       ? 'background: var(--primary); color: var(--background-dark);'
-                       : 'background: transparent; color: var(--text-subtle);'}">
-              ${Icon({ name: 'view_list', className: '!text-[16px]' })}
-              Details
+              class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
+              data-view="discover"
+              style="padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                     font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                     ${currentView === 'discover'
+                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                       : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+              ${Icon({ name: 'explore' })} Discover Prompts
             </button>
             <button
-              class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
-              data-mode="image"
-              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
-                     ${currentViewMode === 'image'
-                       ? 'background: var(--primary); color: var(--background-dark);'
-                       : 'background: transparent; color: var(--text-subtle);'}">
-              ${Icon({ name: 'image', className: '!text-[16px]' })}
-              Images
+              class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
+              data-view="myPrompts"
+              style="padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                     font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                     ${currentView === 'myPrompts'
+                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                       : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+              ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
             </button>
+          </div>
+
+          <!-- Featured Prompts & View Mode Controls (Right) -->
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <button
+              id="featured-prompts-btn"
+              style="padding: 10px 20px; background: var(--white-10); border: 1px solid var(--border-subtle);
+                     border-radius: 12px; font-size: 14px; font-weight: 500; color: var(--text-primary); cursor: pointer;
+                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 8px;">
+              ${Icon({ name: 'stars', className: '!text-[18px]' })}
+              <span>Featured Prompts</span>
+            </button>
+
+            <!-- View Mode Toggle -->
+            <div style="display: flex; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                        border-radius: 12px; padding: 4px;">
+              <button
+                class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
+                data-mode="details"
+                style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
+                       transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
+                       ${currentViewMode === 'details'
+                         ? 'background: var(--primary); color: var(--background-dark);'
+                         : 'background: transparent; color: var(--text-subtle);'}">
+                ${Icon({ name: 'view_list', className: '!text-[16px]' })}
+                Details
+              </button>
+              <button
+                class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
+                data-mode="image"
+                style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 500;
+                       transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 6px;
+                       ${currentViewMode === 'image'
+                         ? 'background: var(--primary); color: var(--background-dark);'
+                         : 'background: transparent; color: var(--text-subtle);'}">
+                ${Icon({ name: 'image', className: '!text-[16px]' })}
+                Images
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1020,6 +1021,43 @@ function setupLibraryEventListeners(contentContainer) {
     attachCarouselListeners(carousel)
   }
 
+  // Featured Prompts button (in header)
+  const featuredBtn = contentContainer.querySelector('#featured-prompts-btn')
+  featuredBtn?.addEventListener('click', () => {
+    showCarouselModal(contentContainer)
+  })
+
+  featuredBtn?.addEventListener('mouseenter', (e) => {
+    e.currentTarget.style.background = 'var(--white-15)'
+    e.currentTarget.style.borderColor = 'var(--white-30)'
+  })
+
+  featuredBtn?.addEventListener('mouseleave', (e) => {
+    e.currentTarget.style.background = 'var(--white-10)'
+    e.currentTarget.style.borderColor = 'var(--border-subtle)'
+  })
+
+  // View Mode Toggle (in header)
+  const viewModeBtns = contentContainer.querySelectorAll('.view-mode-btn')
+  viewModeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentViewMode = btn.dataset.mode
+      const contentArea = contentContainer.querySelector('#library-content')
+      if (contentArea) {
+        contentArea.innerHTML = renderCurrentView()
+        reattachContentListeners(contentArea)
+      }
+
+      // Update button styles
+      viewModeBtns.forEach(b => {
+        const isActive = b.dataset.mode === currentViewMode
+        b.style.background = isActive ? 'var(--primary)' : 'transparent'
+        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+        b.style.fontWeight = isActive ? '600' : '500'
+      })
+    })
+  })
+
   // Content area listeners
   const contentArea = contentContainer.querySelector('#library-content')
   reattachContentListeners(contentArea)
@@ -1094,35 +1132,6 @@ function reattachContentListeners(contentArea) {
         e.target.style.color = 'var(--text-subtle)'
         e.target.style.borderColor = 'var(--white-10)'
       }
-    })
-  })
-
-  // Featured Prompts button
-  const featuredBtn = contentArea.querySelector('#featured-prompts-btn')
-  featuredBtn?.addEventListener('click', () => {
-    showCarouselModal(contentContainer)
-  })
-
-  // View Mode Toggle
-  const viewModeBtns = contentArea.querySelectorAll('.view-mode-btn')
-  viewModeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      currentViewMode = btn.dataset.mode
-      const grid = contentArea.querySelector('#prompts-grid')
-      if (grid) {
-        grid.innerHTML = currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()
-        grid.style.gridTemplateColumns = `repeat(auto-fill, minmax(${currentViewMode === 'image' ? '280px' : '340px'}, 1fr))`
-        attachPromptCardListeners(grid)
-      }
-
-      // Update button styles
-      viewModeBtns.forEach(b => {
-        const isActive = b.dataset.mode === currentViewMode
-        b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
-        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
-        b.style.fontWeight = isActive ? '600' : '500'
-        b.style.border = isActive ? 'none' : '1px solid var(--border-subtle)'
-      })
     })
   })
 
