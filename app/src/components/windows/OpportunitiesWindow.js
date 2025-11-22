@@ -238,14 +238,30 @@ function renderOpportunitiesGrid() {
  * Initialize the Opportunities window
  */
 export async function initOpportunitiesWindow() {
-  // Wait for next tick to ensure DOM is ready
-  await new Promise(resolve => setTimeout(resolve, 0))
+  // Wait for DOM to be ready with a more robust check
+  let attempts = 0
+  const maxAttempts = 10
 
-  const contentContainer = document.querySelector('.opportunities-window-content')
-  if (contentContainer) {
-    setupEventListeners(contentContainer)
+  const waitForElement = async () => {
+    const contentContainer = document.querySelector('.opportunities-window-content')
+    if (contentContainer) {
+      setupEventListeners(contentContainer)
+      injectStyles()
+      return true
+    }
+
+    attempts++
+    if (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 50))
+      return waitForElement()
+    }
+
+    console.warn('OpportunitiesWindow: Could not find content container after', maxAttempts, 'attempts')
+    injectStyles() // Inject styles anyway
+    return false
   }
-  injectStyles()
+
+  await waitForElement()
 }
 
 /**

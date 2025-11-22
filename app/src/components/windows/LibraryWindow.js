@@ -681,6 +681,8 @@ function updateCarousel() {
 }
 
 function attachCarouselListeners(container) {
+  if (!container) return
+
   // Click to view prompt
   const slide = container.querySelector('.carousel-slide')
   slide?.addEventListener('click', (e) => {
@@ -1012,9 +1014,11 @@ function setupLibraryEventListeners(contentContainer) {
     })
   })
 
-  // Carousel listeners
+  // Carousel listeners (only if carousel exists in DOM - it's now in a modal)
   const carousel = contentContainer.querySelector('#prompt-carousel')
-  attachCarouselListeners(carousel)
+  if (carousel) {
+    attachCarouselListeners(carousel)
+  }
 
   // Content area listeners
   const contentArea = contentContainer.querySelector('#library-content')
