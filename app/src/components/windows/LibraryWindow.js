@@ -52,6 +52,14 @@ const placeholderPrompts = [
 const CATEGORIES = ['All', 'Writing', 'Coding', 'Research', 'Creative', 'Other']
 
 /**
+ * Capitalize first letter of a string
+ */
+function capitalize(str) {
+  if (!str) return ''
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
  * Render Library Window - Monochrome Design
  */
 export async function renderLibraryWindow(contentContainer, userData) {
@@ -100,22 +108,24 @@ export async function renderLibraryWindow(contentContainer, userData) {
             <button
               class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
               data-view="discover"
-              style="padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
+              style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
                      font-weight: 600; font-size: 13px; transition: all 0.4s var(--ease-spring);
                      ${currentView === 'discover'
                        ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);'
                        : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-              ${Icon({ name: 'explore', className: '!text-[16px]' })} Discover
+              ${Icon({ name: 'explore', className: '!text-[16px]' })}
+              <span>Discover</span>
             </button>
             <button
               class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
               data-view="myPrompts"
-              style="padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
+              style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: none; cursor: pointer;
                      font-weight: 600; font-size: 13px; transition: all 0.4s var(--ease-spring);
                      ${currentView === 'myPrompts'
                        ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);'
                        : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
-              ${Icon({ name: 'auto_stories', className: '!text-[16px]' })} My Submissions (${myPrompts.length})
+              ${Icon({ name: 'auto_stories', className: '!text-[16px]' })}
+              <span>My Submissions (${myPrompts.length})</span>
             </button>
           </div>
 
@@ -126,34 +136,34 @@ export async function renderLibraryWindow(contentContainer, userData) {
               class="view-mode-btn ${currentViewMode === 'details' ? 'active' : ''}"
               data-mode="details"
               style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 5px;
                      ${currentViewMode === 'details'
                        ? 'background: var(--primary); color: var(--background-dark);'
                        : 'background: transparent; color: var(--text-subtle);'}">
               ${Icon({ name: 'view_list', className: '!text-[14px]' })}
-              Details
+              <span>Details</span>
             </button>
             <button
               class="view-mode-btn ${currentViewMode === 'image' ? 'active' : ''}"
               data-mode="image"
               style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 5px;
                      ${currentViewMode === 'image'
                        ? 'background: var(--primary); color: var(--background-dark);'
                        : 'background: transparent; color: var(--text-subtle);'}">
               ${Icon({ name: 'image', className: '!text-[14px]' })}
-              Images
+              <span>Images</span>
             </button>
             <button
               class="view-mode-btn ${currentViewMode === 'featured' ? 'active' : ''}"
               data-mode="featured"
               style="padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; font-weight: 500;
-                     transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 5px;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 5px;
                      ${currentViewMode === 'featured'
                        ? 'background: var(--primary); color: var(--background-dark);'
                        : 'background: transparent; color: var(--text-subtle);'}">
               ${Icon({ name: 'stars', className: '!text-[14px]' })}
-              Featured
+              <span>Featured</span>
             </button>
           </div>
         </div>
@@ -388,7 +398,7 @@ function renderPromptsGrid() {
             <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
                          font-size: 12px; font-weight: 500; background: var(--white-10); border: 1px solid var(--white-20); color: var(--text-primary);">
               ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[14px]' })}
-              ${prompt.category}
+              ${capitalize(prompt.category)}
             </span>
             <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-subtle);">
               ${Icon({ name: 'favorite', className: '!text-[16px]' })}
@@ -620,7 +630,7 @@ function renderMyPromptsList() {
           <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
                        background: ${status.bg}; color: ${status.text}; font-size: 12px; font-weight: 500;">
             ${Icon({ name: status.icon, className: '!text-[14px]' })}
-            ${prompt.status}
+            ${capitalize(prompt.status)}
           </div>
         </div>
 
@@ -635,8 +645,8 @@ function renderMyPromptsList() {
                     border-top: 1px solid var(--white-5); font-size: 13px; color: var(--text-subtle);">
           <span>${formatDate(prompt.created_at)}</span>
           <div style="display: flex; align-items: center; gap: 12px;">
-            <span>${Icon({ name: 'favorite', className: '!text-[16px]' })} ${prompt.likes_count || 0}</span>
-            <span style="text-transform: uppercase; font-weight: 500;">${prompt.category}</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px;">${Icon({ name: 'favorite', className: '!text-[16px]' })} ${prompt.likes_count || 0}</span>
+            <span style="text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;">${prompt.category}</span>
           </div>
         </div>
       </div>
