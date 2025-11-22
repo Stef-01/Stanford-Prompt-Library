@@ -1,3 +1,9 @@
+/**
+ * Leaderboard Window - Top Contributors & AI Tools
+ * Modern monochrome design with Material Symbols Outlined icons
+ */
+
+import { Icon } from '../ui/Icon.js'
 import { getTimeBasedLeaderboard } from '../../services/prompts.js'
 import {
   getAIToolsLeaderboard,
@@ -47,31 +53,61 @@ export async function renderLeaderboardWindow(contentContainer) {
 
   // Render UI structure first
   contentContainer.innerHTML = `
-    <div style="padding: 20px;">
-      <!-- View Tabs -->
-      <div style="display: flex; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid var(--border-color);">
-        <button
-          class="view-tab ${currentView === 'users' ? 'active' : ''}"
-          data-view="users"
-          style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid ${currentView === 'users' ? 'var(--accent-blue)' : 'transparent'}; color: ${currentView === 'users' ? 'var(--text-primary)' : 'var(--text-secondary)'}; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: -2px;"
-        >
-          🏆 Top Contributors
-        </button>
-        <button
-          class="view-tab ${currentView === 'tools' ? 'active' : ''}"
-          data-view="tools"
-          style="padding: 12px 20px; background: none; border: none; border-bottom: 3px solid ${currentView === 'tools' ? 'var(--accent-purple)' : 'transparent'}; color: ${currentView === 'tools' ? 'var(--text-primary)' : 'var(--text-secondary)'}; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-bottom: -2px;"
-        >
-          🛠️ Top AI Tools
-        </button>
-      </div>
+    <div class="leaderboard-window-content" style="height: 100%; overflow-y: auto; overflow-x: hidden;">
+      <div style="max-width: 1200px; margin: 0 auto; padding: 48px 24px 96px;">
 
-      <!-- Content Area -->
-      <div id="leaderboard-content">
-        ${renderSkeletonView()}
+        <!-- Hero Section -->
+        <div class="text-center" style="margin-bottom: 48px; animation: fadeIn 0.4s var(--ease-spring);">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px;
+                      border-radius: 20px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+            ${Icon({ name: 'leaderboard', className: 'text-white !text-[48px]' })}
+          </div>
+          <h1 style="font-size: clamp(32px, 5vw, 48px); font-weight: 700; color: var(--text-primary); margin-bottom: 16px; line-height: 1.1; letter-spacing: -0.02em;">
+            Leaderboard
+          </h1>
+          <p style="font-size: 18px; color: var(--text-subtle); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+            Discover top contributors and community-recommended AI tools.
+          </p>
+        </div>
+
+        <!-- View Tabs -->
+        <div style="display: flex; gap: 12px; margin-bottom: 40px; justify-content: center;">
+          <button
+            class="view-tab ${currentView === 'users' ? 'active' : ''}"
+            data-view="users"
+            style="padding: 12px 24px; background: ${currentView === 'users' ? 'var(--primary)' : 'var(--white-5)'};
+                   border: 1px solid ${currentView === 'users' ? 'var(--primary)' : 'var(--border-subtle)'};
+                   border-radius: 12px; color: ${currentView === 'users' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                   font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s var(--ease-spring);
+                   display: flex; align-items: center; gap: 8px;"
+          >
+            ${Icon({ name: 'workspace_premium', className: '!text-[20px]' })}
+            <span>Top Contributors</span>
+          </button>
+          <button
+            class="view-tab ${currentView === 'tools' ? 'active' : ''}"
+            data-view="tools"
+            style="padding: 12px 24px; background: ${currentView === 'tools' ? 'var(--primary)' : 'var(--white-5)'};
+                   border: 1px solid ${currentView === 'tools' ? 'var(--primary)' : 'var(--border-subtle)'};
+                   border-radius: 12px; color: ${currentView === 'tools' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                   font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s var(--ease-spring);
+                   display: flex; align-items: center; gap: 8px;"
+          >
+            ${Icon({ name: 'build', className: '!text-[20px]' })}
+            <span>Top AI Tools</span>
+          </button>
+        </div>
+
+        <!-- Content Area -->
+        <div id="leaderboard-content">
+          ${renderSkeletonView()}
+        </div>
       </div>
     </div>
   `
+
+  // Inject custom styles
+  injectStyles()
 
   attachEventListeners(contentContainer)
 
@@ -109,33 +145,14 @@ async function loadLeaderboardData() {
 function renderSkeletonView() {
   if (currentView === 'users') {
     return `
-      <h2 style="font-size: 20px; margin-bottom: 15px;">Top Contributors</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+      <div style="text-align: center; padding: 40px 20px; color: var(--text-subtle);">
         Loading leaderboard...
-      </p>
-      <div class="leaderboard-table-container">
-        <table style="width: 100%; border-collapse: collapse;">
-          <thead>
-            <tr style="border-bottom: 2px solid var(--border-color);">
-              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Rank</th>
-              <th style="padding: 12px; text-align: left; font-size: 13px; font-weight: 600; color: var(--text-secondary);">User</th>
-              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Prompts</th>
-              <th style="padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-secondary);">Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${TableSkeleton(10)}
-          </tbody>
-        </table>
       </div>
     `
   } else {
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="font-size: 20px; margin: 0;">Top AI Tools</h2>
-      </div>
-      <div id="tools-list" style="display: flex; flex-direction: column; gap: 15px;">
-        ${[0, 1, 2, 3, 4, 5].map(i => ToolCardSkeleton(i)).join('')}
+      <div style="text-align: center; padding: 40px 20px; color: var(--text-subtle);">
+        Loading tools...
       </div>
     `
   }
@@ -157,33 +174,40 @@ function renderCurrentView() {
  */
 function renderUsersLeaderboard() {
   return `
-    <h2 style="font-size: 20px; margin-bottom: 15px;">Top Contributors</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
-      Top contributors ranked by prompts submitted and likes received
-    </p>
-
-    <!-- Filter Buttons -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-      <button class="btn-primary ${currentFilter === 'all' ? '' : 'inactive'}" data-filter="all">
+    <!-- Filter Pills -->
+    <div style="display: flex; gap: 12px; margin-bottom: 32px; justify-content: center; flex-wrap: wrap;">
+      <button class="filter-pill ${currentFilter === 'all' ? 'active' : ''}" data-filter="all"
+              style="padding: 10px 20px; background: ${currentFilter === 'all' ? 'var(--primary)' : 'var(--white-5)'};
+                     border: 1px solid ${currentFilter === 'all' ? 'var(--primary)' : 'var(--border-subtle)'};
+                     border-radius: 24px; color: ${currentFilter === 'all' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                     font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-spring);">
         All Time
       </button>
-      <button class="btn-primary ${currentFilter === 'month' ? 'inactive' : 'inactive'}" data-filter="month">
+      <button class="filter-pill ${currentFilter === 'month' ? 'active' : ''}" data-filter="month"
+              style="padding: 10px 20px; background: ${currentFilter === 'month' ? 'var(--primary)' : 'var(--white-5)'};
+                     border: 1px solid ${currentFilter === 'month' ? 'var(--primary)' : 'var(--border-subtle)'};
+                     border-radius: 24px; color: ${currentFilter === 'month' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                     font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-spring);">
         This Month
       </button>
-      <button class="btn-primary ${currentFilter === 'week' ? 'inactive' : 'inactive'}" data-filter="week">
+      <button class="filter-pill ${currentFilter === 'week' ? 'active' : ''}" data-filter="week"
+              style="padding: 10px 20px; background: ${currentFilter === 'week' ? 'var(--primary)' : 'var(--white-5)'};
+                     border: 1px solid ${currentFilter === 'week' ? 'var(--primary)' : 'var(--border-subtle)'};
+                     border-radius: 24px; color: ${currentFilter === 'week' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                     font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-spring);">
         This Week
       </button>
     </div>
 
     <!-- Leaderboard Table -->
-    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 20px; overflow-x: auto;">
+    <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; overflow: hidden;">
       <table style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-            <th style="text-align: left; padding: 10px; font-size: 14px;">Rank</th>
-            <th style="text-align: left; padding: 10px; font-size: 14px;">User</th>
-            <th style="text-align: left; padding: 10px; font-size: 14px;">Prompts</th>
-            <th style="text-align: left; padding: 10px; font-size: 14px;">Likes</th>
+          <tr style="background: var(--white-5); border-bottom: 1px solid var(--border-subtle);">
+            <th style="text-align: center; padding: 16px; font-size: 14px; font-weight: 600; color: var(--text-subtle);">Rank</th>
+            <th style="text-align: left; padding: 16px; font-size: 14px; font-weight: 600; color: var(--text-subtle);">Contributor</th>
+            <th style="text-align: center; padding: 16px; font-size: 14px; font-weight: 600; color: var(--text-subtle);">Prompts</th>
+            <th style="text-align: center; padding: 16px; font-size: 14px; font-weight: 600; color: var(--text-subtle);">Likes</th>
           </tr>
         </thead>
         <tbody>
@@ -199,68 +223,103 @@ function renderUsersLeaderboard() {
  */
 function renderToolsLeaderboard() {
   return `
-    <h2 style="font-size: 20px; margin-bottom: 15px;">Top AI Tools</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
-      Community-recommended AI tools ranked by popularity
-    </p>
-
-    <!-- Filter Buttons -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px; justify-content: space-between; align-items: center;">
-      <div style="display: flex; gap: 10px;">
-        <button class="tools-filter-btn btn-primary ${toolsFilter === 'all' ? '' : 'inactive'}" data-tools-filter="all">
-          🌍 All Time
+    <!-- Filter Pills + Add Button -->
+    <div style="display: flex; gap: 12px; margin-bottom: 32px; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button class="tools-filter-pill ${toolsFilter === 'all' ? 'active' : ''}" data-tools-filter="all"
+                style="padding: 10px 20px; background: ${toolsFilter === 'all' ? 'var(--primary)' : 'var(--white-5)'};
+                       border: 1px solid ${toolsFilter === 'all' ? 'var(--primary)' : 'var(--border-subtle)'};
+                       border-radius: 24px; color: ${toolsFilter === 'all' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                       font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-spring);">
+          All Time
         </button>
-        <button class="tools-filter-btn btn-primary ${toolsFilter === 'week' ? '' : 'inactive'}" data-tools-filter="week">
-          📅 Last Week
+        <button class="tools-filter-pill ${toolsFilter === 'week' ? 'active' : ''}" data-tools-filter="week"
+                style="padding: 10px 20px; background: ${toolsFilter === 'week' ? 'var(--primary)' : 'var(--white-5)'};
+                       border: 1px solid ${toolsFilter === 'week' ? 'var(--primary)' : 'var(--border-subtle)'};
+                       border-radius: 24px; color: ${toolsFilter === 'week' ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                       font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-spring);">
+          Last Week
         </button>
       </div>
       <button
         id="add-tool-btn"
-        class="btn-primary"
-        style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));"
+        style="padding: 12px 20px; background: var(--primary); border: none; border-radius: 12px;
+               color: var(--background-dark); font-size: 14px; font-weight: 600; cursor: pointer;
+               transition: all 0.3s var(--ease-spring); display: flex; align-items: center; gap: 8px;"
       >
-        ➕ Recommend Tool
+        ${Icon({ name: 'add', className: '!text-[20px]' })}
+        <span>Recommend Tool</span>
       </button>
     </div>
 
     <!-- Tools List -->
-    <div id="tools-list" style="display: flex; flex-direction: column; gap: 15px;">
+    <div id="tools-list" style="display: flex; flex-direction: column; gap: 16px;">
       ${renderToolsList()}
     </div>
 
     <!-- Submit Tool Modal (hidden by default) -->
-    <div id="submit-tool-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 10002; backdrop-filter: blur(4px);">
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3 style="margin: 0; font-size: 20px;">🛠️ Recommend an AI Tool</h3>
-          <button id="close-modal-btn" style="background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px;">×</button>
+    <div id="submit-tool-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10002; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+           background: var(--background-dark); border: 1px solid var(--border-subtle); border-radius: 20px;
+           padding: 32px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
+           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h3 style="margin: 0; font-size: 24px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 12px;">
+            ${Icon({ name: 'build', className: '!text-[28px]' })}
+            <span>Recommend an AI Tool</span>
+          </h3>
+          <button id="close-modal-btn" style="background: var(--white-5); border: 1px solid var(--border-subtle);
+                  border-radius: 8px; width: 36px; height: 36px; color: var(--text-subtle); font-size: 20px;
+                  cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+            ${Icon({ name: 'close', className: '!text-[20px]' })}
+          </button>
         </div>
 
-        <form id="submit-tool-form" style="display: flex; flex-direction: column; gap: 15px;">
+        <form id="submit-tool-form" style="display: flex; flex-direction: column; gap: 20px;">
           <div>
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Tool Name *</label>
-            <input type="text" name="name" required placeholder="e.g., ChatGPT" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);" />
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              Tool Name <span style="color: var(--text-subtle);">*</span>
+            </label>
+            <input type="text" name="name" required placeholder="e.g., ChatGPT" class="modal-input"
+                   style="width: 100%; padding: 12px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                          border-radius: 12px; color: var(--text-primary); font-size: 15px; transition: all 0.3s;" />
           </div>
 
           <div>
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Category *</label>
-            <select name="category" required style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); cursor: pointer;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              Category <span style="color: var(--text-subtle);">*</span>
+            </label>
+            <select name="category" required class="modal-input"
+                    style="width: 100%; padding: 12px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                           border-radius: 12px; color: var(--text-primary); font-size: 15px; cursor: pointer; transition: all 0.3s;">
               <option value="">Select category...</option>
-              ${toolCategories.map(cat => `<option value="${cat.name}">${cat.icon || ''} ${cat.name}</option>`).join('')}
+              ${toolCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
             </select>
           </div>
 
           <div>
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Description *</label>
-            <textarea name="description" required rows="3" placeholder="Brief description of what makes this tool useful..." style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); resize: vertical; font-family: inherit;"></textarea>
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              Description <span style="color: var(--text-subtle);">*</span>
+            </label>
+            <textarea name="description" required rows="3" placeholder="Brief description of what makes this tool useful..." class="modal-input"
+                      style="width: 100%; padding: 12px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                             border-radius: 12px; color: var(--text-primary); font-size: 15px; resize: vertical; font-family: inherit;
+                             line-height: 1.6; transition: all 0.3s;"></textarea>
           </div>
 
           <div>
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Website URL *</label>
-            <input type="url" name="url" required placeholder="https://example.com" style="width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary);" />
+            <label style="display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              Website URL <span style="color: var(--text-subtle);">*</span>
+            </label>
+            <input type="url" name="url" required placeholder="https://example.com" class="modal-input"
+                   style="width: 100%; padding: 12px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                          border-radius: 12px; color: var(--text-primary); font-size: 15px; transition: all 0.3s;" />
           </div>
 
-          <button type="submit" style="width: 100%; padding: 12px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; border-radius: 8px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 10px;">
+          <button type="submit" style="width: 100%; padding: 14px; background: var(--primary); border: none;
+                  border-radius: 12px; color: var(--background-dark); font-size: 16px; font-weight: 600;
+                  cursor: pointer; margin-top: 8px; transition: all 0.3s var(--ease-spring);">
             Submit Recommendation
           </button>
         </form>
@@ -276,37 +335,56 @@ function renderLeaderboardRows() {
   if (leaderboardData.length === 0) {
     return `
       <tr>
-        <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-          No leaderboard data yet. Be the first to contribute!
+        <td colspan="4" style="text-align: center; padding: 60px 20px;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px;
+                      border-radius: 12px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+            ${Icon({ name: 'inbox', className: 'text-subtle-white !text-[32px]' })}
+          </div>
+          <p style="color: var(--text-subtle); font-size: 16px; margin: 0;">
+            No leaderboard data yet. Be the first to contribute!
+          </p>
         </td>
       </tr>
     `
   }
 
   return leaderboardData.map((user, index) => {
-    const rankEmoji = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''
-    const rankDisplay = rankEmoji ? `${rankEmoji} ${index + 1}` : index + 1
+    const medals = ['🥇', '🥈', '🥉']
+    const rankDisplay = index < 3 ? medals[index] : `#${index + 1}`
 
     return `
-      <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-        <td style="padding: 10px; font-weight: ${index < 3 ? '600' : '400'};">
-          ${rankDisplay}
+      <tr class="leaderboard-row" style="border-bottom: 1px solid var(--white-5); transition: background 0.2s;">
+        <td style="padding: 20px; text-align: center;">
+          <span style="font-size: ${index < 3 ? '24px' : '16px'}; font-weight: ${index < 3 ? '700' : '500'}; color: var(--text-primary);">
+            ${rankDisplay}
+          </span>
         </td>
-        <td style="padding: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
+        <td style="padding: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
             ${user.avatar_url ? `
-              <img src="${user.avatar_url}" alt="${user.display_name}" style="width: 32px; height: 32px; border-radius: 50%;" />
+              <img src="${user.avatar_url}" alt="${user.display_name}"
+                   style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-subtle);" />
             ` : `
-              <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">
-                ${user.display_name[0]}
+              <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--white-10);
+                          border: 2px solid var(--border-subtle); display: flex; align-items: center; justify-content: center;
+                          font-weight: 600; font-size: 16px; color: var(--text-primary);">
+                ${user.display_name[0].toUpperCase()}
               </div>
             `}
-            <span>${escapeHtml(user.display_name)}</span>
+            <span style="font-size: 16px; font-weight: 500; color: var(--text-primary);">
+              ${escapeHtml(user.display_name)}
+            </span>
           </div>
         </td>
-        <td style="padding: 10px;">${user.total_prompts || 0}</td>
-        <td style="padding: 10px; color: ${index < 3 ? 'var(--accent-yellow)' : 'inherit'};">
-          ${user.total_likes_received || 0}
+        <td style="padding: 20px; text-align: center;">
+          <span style="font-size: 16px; font-weight: 600; color: var(--text-primary);">
+            ${user.total_prompts || 0}
+          </span>
+        </td>
+        <td style="padding: 20px; text-align: center;">
+          <span style="font-size: 16px; font-weight: 600; color: var(--text-primary);">
+            ${user.total_likes_received || 0}
+          </span>
         </td>
       </tr>
     `
@@ -319,10 +397,13 @@ function renderLeaderboardRows() {
 function renderToolsList() {
   if (aiTools.length === 0) {
     return `
-      <div style="text-align: center; padding: 60px 20px;">
-        <p style="font-size: 48px; margin-bottom: 15px;">🛠️</p>
-        <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No tools found</h3>
-        <p style="color: var(--text-secondary); font-size: 14px;">Be the first to recommend an AI tool!</p>
+      <div style="text-align: center; padding: 80px 20px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px;
+                    border-radius: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+          ${Icon({ name: 'build', className: 'text-subtle-white !text-[48px]' })}
+        </div>
+        <h3 style="color: var(--text-primary); margin-bottom: 12px; font-size: 20px;">No tools found</h3>
+        <p style="color: var(--text-subtle); font-size: 16px;">Be the first to recommend an AI tool!</p>
       </div>
     `
   }
@@ -336,7 +417,8 @@ function renderToolsList() {
   }, 10)
 
   return aiTools.map((tool, index) => {
-    const rankBadge = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`
+    const medals = ['🥇', '🥈', '🥉']
+    const rankBadge = index < 3 ? medals[index] : `#${index + 1}`
     const userVote = userVotes.get(tool.id)
     const hasUpvoted = userVote === 'upvote'
     const hasDownvoted = userVote === 'downvote'
@@ -344,32 +426,40 @@ function renderToolsList() {
     const submittedBy = tool.users?.display_name || 'Unknown'
 
     return `
-      <div class="tool-card" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-purple)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 20px 40px rgba(0, 0, 0, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-        <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
+      <div class="tool-card" style="background: var(--white-5); border: 1px solid var(--border-subtle);
+           border-radius: 16px; padding: 24px; transition: all 0.3s var(--ease-spring);">
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 20px;">
+
           <!-- Voting Column -->
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 60px;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 60px;">
             <button
               class="vote-btn upvote-btn"
               data-tool-id="${tool.id}"
               data-vote-type="upvote"
-              style="background: ${hasUpvoted ? 'var(--accent-green)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasUpvoted ? 'var(--accent-green)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 16px; position: relative; overflow: hidden;"
+              style="background: ${hasUpvoted ? 'var(--primary)' : 'var(--white-5)'};
+                     border: 1px solid ${hasUpvoted ? 'var(--primary)' : 'var(--border-subtle)'};
+                     border-radius: 8px; padding: 8px 14px; cursor: pointer;
+                     transition: all 0.3s var(--ease-spring); font-size: 18px;
+                     color: ${hasUpvoted ? 'var(--background-dark)' : 'var(--text-subtle)'};"
               title="Upvote"
-              onmouseover="this.style.transform='scale(1.15) rotate(5deg)'"
-              onmouseout="this.style.transform='scale(1) rotate(0deg)'"
             >
               ▲
             </button>
-            <span class="net-score" data-score="${netScore}" style="font-weight: 700; font-size: 16px; color: ${netScore > 0 ? 'var(--accent-green)' : netScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'}; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+            <span class="net-score" data-score="${netScore}"
+                  style="font-weight: 700; font-size: 18px; color: var(--text-primary);
+                         transition: all 0.4s var(--ease-spring);">
               ${netScore > 0 ? '+' : ''}${netScore}
             </span>
             <button
               class="vote-btn downvote-btn"
               data-tool-id="${tool.id}"
               data-vote-type="downvote"
-              style="background: ${hasDownvoted ? 'var(--accent-red)' : 'rgba(255, 255, 255, 0.1)'}; border: 1px solid ${hasDownvoted ? 'var(--accent-red)' : 'var(--border-color)'}; border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); font-size: 16px; position: relative; overflow: hidden;"
+              style="background: ${hasDownvoted ? 'var(--primary)' : 'var(--white-5)'};
+                     border: 1px solid ${hasDownvoted ? 'var(--primary)' : 'var(--border-subtle)'};
+                     border-radius: 8px; padding: 8px 14px; cursor: pointer;
+                     transition: all 0.3s var(--ease-spring); font-size: 18px;
+                     color: ${hasDownvoted ? 'var(--background-dark)' : 'var(--text-subtle)'};"
               title="Downvote"
-              onmouseover="this.style.transform='scale(1.15) rotate(-5deg)'"
-              onmouseout="this.style.transform='scale(1) rotate(0deg)'"
             >
               ▼
             </button>
@@ -377,22 +467,31 @@ function renderToolsList() {
 
           <!-- Content Column -->
           <div style="flex: 1;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
-              <span style="font-size: 18px; font-weight: 700;">${rankBadge}</span>
-              <h4 style="margin: 0; font-size: 18px; color: var(--text-primary);">${escapeHtml(tool.name)}</h4>
-              <span style="font-size: 11px; padding: 4px 8px; background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); border-radius: 8px; font-weight: 600;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+              <span style="font-size: 24px;">${rankBadge}</span>
+              <h4 style="margin: 0; font-size: 20px; font-weight: 700; color: var(--text-primary);">
+                ${escapeHtml(tool.name)}
+              </h4>
+              <span style="font-size: 12px; padding: 6px 12px; background: var(--white-10);
+                           border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 24px; font-weight: 500;">
                 ${escapeHtml(tool.category)}
               </span>
             </div>
 
-            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.5; margin-bottom: 12px;">
+            <p style="color: var(--text-subtle); font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
               ${escapeHtml(tool.description)}
             </p>
 
-            <div style="display: flex; gap: 15px; align-items: center; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap;">
-              <span>👍 ${tool.upvotes_count || 0} upvotes</span>
+            <div style="display: flex; gap: 16px; align-items: center; font-size: 13px; color: var(--text-subtle); flex-wrap: wrap;">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                ${Icon({ name: 'thumb_up', className: '!text-[16px]' })}
+                ${tool.upvotes_count || 0}
+              </span>
               <span>•</span>
-              <span>👎 ${tool.downvotes_count || 0} downvotes</span>
+              <span style="display: flex; align-items: center; gap: 6px;">
+                ${Icon({ name: 'thumb_down', className: '!text-[16px]' })}
+                ${tool.downvotes_count || 0}
+              </span>
               <span>•</span>
               <span>Recommended by ${escapeHtml(submittedBy)}</span>
             </div>
@@ -403,11 +502,13 @@ function renderToolsList() {
             href="${tool.url}"
             target="_blank"
             rel="noopener noreferrer"
-            style="padding: 10px 16px; background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform 0.2s;"
-            onmouseover="this.style.transform='scale(1.05)'"
-            onmouseout="this.style.transform='scale(1)'"
+            style="padding: 12px 20px; background: var(--primary); border: none; border-radius: 12px;
+                   color: var(--background-dark); font-size: 14px; font-weight: 600; cursor: pointer;
+                   text-decoration: none; white-space: nowrap; transition: all 0.3s var(--ease-spring);
+                   display: flex; align-items: center; gap: 8px;"
           >
-            Visit →
+            <span>Visit</span>
+            ${Icon({ name: 'arrow_forward', className: '!text-[18px]' })}
           </a>
         </div>
       </div>
@@ -424,7 +525,7 @@ function attachEventListeners(container) {
   viewTabs.forEach(tab => {
     tab.addEventListener('click', async () => {
       const newView = tab.dataset.view
-      if (newView === currentView) return // Already on this view
+      if (newView === currentView) return
 
       currentView = newView
       const content = container.querySelector('#leaderboard-content')
@@ -432,7 +533,7 @@ function attachEventListeners(container) {
         // Show skeleton while switching
         content.innerHTML = renderSkeletonView()
 
-        // Small delay to show skeleton (simulate data loading)
+        // Small delay to show skeleton
         await new Promise(resolve => setTimeout(resolve, 100))
 
         // Update with actual content
@@ -443,11 +544,27 @@ function attachEventListeners(container) {
       // Update active tab styling
       viewTabs.forEach(t => {
         const isActive = t.dataset.view === currentView
-        t.style.borderBottomColor = isActive
-          ? (currentView === 'users' ? 'var(--accent-blue)' : 'var(--accent-purple)')
-          : 'transparent'
-        t.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)'
+        t.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+        t.style.borderColor = isActive ? 'var(--primary)' : 'var(--border-subtle)'
+        t.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
       })
+    })
+
+    // Hover effects
+    tab.addEventListener('mouseenter', (e) => {
+      if (!e.target.classList.contains('active')) {
+        e.target.style.background = 'var(--white-10)'
+        e.target.style.borderColor = 'var(--white-20)'
+        e.target.style.color = 'var(--text-primary)'
+      }
+    })
+
+    tab.addEventListener('mouseleave', (e) => {
+      if (!e.target.classList.contains('active')) {
+        e.target.style.background = 'var(--white-5)'
+        e.target.style.borderColor = 'var(--border-subtle)'
+        e.target.style.color = 'var(--text-subtle)'
+      }
     })
   })
 
@@ -467,11 +584,10 @@ function attachContentListeners(container) {
 
         // Update button states
         filterBtns.forEach(b => {
-          if (b.dataset.filter === currentFilter) {
-            b.classList.remove('inactive')
-          } else {
-            b.classList.add('inactive')
-          }
+          const isActive = b.dataset.filter === currentFilter
+          b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+          b.style.borderColor = isActive ? 'var(--primary)' : 'var(--border-subtle)'
+          b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
         })
 
         // Show loading state
@@ -479,7 +595,7 @@ function attachContentListeners(container) {
         if (tableContainer) {
           tableContainer.innerHTML = `
             <tr>
-              <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+              <td colspan="4" style="text-align: center; padding: 40px 20px; color: var(--text-subtle);">
                 Loading leaderboard data...
               </td>
             </tr>
@@ -493,24 +609,49 @@ function attachContentListeners(container) {
         if (tableContainer) {
           tableContainer.innerHTML = renderLeaderboardRows()
         }
+      })
 
-        console.log(`🏆 Leaderboard filter changed to: ${currentFilter}`)
+      // Hover effects
+      btn.addEventListener('mouseenter', (e) => {
+        if (e.target.dataset.filter !== currentFilter) {
+          e.target.style.background = 'var(--white-10)'
+          e.target.style.borderColor = 'var(--white-20)'
+          e.target.style.color = 'var(--text-primary)'
+        }
+      })
+
+      btn.addEventListener('mouseleave', (e) => {
+        if (e.target.dataset.filter !== currentFilter) {
+          e.target.style.background = 'var(--white-5)'
+          e.target.style.borderColor = 'var(--border-subtle)'
+          e.target.style.color = 'var(--text-subtle)'
+        }
+      })
+    })
+
+    // Row hover effects
+    const rows = container.querySelectorAll('.leaderboard-row')
+    rows.forEach(row => {
+      row.addEventListener('mouseenter', (e) => {
+        e.currentTarget.style.background = 'var(--white-5)'
+      })
+      row.addEventListener('mouseleave', (e) => {
+        e.currentTarget.style.background = 'transparent'
       })
     })
   } else if (currentView === 'tools') {
     // Tools filter buttons
-    const toolsFilterBtns = container.querySelectorAll('.tools-filter-btn')
+    const toolsFilterBtns = container.querySelectorAll('.tools-filter-pill')
     toolsFilterBtns.forEach(btn => {
       btn.addEventListener('click', async () => {
         toolsFilter = btn.dataset.toolsFilter
 
         // Update button states
         toolsFilterBtns.forEach(b => {
-          if (b.dataset.toolsFilter === toolsFilter) {
-            b.classList.remove('inactive')
-          } else {
-            b.classList.add('inactive')
-          }
+          const isActive = b.dataset.toolsFilter === toolsFilter
+          b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+          b.style.borderColor = isActive ? 'var(--primary)' : 'var(--border-subtle)'
+          b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
         })
 
         // Show loading state
@@ -518,7 +659,7 @@ function attachContentListeners(container) {
         if (toolsList) {
           toolsList.innerHTML = `
             <div style="text-align: center; padding: 60px 20px;">
-              <p style="color: var(--text-secondary);">Loading tools...</p>
+              <p style="color: var(--text-subtle);">Loading tools...</p>
             </div>
           `
         }
@@ -533,28 +674,79 @@ function attachContentListeners(container) {
           attachVoteListeners(container)
         }
       })
+
+      // Hover effects
+      btn.addEventListener('mouseenter', (e) => {
+        if (e.target.dataset.toolsFilter !== toolsFilter) {
+          e.target.style.background = 'var(--white-10)'
+          e.target.style.borderColor = 'var(--white-20)'
+          e.target.style.color = 'var(--text-primary)'
+        }
+      })
+
+      btn.addEventListener('mouseleave', (e) => {
+        if (e.target.dataset.toolsFilter !== toolsFilter) {
+          e.target.style.background = 'var(--white-5)'
+          e.target.style.borderColor = 'var(--border-subtle)'
+          e.target.style.color = 'var(--text-subtle)'
+        }
+      })
+    })
+
+    // Tool card hover effects
+    const toolCards = container.querySelectorAll('.tool-card')
+    toolCards.forEach(card => {
+      card.addEventListener('mouseenter', (e) => {
+        e.currentTarget.style.background = 'var(--white-8)'
+        e.currentTarget.style.borderColor = 'var(--white-20)'
+        e.currentTarget.style.transform = 'translateY(-4px)'
+      })
+      card.addEventListener('mouseleave', (e) => {
+        e.currentTarget.style.background = 'var(--white-5)'
+        e.currentTarget.style.borderColor = 'var(--border-subtle)'
+        e.currentTarget.style.transform = 'translateY(0)'
+      })
     })
 
     // Add tool button
     const addToolBtn = container.querySelector('#add-tool-btn')
     addToolBtn?.addEventListener('click', () => {
       const modal = container.querySelector('#submit-tool-modal')
-      const modalContent = modal?.querySelector('> div')
+      const modalContent = modal?.querySelector('.modal-content')
       if (modal && modalContent) {
         showModal(modal, modalContent)
-        // Initialize form animations for modal
         initFormAnimations(modalContent)
       }
+    })
+
+    addToolBtn?.addEventListener('mouseenter', (e) => {
+      e.target.style.transform = 'scale(1.05)'
+      e.target.style.boxShadow = '0 8px 24px rgba(255, 255, 255, 0.15)'
+    })
+
+    addToolBtn?.addEventListener('mouseleave', (e) => {
+      e.target.style.transform = 'scale(1)'
+      e.target.style.boxShadow = 'none'
     })
 
     // Close modal button
     const closeModalBtn = container.querySelector('#close-modal-btn')
     closeModalBtn?.addEventListener('click', () => {
       const modal = container.querySelector('#submit-tool-modal')
-      const modalContent = modal?.querySelector('> div')
+      const modalContent = modal?.querySelector('.modal-content')
       if (modal && modalContent) {
         hideModal(modal, modalContent)
       }
+    })
+
+    closeModalBtn?.addEventListener('mouseenter', (e) => {
+      e.target.style.background = 'var(--white-10)'
+      e.target.style.borderColor = 'var(--white-20)'
+    })
+
+    closeModalBtn?.addEventListener('mouseleave', (e) => {
+      e.target.style.background = 'var(--white-5)'
+      e.target.style.borderColor = 'var(--border-subtle)'
     })
 
     // Submit tool form
@@ -565,7 +757,6 @@ function attachContentListeners(container) {
       const submitBtn = submitToolForm.querySelector('button[type="submit"]')
 
       try {
-        // Set loading state with animation
         setButtonLoading(submitBtn, true)
 
         const formData = new FormData(submitToolForm)
@@ -623,7 +814,7 @@ function attachContentListeners(container) {
         if (result.success) {
           // Close modal with animation
           const modal = container.querySelector('#submit-tool-modal')
-          const modalContent = modal?.querySelector('> div')
+          const modalContent = modal?.querySelector('.modal-content')
           if (modal && modalContent) {
             hideModal(modal, modalContent)
           }
@@ -642,7 +833,7 @@ function attachContentListeners(container) {
             attachVoteListeners(container)
           }
 
-          // Show success message (could be enhanced with toast notification)
+          // Show success message
           alert(result.message)
         }
       } catch (error) {
@@ -653,11 +844,28 @@ function attachContentListeners(container) {
       }
     })
 
+    // Modal input focus effects
+    const modalInputs = container.querySelectorAll('.modal-input')
+    modalInputs.forEach(input => {
+      input.addEventListener('focus', (e) => {
+        e.target.style.outline = 'none'
+        e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
+        e.target.style.borderColor = 'var(--white-30)'
+        e.target.style.background = 'var(--white-10)'
+      })
+
+      input.addEventListener('blur', (e) => {
+        e.target.style.boxShadow = 'none'
+        e.target.style.borderColor = 'var(--border-subtle)'
+        e.target.style.background = 'var(--white-5)'
+      })
+    })
+
     // Click outside modal to close
     const modal = container.querySelector('#submit-tool-modal')
     modal?.addEventListener('click', (e) => {
       if (e.target === modal) {
-        const modalContent = modal.querySelector('> div')
+        const modalContent = modal.querySelector('.modal-content')
         if (modalContent) {
           hideModal(modal, modalContent)
         }
@@ -678,6 +886,15 @@ function attachVoteListeners(container) {
     // Add ripple effect on click
     btn.addEventListener('click', (e) => {
       createRipple(e, btn)
+    })
+
+    // Hover effects
+    btn.addEventListener('mouseenter', (e) => {
+      e.target.style.transform = 'scale(1.1)'
+    })
+
+    btn.addEventListener('mouseleave', (e) => {
+      e.target.style.transform = 'scale(1)'
     })
 
     btn.addEventListener('click', async (e) => {
@@ -720,7 +937,6 @@ function attachVoteListeners(container) {
           }
 
           // Reload tools to get updated counts
-          const oldTools = [...aiTools]
           aiTools = await getAIToolsLeaderboard(toolsFilter)
 
           // Find the new score for this tool
@@ -731,12 +947,6 @@ function attachVoteListeners(container) {
           if (scoreElement && newScore !== oldScore) {
             animateCounter(scoreElement, oldScore, newScore)
             scoreElement.dataset.score = newScore
-
-            // Update color
-            setTimeout(() => {
-              const color = newScore > 0 ? 'var(--accent-green)' : newScore < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'
-              scoreElement.style.color = color
-            }, 400)
           }
 
           // Pulse the tool card
@@ -778,6 +988,34 @@ async function loadUserVotes() {
       console.error('Error loading user vote for tool:', tool.id, error)
     }
   }
+}
+
+/**
+ * Inject custom styles for leaderboard window
+ */
+function injectStyles() {
+  if (document.getElementById('leaderboard-window-styles')) return
+
+  const style = document.createElement('style')
+  style.id = 'leaderboard-window-styles'
+  style.textContent = `
+    .modal-input option {
+      background: var(--background-dark);
+      color: var(--text-primary);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  `
+  document.head.appendChild(style)
 }
 
 /**
