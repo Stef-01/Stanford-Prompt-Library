@@ -321,8 +321,8 @@ function renderDiscoverView() {
     </div>
 
     <!-- Prompts Grid -->
-    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
-      ${renderPromptsGrid()}
+    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(${currentViewMode === 'image' ? '280px' : '340px'}, 1fr)); gap: 24px;">
+      ${currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()}
     </div>
   `
 }
@@ -416,6 +416,94 @@ function renderPromptsGrid() {
             ` : ''}
           </div>
         ` : ''}
+      </div>
+    `
+  }).join('')
+}
+
+/**
+ * Render prompts grid - Image Mode
+ */
+function renderPromptsGridImage() {
+  if (filteredPrompts.length === 0) {
+    return `
+      <div style="grid-column: 1 / -1; text-center; padding: 80px 20px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px;
+                    border-radius: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+          ${Icon({ name: 'search_off', className: 'text-subtle-white !text-[48px]' })}
+        </div>
+        <h3 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">No prompts found</h3>
+        <p style="font-size: 16px; color: var(--text-subtle);">Try adjusting your filters or search query</p>
+      </div>
+    `
+  }
+
+  return filteredPrompts.map(prompt => {
+    // Use prompt image if available, otherwise generate placeholder based on category
+    const categoryColors = {
+      writing: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+      coding: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%)',
+      research: 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%)',
+      creative: 'linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%)',
+      other: 'linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%)'
+    }
+
+    const categoryIcons = {
+      writing: 'edit_note',
+      coding: 'code',
+      research: 'science',
+      creative: 'palette',
+      other: 'folder'
+    }
+
+    const promptImage = prompt.image_url || null
+
+    return `
+      <div class="prompt-card-image" data-id="${prompt.id}"
+           style="position: relative; border-radius: 16px; overflow: hidden; cursor: pointer;
+                  aspect-ratio: 4/3; transition: all 0.3s var(--ease-spring); border: 1px solid var(--border-subtle);">
+
+        <!-- Image or Placeholder -->
+        <div style="position: absolute; inset: 0; background: ${promptImage ? `url('${promptImage}')` : categoryColors[prompt.category] || categoryColors.other};
+                    background-size: cover; background-position: center;">
+          ${!promptImage ? `
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+              ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: 'text-white opacity-10 !text-[120px]' })}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Dark Overlay -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+                    transition: all 0.3s ease;" class="image-overlay"></div>
+
+        <!-- Title Bar at Bottom -->
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px 16px 16px;
+                    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 30%);
+                    transform: translateY(0); transition: all 0.3s var(--ease-spring);">
+          <h3 style="font-size: 16px; font-weight: 600; color: white; line-height: 1.3; margin-bottom: 8px;
+                     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${escapeHtml(prompt.title)}
+          </h3>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: rgba(255, 255, 255, 0.7);">
+            <span style="display: flex; align-items: center; gap: 4px;">
+              ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[14px]' })}
+              ${prompt.category}
+            </span>
+            <span style="display: flex; align-items: center; gap: 4px;">
+              ${Icon({ name: 'favorite', className: '!text-[14px]' })}
+              ${prompt.likes_count || 0}
+            </span>
+          </div>
+        </div>
+
+        <!-- Hover Indicator -->
+        <div class="image-hover-icon" style="position: absolute; top: 16px; right: 16px; width: 40px; height: 40px;
+                                             background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px);
+                                             border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                                             opacity: 0; transform: scale(0.8); transition: all 0.3s var(--ease-spring);">
+          ${Icon({ name: 'arrow_forward', className: '!text-[20px] text-white' })}
+        </div>
       </div>
     `
   }).join('')
@@ -577,10 +665,18 @@ function stopCarousel() {
 }
 
 function updateCarousel() {
+  // Update main carousel if it exists
   const carousel = document.getElementById('prompt-carousel')
   if (carousel) {
     carousel.innerHTML = renderCarousel()
     attachCarouselListeners(carousel)
+  }
+
+  // Update modal carousel if it exists
+  const modalCarousel = document.getElementById('carousel-modal-content')
+  if (modalCarousel) {
+    modalCarousel.innerHTML = renderCarousel()
+    attachCarouselListeners(modalCarousel)
   }
 }
 
@@ -605,6 +701,128 @@ function attachCarouselListeners(container) {
       startCarousel()
     })
   })
+}
+
+/**
+ * Show Carousel Modal - Fullscreen Featured Prompts
+ */
+function showCarouselModal(contentContainer) {
+  // Get or create modal container
+  let modal = document.getElementById('carousel-modal')
+  if (!modal) {
+    modal = document.createElement('div')
+    modal.id = 'carousel-modal'
+    document.body.appendChild(modal)
+  }
+
+  // Render modal
+  modal.innerHTML = `
+    <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 10000;
+                display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;">
+
+      <!-- Close Button -->
+      <button id="carousel-modal-close" style="position: absolute; top: 24px; right: 24px; width: 48px; height: 48px;
+                   background: var(--white-10); border: none; border-radius: 50%; cursor: pointer; z-index: 10001;
+                   display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+        ${Icon({ name: 'close', className: '!text-[24px] text-white' })}
+      </button>
+
+      <!-- Size Toggle Button -->
+      <button id="carousel-size-toggle" style="position: absolute; top: 24px; left: 24px; padding: 12px 20px;
+                   background: var(--white-10); border: 1px solid var(--border-subtle); border-radius: 24px; cursor: pointer;
+                   display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--text-primary);
+                   transition: all 0.2s ease; z-index: 10001;">
+        ${Icon({ name: 'fullscreen', className: '!text-[18px]' })}
+        <span>Fullscreen</span>
+      </button>
+
+      <!-- Carousel Container -->
+      <div id="carousel-modal-content" style="width: 90%; max-width: 1200px; height: 80vh; border-radius: 16px; overflow: hidden;
+                                               background: var(--white-5); border: 1px solid var(--border-subtle);
+                                               transition: all 0.4s var(--ease-spring);">
+        ${renderCarousel()}
+      </div>
+    </div>
+  `
+
+  modal.style.display = 'block'
+
+  // Attach carousel listeners
+  const carouselContent = modal.querySelector('#carousel-modal-content')
+  attachCarouselListeners(carouselContent)
+
+  // Start carousel auto-play
+  startCarousel()
+
+  // Size toggle
+  const sizeToggle = modal.querySelector('#carousel-size-toggle')
+  let isFullscreen = false
+  sizeToggle?.addEventListener('click', () => {
+    isFullscreen = !isFullscreen
+    if (isFullscreen) {
+      carouselContent.style.width = '100%'
+      carouselContent.style.height = '100vh'
+      carouselContent.style.maxWidth = 'none'
+      carouselContent.style.borderRadius = '0'
+      sizeToggle.querySelector('span').textContent = 'Exit Fullscreen'
+      sizeToggle.querySelector('.material-symbols-outlined').textContent = 'fullscreen_exit'
+    } else {
+      carouselContent.style.width = '90%'
+      carouselContent.style.height = '80vh'
+      carouselContent.style.maxWidth = '1200px'
+      carouselContent.style.borderRadius = '16px'
+      sizeToggle.querySelector('span').textContent = 'Fullscreen'
+      sizeToggle.querySelector('.material-symbols-outlined').textContent = 'fullscreen'
+    }
+  })
+
+  sizeToggle?.addEventListener('mouseenter', (e) => {
+    e.currentTarget.style.background = 'var(--white-15)'
+    e.currentTarget.style.borderColor = 'var(--white-30)'
+  })
+
+  sizeToggle?.addEventListener('mouseleave', (e) => {
+    e.currentTarget.style.background = 'var(--white-10)'
+    e.currentTarget.style.borderColor = 'var(--border-subtle)'
+  })
+
+  // Close button
+  const closeBtn = modal.querySelector('#carousel-modal-close')
+  closeBtn?.addEventListener('click', () => {
+    stopCarousel()
+    modal.style.display = 'none'
+    modal.remove()
+  })
+
+  closeBtn?.addEventListener('mouseenter', (e) => {
+    e.currentTarget.style.background = 'var(--white-15)'
+    e.currentTarget.style.transform = 'scale(1.05)'
+  })
+
+  closeBtn?.addEventListener('mouseleave', (e) => {
+    e.currentTarget.style.background = 'var(--white-10)'
+    e.currentTarget.style.transform = 'scale(1)'
+  })
+
+  // Close on background click
+  modal.querySelector('div').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) {
+      stopCarousel()
+      modal.style.display = 'none'
+      modal.remove()
+    }
+  })
+
+  // Close on Escape key
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      stopCarousel()
+      modal.style.display = 'none'
+      modal.remove()
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }
+  document.addEventListener('keydown', handleEscape)
 }
 
 /**
@@ -815,7 +1033,7 @@ function reattachContentListeners(contentArea) {
     currentSearchQuery = e.target.value
     filterPrompts()
     const grid = contentArea.querySelector('#prompts-grid')
-    if (grid) grid.innerHTML = renderPromptsGrid()
+    if (grid) grid.innerHTML = currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()
     attachPromptCardListeners(grid)
   }, 300))
 
@@ -843,7 +1061,7 @@ function reattachContentListeners(contentArea) {
       currentCategory = btn.dataset.category
       filterPrompts()
       const grid = contentArea.querySelector('#prompts-grid')
-      if (grid) grid.innerHTML = renderPromptsGrid()
+      if (grid) grid.innerHTML = currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()
       attachPromptCardListeners(grid)
 
       // Update button styles
@@ -875,13 +1093,42 @@ function reattachContentListeners(contentArea) {
     })
   })
 
+  // Featured Prompts button
+  const featuredBtn = contentArea.querySelector('#featured-prompts-btn')
+  featuredBtn?.addEventListener('click', () => {
+    showCarouselModal(contentContainer)
+  })
+
+  // View Mode Toggle
+  const viewModeBtns = contentArea.querySelectorAll('.view-mode-btn')
+  viewModeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentViewMode = btn.dataset.mode
+      const grid = contentArea.querySelector('#prompts-grid')
+      if (grid) {
+        grid.innerHTML = currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()
+        grid.style.gridTemplateColumns = `repeat(auto-fill, minmax(${currentViewMode === 'image' ? '280px' : '340px'}, 1fr))`
+        attachPromptCardListeners(grid)
+      }
+
+      // Update button styles
+      viewModeBtns.forEach(b => {
+        const isActive = b.dataset.mode === currentViewMode
+        b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+        b.style.fontWeight = isActive ? '600' : '500'
+        b.style.border = isActive ? 'none' : '1px solid var(--border-subtle)'
+      })
+    })
+  })
+
   // Sort
   const sortSelect = contentArea.querySelector('#sort-select')
   sortSelect?.addEventListener('change', (e) => {
     currentSortBy = e.target.value
     filterPrompts()
     const grid = contentArea.querySelector('#prompts-grid')
-    if (grid) grid.innerHTML = renderPromptsGrid()
+    if (grid) grid.innerHTML = currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()
     attachPromptCardListeners(grid)
   })
 
@@ -911,6 +1158,7 @@ function reattachContentListeners(contentArea) {
 function attachPromptCardListeners(grid) {
   if (!grid) return
 
+  // Handle detail mode cards
   const cards = grid.querySelectorAll('.prompt-card')
   cards.forEach(card => {
     card.addEventListener('click', () => {
@@ -935,6 +1183,32 @@ function attachPromptCardListeners(grid) {
         arrow.style.opacity = '0'
         arrow.style.transform = 'translateX(-8px)'
       }
+    })
+  })
+
+  // Handle image mode cards
+  const imageCards = grid.querySelectorAll('.prompt-card-image')
+  imageCards.forEach(card => {
+    card.addEventListener('click', () => {
+      showPromptModal(card.dataset.id)
+    })
+
+    card.addEventListener('mouseenter', (e) => {
+      const hoverIcon = e.currentTarget.querySelector('.image-hover-icon')
+      if (hoverIcon) {
+        hoverIcon.style.opacity = '1'
+        hoverIcon.style.transform = 'scale(1)'
+      }
+      e.currentTarget.style.transform = 'translateY(-4px)'
+    })
+
+    card.addEventListener('mouseleave', (e) => {
+      const hoverIcon = e.currentTarget.querySelector('.image-hover-icon')
+      if (hoverIcon) {
+        hoverIcon.style.opacity = '0'
+        hoverIcon.style.transform = 'scale(0.8)'
+      }
+      e.currentTarget.style.transform = 'translateY(0)'
     })
   })
 }
@@ -981,6 +1255,39 @@ function injectLibraryStyles() {
 
     #export-btn:hover {
       background: var(--white-15);
+    }
+
+    /* Image Mode Cards */
+    .prompt-card-image {
+      cursor: pointer;
+      transition: all 0.4s var(--ease-spring);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .prompt-card-image:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .image-hover-icon {
+      transition: all 0.3s var(--ease-spring);
+    }
+
+    /* Carousel Modal Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Featured Button Hover */
+    #featured-prompts-btn:hover {
+      background: var(--white-10);
+      border-color: var(--white-30);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
     }
   `
   document.head.appendChild(style)
