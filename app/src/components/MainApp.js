@@ -13,6 +13,7 @@ import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 import { initAnimationSystem } from '../animations/config.js'
 import { initDockMagnification } from '../utils/dock-magnification.js'
 import { initWallpaper } from '../services/wallpaper.js'
+import { toggleTheme, isLightTheme } from '../utils/theme.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -61,6 +62,25 @@ export async function renderMainApp(container, user) {
             ${isInBypassMode ? '<span style="margin-left: 10px; font-size: 11px; color: #f59e0b;">🔓 Testing Mode</span>' : ''}
           </div>
           <div class="desktop-top-bar-right">
+            <button
+              id="theme-toggle"
+              class="theme-toggle-btn"
+              title="Toggle theme"
+              aria-label="Toggle theme"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle class="sun-icon" cx="12" cy="12" r="5"/>
+                <line class="sun-icon" x1="12" y1="1" x2="12" y2="3"/>
+                <line class="sun-icon" x1="12" y1="21" x2="12" y2="23"/>
+                <line class="sun-icon" x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line class="sun-icon" x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line class="sun-icon" x1="1" y1="12" x2="3" y2="12"/>
+                <line class="sun-icon" x1="21" y1="12" x2="23" y2="12"/>
+                <line class="sun-icon" x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line class="sun-icon" x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                <path class="moon-icon" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </button>
             <span style="color: var(--text-secondary);">${userData.display_name || 'User'}</span>
             <span style="color: var(--text-secondary);">|</span>
             <span id="desktop-clock"></span>
@@ -170,6 +190,9 @@ export async function renderMainApp(container, user) {
 
     // Initialize dock magnification effect
     initDockMagnification()
+
+    // Setup theme toggle button
+    setupThemeToggle()
 
     // Open Explore window by default
     openWindow('explore')
@@ -352,4 +375,38 @@ function setupDockEventListeners(isInBypassMode) {
       }
     })
   })
+}
+
+/**
+ * Set up theme toggle button
+ */
+function setupThemeToggle() {
+  const themeToggleBtn = document.getElementById('theme-toggle')
+  if (!themeToggleBtn) return
+
+  // Update icon based on current theme
+  const updateThemeIcon = () => {
+    const sunIcon = themeToggleBtn.querySelectorAll('.sun-icon')
+    const moonIcon = themeToggleBtn.querySelectorAll('.moon-icon')
+    const isLight = isLightTheme()
+
+    sunIcon.forEach(el => {
+      el.style.display = isLight ? 'none' : 'block'
+    })
+    moonIcon.forEach(el => {
+      el.style.display = isLight ? 'block' : 'none'
+    })
+  }
+
+  // Initial icon state
+  updateThemeIcon()
+
+  // Toggle theme on click
+  themeToggleBtn.addEventListener('click', () => {
+    toggleTheme()
+    updateThemeIcon()
+  })
+
+  // Listen for theme changes from other sources
+  window.addEventListener('themechange', updateThemeIcon)
 }

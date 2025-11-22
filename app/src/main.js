@@ -6,6 +6,7 @@ import { renderSignInGate } from './components/SignInGate.js'
 import { renderSubmitPromptGate } from './components/SubmitPromptGate.js'
 import { renderPendingApprovalGate } from './components/PendingApprovalGate.js'
 import { renderMainApp } from './components/MainApp.js'
+import { initTheme } from './utils/theme.js'
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -46,6 +47,9 @@ const app = document.querySelector('#app')
 async function init() {
   try {
     console.log('🚀 Stanford Prompt Library initializing...')
+
+    // Initialize theme system first (before any rendering)
+    initTheme()
 
     // Show loading state
     app.innerHTML = '<div class="loading">Loading...</div>'
