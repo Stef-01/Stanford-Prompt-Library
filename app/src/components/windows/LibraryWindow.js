@@ -335,7 +335,7 @@ function renderDiscoverView() {
     </div>
 
     <!-- Prompts Grid -->
-    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(${currentViewMode === 'image' ? '280px' : '340px'}, 1fr)); gap: 24px;">
+    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(${currentViewMode === 'image' ? '280px' : '260px'}, 1fr)); gap: 20px;">
       ${currentViewMode === 'image' ? renderPromptsGridImage() : renderPromptsGrid()}
     </div>
   `
@@ -367,69 +367,94 @@ function renderPromptsGrid() {
       other: 'folder'
     }
 
+    const categoryColors = {
+      writing: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)',
+      coding: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%)',
+      research: 'linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.06) 100%)',
+      creative: 'linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.07) 100%)',
+      other: 'linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.03) 100%)'
+    }
+
     return `
       <div class="prompt-card" data-id="${prompt.id}"
            style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px;
-                  padding: 24px; transition: all 0.3s var(--ease-spring); cursor: pointer; position: relative;
-                  overflow: hidden; display: flex; flex-direction: column; gap: 16px; height: 100%;">
+                  overflow: hidden; transition: all 0.3s var(--ease-spring); cursor: pointer; position: relative;
+                  display: flex; flex-direction: column; height: 100%;">
 
-        <!-- Header: Category + Likes -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
-                       font-size: 12px; font-weight: 500; background: var(--white-10); border: 1px solid var(--white-20); color: var(--text-primary);">
-            ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[14px]' })}
-            ${prompt.category}
-          </span>
-          <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-subtle);">
-            ${Icon({ name: 'favorite', className: '!text-[16px]' })}
-            ${prompt.likes_count || 0}
+        <!-- Content Section (Top) -->
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 12px; flex: 1;">
+          <!-- Header: Category + Likes -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
+                         font-size: 12px; font-weight: 500; background: var(--white-10); border: 1px solid var(--white-20); color: var(--text-primary);">
+              ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[14px]' })}
+              ${prompt.category}
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-subtle);">
+              ${Icon({ name: 'favorite', className: '!text-[16px]' })}
+              ${prompt.likes_count || 0}
+            </div>
           </div>
-        </div>
 
-        <!-- Title & Description -->
-        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px;">
+          <!-- Title -->
           <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); line-height: 1.4; transition: color 0.3s ease;">
             ${escapeHtml(prompt.title)}
           </h3>
+
+          <!-- Description -->
           <p style="font-size: 14px; color: var(--text-subtle); line-height: 1.6;
-                    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            ${escapeHtml(prompt.description || prompt.content.substring(0, 100))}
+                    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            ${escapeHtml(prompt.description || prompt.content.substring(0, 150))}
           </p>
+
+          <!-- Tags -->
+          ${prompt.tags && prompt.tags.length > 0 ? `
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto;">
+              ${prompt.tags.slice(0, 3).map(tag => `
+                <span style="font-size: 11px; padding: 4px 10px; background: var(--white-5); border-radius: 12px;
+                             color: var(--text-subtle); border: 1px solid var(--white-10);">
+                  ${escapeHtml(tag)}
+                </span>
+              `).join('')}
+              ${prompt.tags.length > 3 ? `
+                <span style="font-size: 11px; padding: 4px 10px; color: var(--text-subtle);">
+                  +${prompt.tags.length - 3}
+                </span>
+              ` : ''}
+            </div>
+          ` : ''}
         </div>
 
-        <!-- Footer: Author + Arrow -->
-        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-top: auto;
-                    border-top: 1px solid var(--white-5);">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}"
-                 alt="Author" style="width: 24px; height: 24px; border-radius: 50%;">
-            <span style="font-size: 12px; color: var(--text-subtle); font-weight: 500;">
-              ${prompt.users?.display_name || 'Anonymous'}
-            </span>
-          </div>
-          <div class="prompt-arrow" style="width: 32px; height: 32px; border-radius: 50%; background: var(--white-5);
-                                           display: flex; align-items: center; justify-content: center;
-                                           opacity: 0; transform: translateX(-8px); transition: all 0.3s var(--ease-spring);">
-            ${Icon({ name: 'arrow_forward', className: '!text-[18px]' })}
+        <!-- Image Section (Bottom) -->
+        <div style="position: relative; width: 100%; height: 160px; overflow: hidden; border-top: 1px solid var(--border-subtle);">
+          ${prompt.image_url ? `
+            <img src="${prompt.image_url}" alt="${escapeHtml(prompt.title)}"
+                 style="width: 100%; height: 100%; object-fit: cover;">
+          ` : `
+            <div style="width: 100%; height: 100%; background: ${categoryColors[prompt.category] || categoryColors.other};
+                        display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+              ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: 'opacity-10 !text-[80px] text-white' })}
+            </div>
+          `}
+
+          <!-- Author overlay on image -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 12px 16px;
+                      background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+                      display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}"
+                   alt="Author" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.3);">
+              <span style="font-size: 12px; color: rgba(255, 255, 255, 0.95); font-weight: 500;">
+                ${prompt.users?.display_name || 'Anonymous'}
+              </span>
+            </div>
+            <div class="prompt-arrow" style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 255, 255, 0.15);
+                                             backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+                                             opacity: 0; transform: translateX(-8px); transition: all 0.3s var(--ease-spring);">
+              ${Icon({ name: 'arrow_forward', className: '!text-[18px] text-white' })}
+            </div>
           </div>
         </div>
-
-        <!-- Tags -->
-        ${prompt.tags && prompt.tags.length > 0 ? `
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            ${prompt.tags.slice(0, 3).map(tag => `
-              <span style="font-size: 11px; padding: 4px 10px; background: var(--white-5); border-radius: 12px;
-                           color: var(--text-subtle); border: 1px solid var(--white-10);">
-                ${escapeHtml(tag)}
-              </span>
-            `).join('')}
-            ${prompt.tags.length > 3 ? `
-              <span style="font-size: 11px; padding: 4px 10px; color: var(--text-subtle);">
-                +${prompt.tags.length - 3}
-              </span>
-            ` : ''}
-          </div>
-        ` : ''}
       </div>
     `
   }).join('')
