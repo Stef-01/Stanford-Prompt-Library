@@ -343,10 +343,10 @@ function resize50Percent(windowId) {
   // Remove maximized state if present
   windowEl.classList.remove('maximized')
 
-  // Resize to 50% of viewport
+  // Resize to 50% of viewport (dock auto-hides, so use full viewport)
   const width = Math.floor(window.innerWidth * 0.5)
-  const height = Math.floor((window.innerHeight - 100) * 0.5) // Account for dock
-  const top = Math.floor((window.innerHeight - 100 - height) / 2)
+  const height = Math.floor(window.innerHeight * 0.5)
+  const top = Math.floor((window.innerHeight - height) / 2)
   const left = Math.floor((window.innerWidth - width) / 2)
 
   windowEl.style.width = `${width}px`
@@ -394,12 +394,12 @@ function toggleMaximize(windowId) {
       })
     }
 
-    // Maximize to fullscreen - seamless with top bar
+    // Maximize to fullscreen - seamless with notch, full height (dock auto-hides)
     windowEl.classList.add('maximized')
     windowEl.style.top = '0'
     windowEl.style.left = '0'
     windowEl.style.width = '100%'
-    windowEl.style.height = 'calc(100vh - 100px)' // Account for dock
+    windowEl.style.height = '100vh' // Full height - dock auto-hides on hover
   }
 
   // Smooth transition
