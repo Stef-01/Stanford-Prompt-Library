@@ -16,13 +16,35 @@ import {
 
 let categories = []
 let selectedTags = []
+let expandedParentTags = [] // Track which parent tags are expanded
 
-// Common suggested tags
-const SUGGESTED_TAGS = [
-  'Python', 'JavaScript', 'Code Review', 'Debugging', 'API',
-  'Documentation', 'Testing', 'Data Analysis', 'Writing',
-  'Research', 'Creative', 'Productivity', 'Education'
-]
+// Hierarchical tag system - parent tags with expandable children
+const TAG_HIERARCHY = {
+  'Coding': {
+    icon: 'code',
+    children: ['Python', 'JavaScript', 'TypeScript', 'C++', 'Java', 'React', 'Node.js', 'API', 'Debugging', 'Code Review', 'Testing']
+  },
+  'Writing': {
+    icon: 'edit_note',
+    children: ['Content Writing', 'Technical Writing', 'Creative Writing', 'Documentation', 'Copywriting', 'Academic Writing']
+  },
+  'Research': {
+    icon: 'science',
+    children: ['Data Analysis', 'Machine Learning', 'Statistics', 'Academic Research', 'Literature Review', 'Market Research']
+  },
+  'Productivity': {
+    icon: 'trending_up',
+    children: ['Task Management', 'Time Management', 'Automation', 'Workflow', 'Organization']
+  },
+  'Education': {
+    icon: 'school',
+    children: ['Teaching', 'Learning', 'Tutoring', 'Curriculum', 'Study Guide', 'Training']
+  },
+  'Creative': {
+    icon: 'palette',
+    children: ['Art', 'Design', 'Music', 'Video', 'Photography', 'Storytelling']
+  }
+}
 
 // Category icons mapping
 const categoryIcons = {
@@ -31,6 +53,151 @@ const categoryIcons = {
   'Research': 'science',
   'Creative': 'palette',
   'Other': 'folder'
+}
+
+/**
+ * Render the hierarchical tag structure
+ */
+function renderTagHierarchy() {
+  return Object.entries(TAG_HIERARCHY).map(([parentTag, tagData]) => {
+    const isExpanded = expandedParentTags.includes(parentTag)
+    const isParentSelected = selectedTags.includes(parentTag)
+
+    return `
+      <div class="tag-group" style="animation: fadeIn 0.3s var(--ease-spring);">
+        <!-- Parent Tag -->
+        <button
+          type="button"
+          class="tag-parent ${isParentSelected ? 'selected' : ''}"
+          data-parent-tag="${parentTag}"
+          style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px;
+                 background: ${isParentSelected ? 'var(--primary)' : 'var(--white-10)'};
+                 border: 1px solid ${isParentSelected ? 'var(--primary)' : 'var(--border-subtle)'};
+                 border-radius: 24px; font-size: 14px; font-weight: 600;
+                 color: ${isParentSelected ? 'var(--background-dark)' : 'var(--text-primary)'};
+                 cursor: pointer; transition: all 0.3s var(--ease-spring);"
+        >
+          ${Icon({ name: tagData.icon, className: '!text-[18px]' })}
+          <span>${parentTag}</span>
+          ${Icon({ name: 'expand_more', className: `!text-[18px] chevron ${isExpanded ? 'expanded' : ''}` })}
+        </button>
+
+        <!-- Child Tags (expandable) -->
+        <div class="child-tags-container ${isExpanded ? 'expanded' : ''}"
+             style="display: ${isExpanded ? 'flex' : 'none'}; flex-wrap: wrap; gap: 8px; margin-left: 32px; margin-top: 8px;
+                    animation: ${isExpanded ? 'slideDown 0.3s var(--ease-spring)' : 'none'};">
+          ${tagData.children.map(childTag => {
+            const isChildSelected = selectedTags.includes(childTag)
+            return `
+              <button
+                type="button"
+                class="tag-child ${isChildSelected ? 'selected' : ''}"
+                data-child-tag="${childTag}"
+                data-parent="${parentTag}"
+                style="padding: 8px 14px; background: ${isChildSelected ? 'var(--primary)' : 'var(--white-5)'};
+                       border: 1px solid ${isChildSelected ? 'var(--primary)' : 'var(--border-subtle)'};
+                       border-radius: 20px; font-size: 13px; font-weight: 500;
+                       color: ${isChildSelected ? 'var(--background-dark)' : 'var(--text-subtle)'};
+                       cursor: pointer; transition: all 0.3s var(--ease-spring);"
+              >
+                ${childTag}
+              </button>
+            `
+          }).join('')}
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+/**
+ * Set up event listeners for hierarchical tag system
+ */
+function setupTagHierarchyListeners(contentContainer, selectedTagsContainer) {
+  const parentTags = contentContainer.querySelectorAll('.tag-parent')
+  const childTags = contentContainer.querySelectorAll('.tag-child')
+
+  // Parent tag clicks - toggle expansion
+  parentTags.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault()
+      const parentTag = btn.dataset.parentTag
+
+      // Toggle expansion
+      if (expandedParentTags.includes(parentTag)) {
+        expandedParentTags = expandedParentTags.filter(t => t !== parentTag)
+      } else {
+        expandedParentTags.push(parentTag)
+      }
+
+      // Re-render tag hierarchy
+      const tagContainer = contentContainer.querySelector('#tag-hierarchy-container')
+      if (tagContainer) {
+        tagContainer.innerHTML = renderTagHierarchy()
+        // Re-attach listeners after re-render
+        setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
+      }
+    })
+
+    // Hover effects for parent tags
+    btn.addEventListener('mouseenter', (e) => {
+      if (!selectedTags.includes(e.currentTarget.dataset.parentTag)) {
+        e.currentTarget.style.background = 'var(--white-15)'
+        e.currentTarget.style.borderColor = 'var(--white-30)'
+      }
+    })
+
+    btn.addEventListener('mouseleave', (e) => {
+      if (!selectedTags.includes(e.currentTarget.dataset.parentTag)) {
+        e.currentTarget.style.background = 'var(--white-10)'
+        e.currentTarget.style.borderColor = 'var(--border-subtle)'
+      }
+    })
+  })
+
+  // Child tag clicks - select/deselect
+  childTags.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault()
+      const childTag = btn.dataset.childTag
+
+      if (selectedTags.includes(childTag)) {
+        // Remove tag
+        selectedTags = selectedTags.filter(t => t !== childTag)
+      } else {
+        // Add tag
+        selectedTags.push(childTag)
+      }
+
+      // Update displays
+      renderSelectedTags(selectedTagsContainer)
+
+      // Re-render tag hierarchy to update selected states
+      const tagContainer = contentContainer.querySelector('#tag-hierarchy-container')
+      if (tagContainer) {
+        tagContainer.innerHTML = renderTagHierarchy()
+        // Re-attach listeners after re-render
+        setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
+      }
+    })
+
+    // Hover effects for child tags
+    btn.addEventListener('mouseenter', (e) => {
+      if (!selectedTags.includes(e.currentTarget.dataset.childTag)) {
+        e.currentTarget.style.background = 'var(--white-10)'
+        e.currentTarget.style.borderColor = 'var(--white-20)'
+        e.currentTarget.style.color = 'var(--text-primary)'
+      }
+    })
+
+    btn.addEventListener('mouseleave', (e) => {
+      if (!selectedTags.includes(e.currentTarget.dataset.childTag)) {
+        e.currentTarget.style.background = 'var(--white-5)'
+        e.currentTarget.style.borderColor = 'var(--border-subtle)'
+        e.currentTarget.style.color = 'var(--text-subtle)'
+      }
+    })
+  })
 }
 
 /**
@@ -205,23 +372,12 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
               <!-- Selected tags will appear here -->
             </div>
 
-            <!-- Suggested Tags -->
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              ${SUGGESTED_TAGS.map(tag => `
-                <button
-                  type="button"
-                  class="tag-suggestion"
-                  data-tag="${tag}"
-                  style="padding: 10px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
-                         border-radius: 24px; font-size: 13px; font-weight: 500; color: var(--text-subtle); cursor: pointer;
-                         transition: all 0.3s var(--ease-spring);"
-                >
-                  ${tag}
-                </button>
-              `).join('')}
+            <!-- Hierarchical Tags -->
+            <div id="tag-hierarchy-container" style="display: flex; flex-direction: column; gap: 12px;">
+              ${renderTagHierarchy()}
             </div>
             <small style="font-size: 13px; color: var(--text-subtle); margin-top: 12px; display: block;">
-              Click tags to add them to your prompt
+              Click parent tags to expand and see more options
             </small>
           </div>
 
@@ -275,46 +431,12 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
   const form = contentContainer.querySelector('#submit-prompt-form')
   const submitBtn = contentContainer.querySelector('#submit-prompt-btn')
   const selectedTagsContainer = contentContainer.querySelector('#selected-tags')
-  const tagSuggestions = contentContainer.querySelectorAll('.tag-suggestion')
 
   // Initialize selected tags display
   renderSelectedTags(selectedTagsContainer)
 
-  // Tag suggestion clicks
-  tagSuggestions.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tag = btn.dataset.tag
-
-      if (selectedTags.includes(tag)) {
-        // Remove tag
-        selectedTags = selectedTags.filter(t => t !== tag)
-      } else {
-        // Add tag
-        selectedTags.push(tag)
-      }
-
-      // Update selected tags display
-      renderSelectedTags(selectedTagsContainer)
-      updateTagButtonStates()
-    })
-
-    // Hover effects
-    btn.addEventListener('mouseenter', (e) => {
-      if (!selectedTags.includes(e.target.dataset.tag)) {
-        e.target.style.background = 'var(--white-10)'
-        e.target.style.borderColor = 'var(--white-20)'
-        e.target.style.color = 'var(--text-primary)'
-      }
-    })
-
-    btn.addEventListener('mouseleave', (e) => {
-      if (!selectedTags.includes(e.target.dataset.tag)) {
-        e.target.style.background = 'var(--white-5)'
-        e.target.style.borderColor = 'var(--border-subtle)'
-        e.target.style.color = 'var(--text-subtle)'
-      }
-    })
-  })
+  // Set up hierarchical tag event listeners
+  setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
 
   // Image upload handling
   const imageInput = contentContainer.querySelector('#submit-image')
@@ -479,8 +601,15 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         // Reset form
         form.reset()
         selectedTags = []
+        expandedParentTags = []
         renderSelectedTags(selectedTagsContainer)
-        updateTagButtonStates()
+
+        // Re-render tag hierarchy to reset expanded states
+        const tagContainer = contentContainer.querySelector('#tag-hierarchy-container')
+        if (tagContainer) {
+          tagContainer.innerHTML = renderTagHierarchy()
+          setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
+        }
 
         // Clear image
         selectedImage = null
@@ -567,25 +696,6 @@ function renderSelectedTags(container) {
 }
 
 /**
- * Update tag button states
- */
-function updateTagButtonStates() {
-  const tagBtns = document.querySelectorAll('.tag-suggestion')
-  tagBtns.forEach(btn => {
-    const tag = btn.dataset.tag
-    if (selectedTags.includes(tag)) {
-      btn.style.background = 'var(--primary)'
-      btn.style.borderColor = 'var(--primary)'
-      btn.style.color = 'var(--background-dark)'
-    } else {
-      btn.style.background = 'var(--white-5)'
-      btn.style.borderColor = 'var(--border-subtle)'
-      btn.style.color = 'var(--text-subtle)'
-    }
-  })
-}
-
-/**
  * Remove tag (called from onclick)
  */
 window.removeTag = function(tag) {
@@ -597,8 +707,13 @@ window.removeTag = function(tag) {
     renderSelectedTags(selectedTagsContainer)
   }
 
-  // Update button states
-  updateTagButtonStates()
+  // Re-render tag hierarchy to update selected states
+  const tagContainer = document.querySelector('#tag-hierarchy-container')
+  const contentContainer = document.querySelector('.submit-window-content')
+  if (tagContainer && contentContainer) {
+    tagContainer.innerHTML = renderTagHierarchy()
+    setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
+  }
 }
 
 /**
@@ -619,6 +734,23 @@ function injectStyles() {
       color: var(--text-primary);
     }
 
+    /* Tag hierarchy animations */
+    .chevron {
+      transition: transform 0.3s var(--ease-spring);
+    }
+
+    .chevron.expanded {
+      transform: rotate(180deg);
+    }
+
+    .tag-parent:hover {
+      transform: scale(1.02);
+    }
+
+    .tag-child:hover {
+      transform: translateY(-2px);
+    }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -627,6 +759,19 @@ function injectStyles() {
       to {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+        max-height: 0;
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
       }
     }
   `
