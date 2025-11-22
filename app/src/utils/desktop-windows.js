@@ -16,12 +16,17 @@ let dragOffset = { x: 0, y: 0 }
  * Initialize desktop window system
  */
 export function initializeDesktopWindows() {
-  // Make windows draggable
+  // Make windows draggable with mouse
   document.addEventListener('mousedown', handleMouseDown)
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 
-  console.log('Desktop window system initialized')
+  // Make windows draggable with touch (mobile)
+  document.addEventListener('touchstart', handleTouchStart, { passive: false })
+  document.addEventListener('touchmove', handleTouchMove, { passive: false })
+  document.addEventListener('touchend', handleTouchEnd)
+
+  console.log('Desktop window system initialized (mouse + touch)')
 }
 
 /**
@@ -433,4 +438,111 @@ export function updateClock() {
 export function startClock() {
   updateClock()
   setInterval(updateClock, 1000)
+}
+
+/**
+ * Handle touch start for mobile dragging
+ */
+function handleTouchStart(e) {
+  const header = e.target.closest('.window-header')
+  if (!header) return
+
+  // Don't drag if tapping on controls
+  if (e.target.classList.contains('window-control')) {
+    handleWindowControl(e.target)
+    return
+  }
+
+  const windowEl = e.target.closest('.desktop-window')
+  if (!windowEl) return
+
+  // Prevent default to avoid scrolling while dragging
+  e.preventDefault()
+
+  const touch = e.touches[0]
+  isDragging = true
+  currentWindow = windowEl
+  bringToFront(windowEl)
+
+  // Disable transitions during dragging for smooth movement
+  currentWindow.classList.add('dragging')
+
+  const rect = windowEl.getBoundingClientRect()
+  dragOffset.x = touch.clientX - rect.left
+  dragOffset.y = touch.clientY - rect.top
+
+  // Enhanced drag start animation
+  if (!prefersReducedMotion()) {
+    currentWindow.style.willChange = 'transform, box-shadow'
+    currentWindow.animate([
+      {
+        transform: 'scale(1)',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+      },
+      {
+        transform: 'scale(1.02)',
+        boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)'
+      }
+    ], {
+      duration: 200,
+      easing: getEasing('easeOut'),
+      fill: 'forwards'
+    })
+  }
+}
+
+/**
+ * Handle touch move for mobile dragging
+ */
+function handleTouchMove(e) {
+  if (!isDragging || !currentWindow) return
+
+  // Prevent default to avoid scrolling while dragging
+  e.preventDefault()
+
+  const touch = e.touches[0]
+  const x = touch.clientX - dragOffset.x
+  const y = touch.clientY - dragOffset.y
+
+  // Keep window within viewport
+  const maxX = window.innerWidth - currentWindow.offsetWidth
+  const maxY = window.innerHeight - currentWindow.offsetHeight
+
+  currentWindow.style.left = Math.max(0, Math.min(x, maxX)) + 'px'
+  currentWindow.style.top = Math.max(32, Math.min(y, maxY)) + 'px'
+}
+
+/**
+ * Handle touch end for mobile dragging
+ */
+function handleTouchEnd() {
+  if (currentWindow) {
+    // Re-enable transitions after dragging
+    currentWindow.classList.remove('dragging')
+
+    // Enhanced drag end animation
+    if (!prefersReducedMotion()) {
+      currentWindow.animate([
+        {
+          transform: 'scale(1.02)',
+          boxShadow: '0 30px 60px rgba(0, 0, 0, 0.4)'
+        },
+        {
+          transform: 'scale(1)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+        }
+      ], {
+        duration: 300,
+        easing: getEasing('spring'),
+        fill: 'forwards'
+      }).onfinish = () => {
+        if (currentWindow) {
+          currentWindow.style.willChange = 'auto'
+        }
+      }
+    }
+  }
+
+  isDragging = false
+  currentWindow = null
 }

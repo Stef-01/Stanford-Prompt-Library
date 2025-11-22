@@ -1916,8 +1916,14 @@ body.desktop-mode {
   transform: scale(1.1);
 }
 
+/* ============================================================================
+   MOBILE OPTIMIZATIONS (Phase 2P)
+   Touch-Friendly Sizing and Responsive Design
+   ============================================================================ */
+
 /* Mobile Full-Screen Modals */
 @media (max-width: 767px) {
+  /* Full-screen windows on mobile */
   .desktop-window {
     position: fixed !important;
     top: 0 !important;
@@ -1929,31 +1935,226 @@ body.desktop-mode {
     min-height: 100vh !important;
   }
 
-  .window-header .window-controls {
-    /* Hide minimize and maximize on mobile, keep close */
+  /* Larger window header for better touch interaction */
+  .window-header {
+    height: 60px;
+    padding: 0 20px;
   }
 
+  /* Touch-friendly window controls - minimum 44px for accessibility */
+  .window-control {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .window-controls {
+    gap: 12px;
+  }
+
+  /* Hide minimize and maximize on mobile, only show close */
   .window-control.minimize,
   .window-control.maximize {
     display: none;
   }
 
-  .navbar-dock {
-    bottom: 8px;
-    padding: 8px;
-    gap: 4px;
+  /* Larger window title text */
+  .window-title {
+    font-size: 16px;
   }
 
+  /* Window content with touch-friendly padding */
+  .window-content {
+    padding: 20px;
+  }
+
+  /* Touch-friendly dock */
+  .navbar-dock {
+    bottom: 12px;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  /* Dock icons meet 44px minimum touch target */
   .dock-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
 
   .dock-icon .material-symbols-outlined,
   .dock-icon svg {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Touch-friendly buttons - minimum 44px height */
+  .btn-primary,
+  .btn-secondary,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+
+  /* Larger tap targets for all interactive elements */
+  .action-btn,
+  .filter-btn,
+  .category-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 16px;
+  }
+
+  /* Touch-friendly form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Larger desktop notches for touch */
+  .desktop-notch-center {
+    height: 56px;
+    padding: 0 28px;
+  }
+
+  .desktop-notch-right {
+    height: 56px;
+    padding: 0 20px;
+  }
+
+  .desktop-top-bar-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Increase spacing in prompts grid */
+  .prompts-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* Increase padding in cards for better touch interaction */
+  .prompt-card,
+  .admin-prompt-card,
+  .bento-card {
+    padding: 20px;
+  }
+
+  /* Touch-friendly leaderboard table */
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 16px 12px;
+  }
+
+  /* Larger text for readability */
+  body {
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  h3 {
     font-size: 20px;
-    width: 20px;
-    height: 20px;
+  }
+
+  /* Access gate mobile optimization */
+  .gate-content {
+    padding: 24px;
+  }
+
+  /* Admin panel mobile optimization */
+  .admin-panel {
+    padding: 16px;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .admin-prompt-header {
+    flex-direction: column;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-approve,
+  .btn-reject {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* Notification positioning */
+  .notification,
+  .admin-notification {
+    right: 12px;
+    left: 12px;
+    max-width: none;
+  }
+
+  /* Form actions stack vertically */
+  .form-actions {
+    flex-direction: column;
+  }
+
+  /* Review status stack vertically */
+  .review-status {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* Tablet Breakpoint - 768px to 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Window controls slightly larger for tablets */
+  .window-control {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Buttons maintain good touch targets */
+  .btn-primary,
+  .btn-secondary,
+  button {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  /* Dock icons stay touch-friendly */
+  .dock-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Grid adjustments for tablet */
+  .prompts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  /* Bento grid for opportunities */
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
