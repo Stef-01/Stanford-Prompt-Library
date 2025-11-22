@@ -1612,21 +1612,25 @@ body.desktop-mode {
   transform: scale(1.1);
 }
 
-/* Primary dock icon (Submit button) */
+/* Primary dock icon (Submit button) - Subtle highlight */
 .dock-icon-primary {
-  background: var(--primary);
-  color: var(--background-dark);
+  background: var(--white-10);
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
 }
 
 .dock-icon-primary .material-symbols-outlined {
-  color: var(--background-dark);
-  font-weight: 400;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 26px;
 }
 
 .dock-icon-primary:hover {
-  transform: scale(1.05);
-  box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+  background: var(--white-15);
+  border-color: var(--white-30);
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.12);
 }
 
 .dock-label {
