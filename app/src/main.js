@@ -139,6 +139,61 @@ async function checkAccessAndRender() {
         renderPendingApprovalGate(app, accessStatus.userData)
         break
 
+      case 'DATABASE_SETUP_REQUIRED':
+        app.innerHTML = `
+          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
+            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
+              <div style="font-size: 64px; margin-bottom: 1rem;">🔧</div>
+              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Database Setup Required</h1>
+              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+                The <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">users</code> table doesn't exist in your Supabase database.
+              </p>
+              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+                <div style="color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 1rem;">Quick Fix (1 minute):</div>
+                <ol style="color: rgba(255,255,255,0.8); line-height: 1.8; padding-left: 1.5rem; margin: 0;">
+                  <li>Open <a href="https://app.supabase.com" target="_blank" style="color: #8b5cf6; text-decoration: underline;">Supabase Dashboard</a></li>
+                  <li>Go to <strong>SQL Editor</strong></li>
+                  <li>Run <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">app/database/schema.sql</code></li>
+                  <li>Refresh this page</li>
+                </ol>
+              </div>
+              <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+                Refresh Page
+              </button>
+            </div>
+          </div>
+        `
+        break
+
+      case 'DATABASE_ERROR':
+      case 'PROFILE_CREATION_ERROR':
+        app.innerHTML = `
+          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
+            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
+              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
+              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">${accessStatus.reason === 'DATABASE_ERROR' ? 'Database Error' : 'Profile Creation Error'}</h1>
+              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+                ${accessStatus.message}
+              </p>
+              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                <details style="color: rgba(255,255,255,0.8); text-align: left;">
+                  <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; text-align: center;">Show Error Details</summary>
+                  <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; overflow: auto; font-size: 12px; color: #ff6b6b; margin-top: 0.5rem; white-space: pre-wrap; max-height: 300px;">${JSON.stringify(accessStatus.error, null, 2)}</pre>
+                </details>
+              </div>
+              <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                  Refresh Page
+                </button>
+                <button onclick="window.open('https://app.supabase.com', '_blank')" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                  Open Supabase
+                </button>
+              </div>
+            </div>
+          </div>
+        `
+        break
+
       default:
         if (accessStatus.hasAccess) {
           renderMainApp(app, accessStatus.userData)

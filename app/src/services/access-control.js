@@ -36,6 +36,7 @@ export async function checkUserAccess() {
     }
 
     // Get user profile from database
+    console.log('[Access Control] Fetching user profile for:', user.id, user.email)
     const { data: userData, error } = await supabase
       .from('users')
       .select('*')
@@ -43,14 +44,33 @@ export async function checkUserAccess() {
       .maybeSingle() // Use maybeSingle instead of single - won't error if no rows
 
     if (error) {
-      console.error('Error fetching user data:', error)
-      // Database error - clear session and force re-auth
-      await supabase.auth.signOut()
+      console.error('[Access Control] ❌ Error fetching user data:', error)
+      console.error('[Access Control] Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
+
+      // Check if this is a "table doesn't exist" error
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        console.error('[Access Control] ⚠️  USERS TABLE DOES NOT EXIST')
+        console.error('[Access Control] Run: app/database/schema.sql in Supabase SQL Editor')
+        return {
+          hasAccess: false,
+          reason: 'DATABASE_SETUP_REQUIRED',
+          message: 'Database setup required. See console for instructions.',
+          error: error
+        }
+      }
+
+      // For other database errors, DON'T sign out - keep session active
+      console.error('[Access Control] Database error, keeping session active for debugging')
       return {
         hasAccess: false,
-        reason: 'NOT_AUTHENTICATED',
-        message: 'Database error. Please sign in again.',
-        needsAction: 'SIGN_IN'
+        reason: 'DATABASE_ERROR',
+        message: `Database error: ${error.message}`,
+        error: error
       }
     }
 
@@ -80,14 +100,20 @@ export async function checkUserAccess() {
           userData: newUserData
         }
       } catch (createError) {
-        console.error('Failed to create user profile:', createError)
-        // Clear the bad session
-        await supabase.auth.signOut()
+        console.error('[Access Control] ❌ Failed to create user profile:', createError)
+        console.error('[Access Control] Profile creation error details:', {
+          message: createError.message,
+          code: createError.code,
+          details: createError.details,
+          hint: createError.hint
+        })
+
+        // DON'T sign out - keep session active so user can see error
         return {
           hasAccess: false,
-          reason: 'NOT_AUTHENTICATED',
-          message: 'Failed to create profile. Please sign in again.',
-          needsAction: 'SIGN_IN'
+          reason: 'PROFILE_CREATION_ERROR',
+          message: `Failed to create profile: ${createError.message}`,
+          error: createError
         }
       }
     }
