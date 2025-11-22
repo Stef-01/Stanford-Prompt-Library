@@ -54,13 +54,16 @@ export async function renderMainApp(container, user) {
     // Render desktop layout
     container.innerHTML = `
       <div class="desktop">
-        <!-- Desktop Top Bar - Monochrome Design -->
-        <div class="desktop-top-bar">
-          <div class="desktop-top-bar-left">
-            <span class="material-symbols-outlined" style="font-size: 24px; margin-right: 8px;">grid_view</span>
+        <!-- Desktop Notch Navigation - No Solid Bar -->
+        <div class="desktop-notches">
+          <!-- Center Logo Notch -->
+          <div class="desktop-notch-center">
+            <span class="material-symbols-outlined" style="font-size: 20px; margin-right: 8px;">grid_view</span>
             <span class="desktop-logo">Stanford Prompt Library</span>
           </div>
-          <div class="desktop-top-bar-right" style="display: flex; align-items: center; gap: 16px;">
+
+          <!-- Right Controls Notch -->
+          <div class="desktop-notch-right">
             ${isInBypassMode ? `
               <div style="display: flex; align-items: center; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 24px; font-size: 12px;">
                 <span style="position: relative; display: flex; width: 8px; height: 8px;">

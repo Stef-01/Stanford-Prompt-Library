@@ -297,6 +297,11 @@ function handleMouseUp() {
 }
 
 /**
+ * Store window's original size and position before maximizing
+ */
+const windowOriginalStates = new Map()
+
+/**
  * Handle window control clicks
  * @param {HTMLElement} control - Control element
  */
@@ -309,16 +314,57 @@ function handleWindowControl(control) {
       closeWindow(windowId)
       break
     case 'minimize':
-      closeWindow(windowId) // For now, minimize = close
+      resize50Percent(windowId) // Yellow button = 50% screen size
       break
     case 'maximize':
-      toggleMaximize(windowId)
+      toggleMaximize(windowId) // Green button = fullscreen
       break
   }
 }
 
 /**
- * Toggle window maximize state
+ * Resize window to 50% of screen size
+ * @param {string} windowId - Window identifier
+ */
+function resize50Percent(windowId) {
+  const windowEl = document.getElementById(`window-${windowId}`)
+  if (!windowEl) return
+
+  // Store original state if not already stored
+  if (!windowOriginalStates.has(windowId)) {
+    windowOriginalStates.set(windowId, {
+      width: windowEl.style.width,
+      height: windowEl.style.height,
+      top: windowEl.style.top,
+      left: windowEl.style.left
+    })
+  }
+
+  // Remove maximized state if present
+  windowEl.classList.remove('maximized')
+
+  // Resize to 50% of viewport
+  const width = Math.floor(window.innerWidth * 0.5)
+  const height = Math.floor((window.innerHeight - 100) * 0.5) // Account for dock
+  const top = Math.floor((window.innerHeight - 100 - height) / 2)
+  const left = Math.floor((window.innerWidth - width) / 2)
+
+  windowEl.style.width = `${width}px`
+  windowEl.style.height = `${height}px`
+  windowEl.style.top = `${top}px`
+  windowEl.style.left = `${left}px`
+
+  // Smooth transition
+  if (!prefersReducedMotion()) {
+    windowEl.style.transition = 'all 0.4s var(--ease-spring)'
+    setTimeout(() => {
+      windowEl.style.transition = ''
+    }, 400)
+  }
+}
+
+/**
+ * Toggle window maximize state (fullscreen)
  * @param {string} windowId - Window identifier
  */
 function toggleMaximize(windowId) {
@@ -326,14 +372,42 @@ function toggleMaximize(windowId) {
   if (!windowEl) return
 
   if (windowEl.classList.contains('maximized')) {
+    // Restore original size
     windowEl.classList.remove('maximized')
-    // Restore original size and position (would need to store these)
+
+    const originalState = windowOriginalStates.get(windowId)
+    if (originalState) {
+      windowEl.style.top = originalState.top
+      windowEl.style.left = originalState.left
+      windowEl.style.width = originalState.width
+      windowEl.style.height = originalState.height
+      windowOriginalStates.delete(windowId)
+    }
   } else {
+    // Store original state
+    if (!windowOriginalStates.has(windowId)) {
+      windowOriginalStates.set(windowId, {
+        width: windowEl.style.width,
+        height: windowEl.style.height,
+        top: windowEl.style.top,
+        left: windowEl.style.left
+      })
+    }
+
+    // Maximize to fullscreen - seamless with top bar
     windowEl.classList.add('maximized')
-    windowEl.style.top = '32px'
+    windowEl.style.top = '0'
     windowEl.style.left = '0'
     windowEl.style.width = '100%'
-    windowEl.style.height = 'calc(100vh - 32px - 100px)' // Account for top bar and dock
+    windowEl.style.height = 'calc(100vh - 100px)' // Account for dock
+  }
+
+  // Smooth transition
+  if (!prefersReducedMotion()) {
+    windowEl.style.transition = 'all 0.4s var(--ease-spring)'
+    setTimeout(() => {
+      windowEl.style.transition = ''
+    }, 400)
   }
 }
 
