@@ -1,4 +1,5 @@
 import { getApprovedPrompts, getMyPrompts, exportPromptAsMarkdown, copyPromptToClipboard, likePrompt, hasLiked } from '../../services/prompts.js'
+import { Icon } from '../ui/Icon.js'
 
 let allPrompts = []
 let myPrompts = []
@@ -10,7 +11,7 @@ let currentCarouselIndex = 0
 let carouselInterval = null
 let currentView = 'discover' // discover, myPrompts
 
-// Placeholder prompts for carousel demo (shown when no prompts in database)
+// Placeholder prompts for carousel demo
 const placeholderPrompts = [
   {
     id: 'placeholder-1',
@@ -47,21 +48,18 @@ const placeholderPrompts = [
   }
 ]
 
+const CATEGORIES = ['All', 'Writing', 'Coding', 'Research', 'Creative', 'Other']
+
 /**
- * Render Library Window Content
- * Primary prompt discovery and search area
- * @param {HTMLElement} contentContainer - Window content container
- * @param {Object} userData - User data
+ * Render Library Window - Monochrome Design
  */
 export async function renderLibraryWindow(contentContainer, userData) {
-  // Remove default window-content padding for custom layout
   contentContainer.style.padding = '0'
 
-  // Load all approved prompts and user's prompts
+  // Load prompts
   allPrompts = await getApprovedPrompts()
   myPrompts = await getMyPrompts()
 
-  // Use placeholder prompts if database is empty (for demo purposes)
   if (allPrompts.length === 0) {
     allPrompts = placeholderPrompts
   }
@@ -70,58 +68,73 @@ export async function renderLibraryWindow(contentContainer, userData) {
 
   contentContainer.innerHTML = `
     <div style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
-      <!-- Recipe-Book Style Prompt Discovery Carousel -->
-      <div id="prompt-carousel" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 0; position: relative; overflow: hidden; flex-shrink: 0; height: 280px; cursor: pointer;">
+
+      <!-- Featured Carousel - Monochrome -->
+      <div id="prompt-carousel" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+                                       padding: 0; position: relative; overflow: hidden; flex-shrink: 0; height: 280px; cursor: pointer;
+                                       border-bottom: 1px solid var(--border-subtle);">
         ${renderCarousel()}
       </div>
 
       <!-- Prompt Details Modal -->
-      <div id="prompt-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 99999; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
-        <div id="modal-content" style="background: linear-gradient(135deg, rgba(30, 30, 40, 0.98) 0%, rgba(20, 20, 30, 0.98) 100%); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; max-width: 800px; max-height: 85vh; overflow-y: auto; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8); padding: 40px; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;">
+      <div id="prompt-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+                                     backdrop-filter: blur(12px); z-index: 99999; align-items: center; justify-content: center;
+                                     opacity: 0; transition: opacity 0.3s ease;">
+        <div id="modal-content" style="background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(var(--glass-blur));
+                                        border: 1px solid var(--border-subtle); border-radius: 16px;
+                                        max-width: 800px; max-height: 85vh; overflow-y: auto;
+                                        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.8); padding: 40px;
+                                        transform: scale(0.9); transition: transform 0.4s var(--ease-spring), opacity 0.3s ease;">
           <!-- Modal content will be injected here -->
         </div>
       </div>
 
-      <!-- View Toggle Tabs -->
-      <div style="display: flex; gap: 10px; padding: 15px 20px; background: rgba(255, 255, 255, 0.03); border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+      <!-- View Toggle Tabs - Monochrome -->
+      <div style="display: flex; gap: 12px; padding: 20px 24px; background: var(--white-5); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;">
         <button
           class="view-toggle-btn ${currentView === 'discover' ? 'active' : ''}"
           data-view="discover"
-          style="flex: 1; padding: 10px 20px; background: ${currentView === 'discover' ? 'var(--accent-blue)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentView === 'discover' ? 'var(--accent-blue)' : 'var(--border-color)'}; border-radius: 8px; color: var(--text-primary); font-weight: 600; cursor: pointer; transition: all 0.2s;">
-          🔍 Discover Prompts
+          style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                 font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                 ${currentView === 'discover'
+                   ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                   : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+          ${Icon({ name: 'explore' })} Discover Prompts
         </button>
         <button
           class="view-toggle-btn ${currentView === 'myPrompts' ? 'active' : ''}"
           data-view="myPrompts"
-          style="flex: 1; padding: 10px 20px; background: ${currentView === 'myPrompts' ? 'var(--accent-purple)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentView === 'myPrompts' ? 'var(--accent-purple)' : 'var(--border-color)'}; border-radius: 8px; color: var(--text-primary); font-weight: 600; cursor: pointer; transition: all 0.2s;">
-          📚 My Submissions (${myPrompts.length})
+          style="flex: 1; padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+                 font-weight: 600; font-size: 14px; transition: all 0.4s var(--ease-spring);
+                 ${currentView === 'myPrompts'
+                   ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);'
+                   : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--border-subtle);'}">
+          ${Icon({ name: 'auto_stories' })} My Submissions (${myPrompts.length})
         </button>
       </div>
 
       <!-- Content Area -->
-      <div id="library-content" style="flex: 1; overflow-y: auto; padding: 20px;">
+      <div id="library-content" style="flex: 1; overflow-y: auto; padding: 24px;">
         ${renderCurrentView()}
       </div>
     </div>
   `
 
-  // Attach event listeners
   setupLibraryEventListeners(contentContainer)
-
-  // Start carousel auto-rotation
   startCarousel()
 }
 
 /**
- * Render recipe-book style carousel - minimal with hover-to-reveal
+ * Render monochrome carousel
  */
 function renderCarousel() {
   if (allPrompts.length === 0) {
     return `
-      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white;">
+      <div style="display: flex; align-items: center; justify-center; height: 100%; color: var(--text-primary);">
         <div style="text-align: center;">
-          <p style="font-size: 18px; margin-bottom: 10px; opacity: 0.9;">🎨 No prompts yet</p>
-          <p style="font-size: 13px; opacity: 0.6;">Submit your first prompt!</p>
+          ${Icon({ name: 'auto_stories', className: '!text-[48px] mb-4 opacity-50' })}
+          <p style="font-size: 18px; margin-bottom: 10px; opacity: 0.9;">No prompts yet</p>
+          <p style="font-size: 13px; opacity: 0.6; color: var(--text-subtle);">Submit your first prompt!</p>
         </div>
       </div>
     `
@@ -129,222 +142,232 @@ function renderCarousel() {
 
   const prompt = allPrompts[currentCarouselIndex]
   const categoryIcons = {
-    coding: '💻',
-    writing: '✍️',
-    research: '🔬',
-    creative: '🎨',
-    other: '📦'
-  }
-  const categoryColors = {
-    coding: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    writing: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    research: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)',
-    creative: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-    other: 'linear-gradient(135deg, #64748b 0%, #475569 100%)'
+    coding: 'code',
+    writing: 'edit_note',
+    research: 'science',
+    creative: 'palette',
+    other: 'folder'
   }
 
   return `
-    <div class="carousel-slide" data-prompt-id="${prompt.id}" style="position: relative; width: 100%; height: 100%; background: ${categoryColors[prompt.category] || categoryColors.other}; overflow: hidden;">
+    <div class="carousel-slide" data-prompt-id="${prompt.id}"
+         style="position: relative; width: 100%; height: 100%; overflow: hidden;
+                background: linear-gradient(135deg, var(--white-10) 0%, var(--white-5) 100%);">
 
-      <!-- Background Icon (always visible) -->
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 180px; opacity: 0.15; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none;">
-        ${categoryIcons[prompt.category] || categoryIcons.other}
+      <!-- Background Icon -->
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                  opacity: 0.08; transition: all 0.6s var(--ease-spring); pointer-events: none;">
+        ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[180px]' })}
       </div>
 
-      <!-- Subtle progress indicator -->
-      <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2;">
-        ${allPrompts.slice(0, Math.min(10, allPrompts.length)).map((_, index) => `
-          <div style="width: ${index === currentCarouselIndex ? '32px' : '8px'}; height: 3px; background: rgba(255, 255, 255, ${index === currentCarouselIndex ? '0.9' : '0.3'}); border-radius: 2px; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
-        `).join('')}
-      </div>
+      <!-- Content Overlay -->
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+                  padding: 40px; background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);">
 
-      <!-- Hover overlay with details (hidden by default, revealed on hover) -->
-      <div class="carousel-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.85) 100%); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; opacity: 0; transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none;">
-
-        <!-- Category badge -->
-        <div style="padding: 6px 16px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 20px; font-size: 11px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s, opacity 0.5s ease 0.1s;">
-          ${prompt.category}
+        <!-- Category Badge -->
+        <div style="margin-bottom: 16px;">
+          <span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+                       background: var(--white-10); border: 1px solid var(--white-20); border-radius: 24px;
+                       font-size: 12px; font-weight: 600; color: var(--text-primary); text-transform: uppercase;">
+            ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[16px]' })}
+            ${prompt.category}
+          </span>
         </div>
 
         <!-- Title -->
-        <h2 style="font-size: 32px; font-weight: 800; color: white; text-align: center; margin-bottom: 16px; line-height: 1.2; max-width: 600px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s, opacity 0.5s ease 0.15s;">
+        <h2 style="font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.2;">
           ${escapeHtml(prompt.title)}
         </h2>
 
         <!-- Description -->
-        <p style="font-size: 15px; color: rgba(255, 255, 255, 0.85); text-align: center; max-width: 500px; line-height: 1.6; margin-bottom: 24px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s, opacity 0.5s ease 0.2s;">
-          ${escapeHtml(prompt.description || prompt.content.substring(0, 120))}${(prompt.description || prompt.content.length > 120) ? '...' : ''}
+        <p style="font-size: 16px; color: rgba(255, 255, 255, 0.8); line-height: 1.6; max-width: 600px; margin-bottom: 20px;">
+          ${escapeHtml(prompt.description || prompt.content.substring(0, 150))}
         </p>
 
-        <!-- Author & Stats -->
-        <div style="display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-bottom: 28px; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s, opacity 0.5s ease 0.25s;">
-          <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.4);">
-          <span style="font-weight: 600;">${prompt.users?.display_name || 'Anonymous'}</span>
-          <span style="opacity: 0.7;">•</span>
-          <span>❤️ ${prompt.likes_count || 0}</span>
-        </div>
-
-        <!-- CTA hint -->
-        <div style="padding: 10px 24px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 12px; font-size: 13px; color: white; font-weight: 600; transform: translateY(20px); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s, opacity 0.5s ease 0.3s;">
-          Click to view full prompt
+        <!-- Author -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}"
+               alt="Author" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--white-20);">
+          <span style="font-size: 14px; color: var(--text-subtle); font-weight: 500;">
+            ${prompt.users?.display_name || 'Anonymous'}
+          </span>
+          <span style="margin-left: auto; display: flex; align-items: center; gap: 6px;
+                       padding: 6px 12px; background: var(--white-10); border-radius: 16px; font-size: 14px; color: var(--text-primary);">
+            ${Icon({ name: 'favorite', className: '!text-[16px]' })}
+            ${prompt.likes_count || 0}
+          </span>
         </div>
       </div>
 
-      <!-- Decorative gradient overlay (always visible) -->
-      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%); pointer-events: none;"></div>
+      <!-- Navigation Dots -->
+      <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10;">
+        ${allPrompts.map((_, index) => `
+          <div style="width: ${index === currentCarouselIndex ? '24px' : '8px'}; height: 8px; border-radius: 4px;
+                      background: ${index === currentCarouselIndex ? 'var(--primary)' : 'var(--white-20)'};
+                      transition: all 0.4s var(--ease-spring); cursor: pointer;"
+               data-carousel-index="${index}"></div>
+        `).join('')}
+      </div>
     </div>
   `
 }
 
 /**
- * Render current view content
+ * Render current view
  */
 function renderCurrentView() {
-  if (currentView === 'myPrompts') {
-    return renderMyPromptsView()
-  } else {
-    return renderDiscoverView()
-  }
+  return currentView === 'myPrompts' ? renderMyPromptsView() : renderDiscoverView()
 }
 
 /**
- * Render discover prompts view
+ * Render discover view - Monochrome
  */
 function renderDiscoverView() {
   return `
     <!-- Search and Filters -->
-    <div style="margin-bottom: 25px;">
+    <div style="margin-bottom: 32px;">
       <!-- Search Bar -->
-      <div style="position: relative; margin-bottom: 15px;">
+      <div style="position: relative; margin-bottom: 20px; max-width: 600px;">
+        ${Icon({ name: 'search', className: 'search-icon-lib' })}
         <input
           type="text"
           id="prompt-search"
-          class="search-bar"
-          placeholder="🔍 Search prompts by title, description, or tags..."
+          class="library-search-input"
+          placeholder="Search prompts by title, description, or tags..."
           value="${currentSearchQuery}"
-          style="width: 100%; padding: 14px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-primary); font-size: 14px;"
+          style="width: 100%; padding-left: 48px; padding-right: 16px; padding-top: 14px; padding-bottom: 14px;
+                 background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px;
+                 color: var(--text-primary); font-size: 16px; transition: all 0.4s var(--ease-spring);"
         />
       </div>
 
       <!-- Filters and Sort -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;">
         <!-- Category Filters -->
         <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
-          <button class="category-filter-btn ${currentCategory === 'all' ? 'active' : ''}" data-category="all" style="padding: 8px 16px; background: ${currentCategory === 'all' ? 'var(--accent-blue)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'all' ? 'var(--accent-blue)' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            All
-          </button>
-          <button class="category-filter-btn ${currentCategory === 'writing' ? 'active' : ''}" data-category="writing" style="padding: 8px 16px; background: ${currentCategory === 'writing' ? 'var(--accent-purple)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'writing' ? 'var(--accent-purple)' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            ✍️ Writing
-          </button>
-          <button class="category-filter-btn ${currentCategory === 'coding' ? 'active' : ''}" data-category="coding" style="padding: 8px 16px; background: ${currentCategory === 'coding' ? 'var(--accent-green)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'coding' ? 'var(--accent-green)' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            💻 Coding
-          </button>
-          <button class="category-filter-btn ${currentCategory === 'research' ? 'active' : ''}" data-category="research" style="padding: 8px 16px; background: ${currentCategory === 'research' ? 'var(--accent-yellow)' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'research' ? 'var(--accent-yellow)' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            🔬 Research
-          </button>
-          <button class="category-filter-btn ${currentCategory === 'creative' ? 'active' : ''}" data-category="creative" style="padding: 8px 16px; background: ${currentCategory === 'creative' ? '#ec4899' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'creative' ? '#ec4899' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            🎨 Creative
-          </button>
-          <button class="category-filter-btn ${currentCategory === 'other' ? 'active' : ''}" data-category="other" style="padding: 8px 16px; background: ${currentCategory === 'other' ? '#64748b' : 'rgba(255, 255, 255, 0.05)'}; border: 1px solid ${currentCategory === 'other' ? '#64748b' : 'var(--border-color)'}; border-radius: 20px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-            📦 Other
-          </button>
+          ${CATEGORIES.map(category => `
+            <button
+              class="category-filter-btn ${currentCategory === category.toLowerCase() ? 'active' : ''}"
+              data-category="${category.toLowerCase()}"
+              style="padding: 10px 20px; font-size: 14px; font-weight: 500; border-radius: 24px; border: none; cursor: pointer;
+                     transition: all 0.4s var(--ease-spring);
+                     ${currentCategory === category.toLowerCase()
+                       ? 'background: var(--primary); color: var(--background-dark); box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1); transform: scale(1.05);'
+                       : 'background: var(--white-5); color: var(--text-subtle); border: 1px solid var(--white-10);'}">
+              ${category}
+            </button>
+          `).join('')}
         </div>
 
         <!-- Sort Dropdown -->
-        <select id="sort-select" style="padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 12px; font-weight: 600; cursor: pointer;">
-          <option value="newest" ${currentSortBy === 'newest' ? 'selected' : ''}>🕐 Newest First</option>
-          <option value="oldest" ${currentSortBy === 'oldest' ? 'selected' : ''}>📅 Oldest First</option>
-          <option value="likes" ${currentSortBy === 'likes' ? 'selected' : ''}>❤️ Most Liked</option>
+        <select id="sort-select" style="padding: 10px 20px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                                        border-radius: 12px; color: var(--text-primary); font-size: 14px; font-weight: 500; cursor: pointer;">
+          <option value="newest" ${currentSortBy === 'newest' ? 'selected' : ''}>Newest First</option>
+          <option value="oldest" ${currentSortBy === 'oldest' ? 'selected' : ''}>Oldest First</option>
+          <option value="likes" ${currentSortBy === 'likes' ? 'selected' : ''}>Most Liked</option>
         </select>
       </div>
 
       <!-- Results Count -->
-      <div style="margin-top: 15px; font-size: 13px; color: var(--text-secondary);">
+      <div style="font-size: 14px; color: var(--text-subtle);">
         ${filteredPrompts.length} prompt${filteredPrompts.length !== 1 ? 's' : ''} found
       </div>
     </div>
 
     <!-- Prompts Grid -->
-    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    <div id="prompts-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
       ${renderPromptsGrid()}
     </div>
   `
 }
 
 /**
- * Render prompts grid
+ * Render prompts grid - Monochrome
  */
 function renderPromptsGrid() {
   if (filteredPrompts.length === 0) {
     return `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: rgba(255, 255, 255, 0.03); border-radius: 12px;">
-        <p style="font-size: 48px; margin-bottom: 15px;">🔍</p>
-        <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No prompts found</h3>
-        <p style="color: var(--text-secondary); font-size: 14px;">Try adjusting your filters or search query</p>
+      <div style="grid-column: 1 / -1; text-center; padding: 80px 20px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px;
+                    border-radius: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+          ${Icon({ name: 'search_off', className: 'text-subtle-white !text-[48px]' })}
+        </div>
+        <h3 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">No prompts found</h3>
+        <p style="font-size: 16px; color: var(--text-subtle);">Try adjusting your filters or search query</p>
       </div>
     `
   }
 
   return filteredPrompts.map(prompt => {
-    const categoryColors = {
-      writing: '#8b5cf6',
-      coding: '#10b981',
-      research: '#eab308',
-      creative: '#ec4899',
-      other: '#64748b'
+    const categoryIcons = {
+      writing: 'edit_note',
+      coding: 'code',
+      research: 'science',
+      creative: 'palette',
+      other: 'folder'
     }
 
     return `
-      <div class="prompt-card" data-id="${prompt.id}" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='var(--accent-blue)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+      <div class="prompt-card" data-id="${prompt.id}"
+           style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px;
+                  padding: 24px; transition: all 0.3s var(--ease-spring); cursor: pointer; position: relative;
+                  overflow: hidden; display: flex; flex-direction: column; gap: 16px; height: 100%;">
 
-        <!-- Category Badge -->
-        <div style="position: absolute; top: 15px; right: 15px; padding: 4px 10px; background: ${categoryColors[prompt.category] || '#64748b'}; color: white; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; z-index: 1;">
-          ${prompt.category}
+        <!-- Header: Category + Likes -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
+                       font-size: 12px; font-weight: 500; background: var(--white-10); border: 1px solid var(--white-20); color: var(--text-primary);">
+            ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[14px]' })}
+            ${prompt.category}
+          </span>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-subtle);">
+            ${Icon({ name: 'favorite', className: '!text-[16px]' })}
+            ${prompt.likes_count || 0}
+          </div>
         </div>
 
-        <!-- Preview Image or Icon -->
-        ${prompt.image_url ? `
-          <div style="width: 100%; height: 140px; background: rgba(0, 0, 0, 0.2); border-radius: 8px; margin-bottom: 15px; overflow: hidden;">
-            <img src="${prompt.image_url}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
-          </div>
-        ` : `
-          <div style="width: 100%; height: 140px; background: linear-gradient(135deg, ${categoryColors[prompt.category]}22 0%, ${categoryColors[prompt.category]}11 100%); border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 48px;">
-            ${getCategoryIcon(prompt.category)}
-          </div>
-        `}
+        <!-- Title & Description -->
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); line-height: 1.4; transition: color 0.3s ease;">
+            ${escapeHtml(prompt.title)}
+          </h3>
+          <p style="font-size: 14px; color: var(--text-subtle); line-height: 1.6;
+                    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            ${escapeHtml(prompt.description || prompt.content.substring(0, 100))}
+          </p>
+        </div>
 
-        <!-- Title -->
-        <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-primary); line-height: 1.4; font-weight: 600; padding-right: 60px;">
-          ${escapeHtml(prompt.title)}
-        </h3>
-
-        <!-- Description -->
-        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-          ${escapeHtml(prompt.description || prompt.content.substring(0, 100))}
-        </p>
-
-        <!-- Author and Stats -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+        <!-- Footer: Author + Arrow -->
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-top: auto;
+                    border-top: 1px solid var(--white-5);">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 20px; height: 20px; border-radius: 50%;">
-            <span style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">
+            <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}"
+                 alt="Author" style="width: 24px; height: 24px; border-radius: 50%;">
+            <span style="font-size: 12px; color: var(--text-subtle); font-weight: 500;">
               ${prompt.users?.display_name || 'Anonymous'}
             </span>
           </div>
-          <div style="display: flex; gap: 12px; font-size: 12px; color: var(--text-secondary);">
-            <span>❤️ ${prompt.likes_count || 0}</span>
+          <div class="prompt-arrow" style="width: 32px; height: 32px; border-radius: 50%; background: var(--white-5);
+                                           display: flex; align-items: center; justify-content: center;
+                                           opacity: 0; transform: translateX(-8px); transition: all 0.3s var(--ease-spring);">
+            ${Icon({ name: 'arrow_forward', className: '!text-[18px]' })}
           </div>
         </div>
 
         <!-- Tags -->
         ${prompt.tags && prompt.tags.length > 0 ? `
-          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
             ${prompt.tags.slice(0, 3).map(tag => `
-              <span style="font-size: 10px; padding: 3px 8px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; color: var(--text-secondary);">
+              <span style="font-size: 11px; padding: 4px 10px; background: var(--white-5); border-radius: 12px;
+                           color: var(--text-subtle); border: 1px solid var(--white-10);">
                 ${escapeHtml(tag)}
               </span>
             `).join('')}
-            ${prompt.tags.length > 3 ? `<span style="font-size: 10px; padding: 3px 8px; color: var(--text-secondary);">+${prompt.tags.length - 3}</span>` : ''}
+            ${prompt.tags.length > 3 ? `
+              <span style="font-size: 11px; padding: 4px 10px; color: var(--text-subtle);">
+                +${prompt.tags.length - 3}
+              </span>
+            ` : ''}
           </div>
         ` : ''}
       </div>
@@ -353,28 +376,28 @@ function renderPromptsGrid() {
 }
 
 /**
- * Render my prompts view
+ * Render My Prompts View - Monochrome
  */
 function renderMyPromptsView() {
   return `
     <div>
       <!-- Stats Summary -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin-bottom: 30px;">
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; text-align: center;">
-          <p style="font-size: 24px; font-weight: 600; color: var(--accent-blue);">${myPrompts.length}</p>
-          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">Total Prompts</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 32px;">
+        <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; text-align: center;">
+          <p style="font-size: 32px; font-weight: 700; color: var(--text-primary);">${myPrompts.length}</p>
+          <p style="font-size: 13px; color: var(--text-subtle); margin-top: 6px; font-weight: 500;">Total Prompts</p>
         </div>
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; text-align: center;">
-          <p style="font-size: 24px; font-weight: 600; color: var(--accent-green);">${myPrompts.filter(p => p.status === 'approved').length}</p>
-          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">Approved</p>
+        <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; text-align: center;">
+          <p style="font-size: 32px; font-weight: 700; color: var(--text-primary);">${myPrompts.filter(p => p.status === 'approved').length}</p>
+          <p style="font-size: 13px; color: var(--text-subtle); margin-top: 6px; font-weight: 500;">Approved</p>
         </div>
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; text-align: center;">
-          <p style="font-size: 24px; font-weight: 600; color: var(--accent-yellow);">${myPrompts.filter(p => p.status === 'pending').length}</p>
-          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">Pending</p>
+        <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; text-align: center;">
+          <p style="font-size: 32px; font-weight: 700; color: var(--text-primary);">${myPrompts.filter(p => p.status === 'pending').length}</p>
+          <p style="font-size: 13px; color: var(--text-subtle); margin-top: 6px; font-weight: 500;">Pending</p>
         </div>
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; text-align: center;">
-          <p style="font-size: 24px; font-weight: 600; color: var(--accent-red);">${myPrompts.filter(p => p.status === 'rejected').length}</p>
-          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;">Rejected</p>
+        <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; text-align: center;">
+          <p style="font-size: 32px; font-weight: 700; color: var(--text-primary);">${myPrompts.filter(p => p.status === 'rejected').length}</p>
+          <p style="font-size: 13px; color: var(--text-subtle); margin-top: 6px; font-weight: 500;">Rejected</p>
         </div>
       </div>
 
@@ -387,93 +410,61 @@ function renderMyPromptsView() {
 }
 
 /**
- * Render user's prompts list
+ * Render My Prompts List - Monochrome
  */
 function renderMyPromptsList() {
   if (myPrompts.length === 0) {
     return `
-      <div style="text-align: center; padding: 60px 20px; background: rgba(255, 255, 255, 0.03); border-radius: 12px;">
-        <p style="font-size: 48px; margin-bottom: 15px;">📝</p>
-        <h3 style="color: var(--text-secondary); margin-bottom: 10px;">No prompts yet</h3>
-        <p style="color: var(--text-secondary); font-size: 14px;">Submit your first prompt to get started!</p>
+      <div style="text-center; padding: 80px 20px;">
+        <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px;
+                    border-radius: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 24px;">
+          ${Icon({ name: 'description', className: 'text-subtle-white !text-[48px]' })}
+        </div>
+        <h3 style="font-size: 24px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px;">No prompts yet</h3>
+        <p style="font-size: 16px; color: var(--text-subtle);">Submit your first prompt to get started!</p>
       </div>
     `
   }
 
   return myPrompts.map(prompt => {
     const statusColors = {
-      pending: 'var(--accent-yellow)',
-      approved: 'var(--accent-green)',
-      rejected: 'var(--accent-red)'
+      approved: { bg: 'var(--white-10)', text: 'var(--text-primary)', icon: 'check_circle' },
+      pending: { bg: 'var(--white-10)', text: 'var(--text-subtle)', icon: 'schedule' },
+      rejected: { bg: 'var(--white-5)', text: 'var(--text-subtle)', icon: 'cancel' }
     }
-
-    const statusIcons = {
-      pending: '⏳',
-      approved: '✅',
-      rejected: '❌'
-    }
+    const status = statusColors[prompt.status] || statusColors.pending
 
     return `
-      <div class="my-prompt-card" data-id="${prompt.id}" style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px; margin-bottom: 15px; border-left: 4px solid ${statusColors[prompt.status] || 'var(--border-color)'};">
+      <div class="my-prompt-card" data-id="${prompt.id}"
+           style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px;
+                  padding: 24px; margin-bottom: 16px; transition: all 0.3s ease; cursor: pointer;">
+
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-          <div style="flex: 1;">
-            <h3 style="font-size: 18px; margin-bottom: 8px; color: var(--text-primary);">${escapeHtml(prompt.title)}</h3>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 12px; font-size: 12px; font-weight: 600; color: ${statusColors[prompt.status]};">
-                ${statusIcons[prompt.status]} ${prompt.status.charAt(0).toUpperCase() + prompt.status.slice(1)}
-              </span>
-              <span style="padding: 4px 12px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 12px; color: var(--text-secondary);">
-                ${prompt.category}
-              </span>
-              <span style="font-size: 12px; color: var(--text-secondary);">
-                📅 ${formatDate(prompt.created_at)}
-              </span>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+          <h3 style="font-size: 18px; font-weight: 600; color: var(--text-primary); flex: 1; margin-right: 16px;">
+            ${escapeHtml(prompt.title)}
+          </h3>
+          <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 24px;
+                       background: ${status.bg}; color: ${status.text}; font-size: 12px; font-weight: 500;">
+            ${Icon({ name: status.icon, className: '!text-[14px]' })}
+            ${prompt.status}
           </div>
-          <button class="export-btn" data-id="${prompt.id}" title="Export as markdown" style="background: rgba(255, 255, 255, 0.1); border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; color: var(--text-primary); font-size: 14px;">
-            ⬇️
-          </button>
         </div>
 
         <!-- Description -->
-        ${prompt.description ? `
-          <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 14px; line-height: 1.5;">
-            ${escapeHtml(prompt.description)}
-          </p>
-        ` : ''}
+        <p style="font-size: 14px; color: var(--text-subtle); line-height: 1.6; margin-bottom: 16px;
+                  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          ${escapeHtml(prompt.description || prompt.content.substring(0, 150))}
+        </p>
 
-        <!-- Tags -->
-        ${prompt.tags && prompt.tags.length > 0 ? `
-          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 15px;">
-            ${prompt.tags.map(tag => `
-              <span style="padding: 3px 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; font-size: 11px; color: var(--text-secondary);">
-                ${escapeHtml(tag)}
-              </span>
-            `).join('')}
+        <!-- Footer -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px;
+                    border-top: 1px solid var(--white-5); font-size: 13px; color: var(--text-subtle);">
+          <span>${formatDate(prompt.created_at)}</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span>${Icon({ name: 'favorite', className: '!text-[16px]' })} ${prompt.likes_count || 0}</span>
+            <span style="text-transform: uppercase; font-weight: 500;">${prompt.category}</span>
           </div>
-        ` : ''}
-
-        <!-- Content Preview -->
-        <div style="background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-          <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Prompt Content</div>
-          <pre style="font-size: 13px; line-height: 1.5; color: var(--text-primary); white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', monospace; max-height: 150px; overflow-y: auto; margin: 0;">${escapeHtml(prompt.content.substring(0, 300))}${prompt.content.length > 300 ? '...' : ''}</pre>
-        </div>
-
-        <!-- Rejection Reason (if rejected) -->
-        ${prompt.status === 'rejected' && prompt.rejection_reason ? `
-          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); border-radius: 8px; padding: 12px; margin-bottom: 15px;">
-            <div style="font-size: 11px; color: var(--accent-red); margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">❌ Rejection Reason</div>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">${escapeHtml(prompt.rejection_reason)}</p>
-          </div>
-        ` : ''}
-
-        <!-- Stats -->
-        <div style="display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary);">
-          ${prompt.status === 'approved' ? `
-            <span>❤️ ${prompt.likes_count || 0} likes</span>
-          ` : ''}
-          ${prompt.is_initial_prompt ? '<span style="color: var(--accent-purple);">⭐ Initial Prompt</span>' : ''}
         </div>
       </div>
     `
@@ -481,55 +472,46 @@ function renderMyPromptsList() {
 }
 
 /**
- * Get category icon
- */
-function getCategoryIcon(category) {
-  const icons = {
-    writing: '✍️',
-    coding: '💻',
-    research: '🔬',
-    creative: '🎨',
-    other: '📦'
-  }
-  return icons[category] || '📝'
-}
-
-/**
- * Filter prompts based on search and filters
+ * Filter prompts
  */
 function filterPrompts() {
   let filtered = allPrompts
 
-  // Filter by category
+  // Category filter
   if (currentCategory !== 'all') {
     filtered = filtered.filter(p => p.category === currentCategory)
   }
 
-  // Filter by search query
+  // Search filter
   if (currentSearchQuery.trim()) {
     const query = currentSearchQuery.toLowerCase()
     filtered = filtered.filter(p =>
       p.title.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query) ||
+      (p.description && p.description.toLowerCase().includes(query)) ||
       p.content.toLowerCase().includes(query) ||
-      p.tags?.some(tag => tag.toLowerCase().includes(query))
+      (p.tags && p.tags.some(tag => tag.toLowerCase().includes(query)))
     )
   }
 
   // Sort
-  if (currentSortBy === 'likes') {
-    filtered.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
-  } else if (currentSortBy === 'oldest') {
-    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-  } else {
-    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-  }
+  filtered.sort((a, b) => {
+    switch (currentSortBy) {
+      case 'newest':
+        return new Date(b.created_at) - new Date(a.created_at)
+      case 'oldest':
+        return new Date(a.created_at) - new Date(b.created_at)
+      case 'likes':
+        return (b.likes_count || 0) - (a.likes_count || 0)
+      default:
+        return 0
+    }
+  })
 
   filteredPrompts = filtered
 }
 
 /**
- * Start carousel auto-rotation (continuous, no pause)
+ * Carousel functions
  */
 function startCarousel() {
   stopCarousel()
@@ -537,13 +519,10 @@ function startCarousel() {
     carouselInterval = setInterval(() => {
       currentCarouselIndex = (currentCarouselIndex + 1) % allPrompts.length
       updateCarousel()
-    }, 3500) // Rotate every 3.5 seconds for smooth discovery
+    }, 5000)
   }
 }
 
-/**
- * Stop carousel auto-rotation
- */
 function stopCarousel() {
   if (carouselInterval) {
     clearInterval(carouselInterval)
@@ -551,380 +530,438 @@ function stopCarousel() {
   }
 }
 
-/**
- * Update carousel display with smooth fade transition
- */
 function updateCarousel() {
-  const carouselContainer = document.getElementById('prompt-carousel')
-  if (!carouselContainer) return
-
-  // Fade out current slide
-  const currentSlide = carouselContainer.querySelector('.carousel-slide')
-  if (currentSlide) {
-    currentSlide.style.animation = 'fadeOutSlide 0.4s cubic-bezier(0.4, 0, 0.6, 1) forwards'
-
-    // Wait for fade out to complete, then update content
-    setTimeout(() => {
-      carouselContainer.innerHTML = renderCarousel()
-      const newSlide = carouselContainer.querySelector('.carousel-slide')
-      if (newSlide) {
-        newSlide.style.animation = 'fadeInSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
-      }
-      attachCarouselListeners(carouselContainer)
-    }, 400)
-  } else {
-    // First render, no animation needed
-    carouselContainer.innerHTML = renderCarousel()
-    attachCarouselListeners(carouselContainer)
+  const carousel = document.getElementById('prompt-carousel')
+  if (carousel) {
+    carousel.innerHTML = renderCarousel()
+    attachCarouselListeners(carousel)
   }
 }
 
-/**
- * Attach carousel event listeners
- */
 function attachCarouselListeners(container) {
-  // Click anywhere on carousel to view details
-  const carouselSlide = container.querySelector('.carousel-slide')
-  if (carouselSlide) {
-    carouselSlide.addEventListener('click', () => {
-      const promptId = carouselSlide.dataset.promptId
-      showPromptModal(promptId)
-    })
+  // Click to view prompt
+  const slide = container.querySelector('.carousel-slide')
+  slide?.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-carousel-index]')) {
+      const promptId = slide.dataset.promptId
+      if (promptId) showPromptModal(promptId)
+    }
+  })
 
-    // Hover effect to show overlay
-    carouselSlide.addEventListener('mouseenter', () => {
-      const overlay = carouselSlide.querySelector('.carousel-overlay')
-      if (overlay) {
-        overlay.style.opacity = '1'
-        overlay.style.pointerEvents = 'auto'
-        // Animate text elements in
-        const elements = overlay.querySelectorAll('div, h2, p')
-        elements.forEach((el, index) => {
-          el.style.transform = 'translateY(0)'
-          el.style.opacity = '1'
-        })
-      }
+  // Dot navigation
+  const dots = container.querySelectorAll('[data-carousel-index]')
+  dots.forEach(dot => {
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation()
+      currentCarouselIndex = parseInt(dot.dataset.carouselIndex)
+      stopCarousel()
+      updateCarousel()
+      startCarousel()
     })
-
-    carouselSlide.addEventListener('mouseleave', () => {
-      const overlay = carouselSlide.querySelector('.carousel-overlay')
-      if (overlay) {
-        overlay.style.opacity = '0'
-        overlay.style.pointerEvents = 'none'
-        // Reset text elements
-        const elements = overlay.querySelectorAll('div, h2, p')
-        elements.forEach(el => {
-          el.style.transform = 'translateY(20px)'
-          el.style.opacity = '0'
-        })
-      }
-    })
-  }
+  })
 }
 
 /**
- * Show prompt details in animated modal
+ * Show Prompt Modal - Monochrome
  */
-function showPromptModal(promptId) {
-  const prompt = allPrompts.find(p => p.id === promptId) || myPrompts.find(p => p.id === promptId)
+async function showPromptModal(promptId) {
+  const prompt = [...allPrompts, ...myPrompts].find(p => p.id === promptId)
   if (!prompt) return
 
+  const userHasLiked = await hasLiked(promptId)
   const modal = document.getElementById('prompt-modal')
   const modalContent = document.getElementById('modal-content')
-  if (!modal || !modalContent) return
 
-  // Category info
   const categoryIcons = {
-    coding: '💻',
-    writing: '✍️',
-    research: '🔬',
-    creative: '🎨',
-    other: '📦'
-  }
-  const categoryColors = {
-    coding: '#10b981',
-    writing: '#8b5cf6',
-    research: '#eab308',
-    creative: '#ec4899',
-    other: '#64748b'
+    writing: 'edit_note',
+    coding: 'code',
+    research: 'science',
+    creative: 'palette',
+    other: 'folder'
   }
 
-  // Render modal content
   modalContent.innerHTML = `
-    <div style="position: relative;">
-      <!-- Close button -->
-      <button id="modal-close" style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='scale(1.1)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.transform='scale(1)'">
-        ✕
-      </button>
+    <!-- Close Button -->
+    <button id="modal-close" style="position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+                                     background: var(--white-10); border: none; border-radius: 50%; cursor: pointer;
+                                     display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
+      ${Icon({ name: 'close', className: '!text-[20px] text-white' })}
+    </button>
 
-      <!-- Header -->
-      <div style="text-align: center; margin-bottom: 30px;">
-        <div style="display: inline-block; padding: 8px 20px; background: ${categoryColors[prompt.category]}; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
-          ${categoryIcons[prompt.category]} ${prompt.category}
-        </div>
-        <h1 style="font-size: 36px; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; line-height: 1.2;">
-          ${escapeHtml(prompt.title)}
-        </h1>
-        ${prompt.description ? `
-          <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.6;">
-            ${escapeHtml(prompt.description)}
-          </p>
-        ` : ''}
+    <!-- Header -->
+    <div style="margin-bottom: 24px;">
+      <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--white-10);
+                  border: 1px solid var(--white-20); border-radius: 24px; font-size: 12px; font-weight: 600;
+                  color: var(--text-primary); text-transform: uppercase; margin-bottom: 16px;">
+        ${Icon({ name: categoryIcons[prompt.category] || 'folder', className: '!text-[16px]' })}
+        ${prompt.category}
       </div>
+      <h2 style="font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.3;">
+        ${escapeHtml(prompt.title)}
+      </h2>
+      ${prompt.description ? `
+        <p style="font-size: 16px; color: var(--text-subtle); line-height: 1.6;">
+          ${escapeHtml(prompt.description)}
+        </p>
+      ` : ''}
+    </div>
 
-      <!-- Author & Meta -->
-      <div style="display: flex; align-items: center; justify-content: center; gap: 16px; padding: 20px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; margin-bottom: 30px;">
-        <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}" alt="Author" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid ${categoryColors[prompt.category]};">
+    <!-- Author & Stats -->
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 0;
+                border-top: 1px solid var(--white-5); border-bottom: 1px solid var(--white-5); margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="${prompt.users?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'}"
+             alt="Author" style="width: 32px; height: 32px; border-radius: 50%;">
         <div>
           <div style="font-size: 14px; font-weight: 600; color: var(--text-primary);">
             ${prompt.users?.display_name || 'Anonymous'}
           </div>
-          <div style="font-size: 12px; color: var(--text-secondary);">
+          <div style="font-size: 12px; color: var(--text-subtle);">
             ${formatDate(prompt.created_at)}
           </div>
         </div>
-        <div style="flex: 1;"></div>
-        <div style="display: flex; gap: 16px; font-size: 14px; color: var(--text-secondary);">
-          <span>❤️ ${prompt.likes_count || 0} likes</span>
-        </div>
       </div>
-
-      <!-- Prompt Content -->
-      <div style="margin-bottom: 30px;">
-        <h3 style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
-          📋 Prompt Content
-        </h3>
-        <div style="background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px;">
-          <pre style="font-size: 14px; line-height: 1.7; color: var(--text-primary); white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', monospace; margin: 0; max-height: 300px; overflow-y: auto;">${escapeHtml(prompt.content)}</pre>
-        </div>
-      </div>
-
-      <!-- Tags -->
-      ${prompt.tags && prompt.tags.length > 0 ? `
-        <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
-            🏷️ Tags
-          </h3>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            ${prompt.tags.map(tag => `
-              <span style="padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 12px; color: var(--text-secondary);">
-                ${escapeHtml(tag)}
-              </span>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- Action Buttons -->
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button style="padding: 12px 28px; background: ${categoryColors[prompt.category]}; border: none; border-radius: 12px; color: white; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.2s;" onclick="navigator.clipboard.writeText(\`${escapeHtml(prompt.content).replace(/`/g, '\\`')}\`); this.textContent='✓ Copied!'; setTimeout(() => this.textContent='📋 Copy Prompt', 2000)" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
-          📋 Copy Prompt
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <button id="like-btn" data-prompt-id="${prompt.id}"
+                style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: ${userHasLiked ? 'var(--white-15)' : 'var(--white-5)'};
+                       border: 1px solid var(--border-subtle); border-radius: 12px; cursor: pointer;
+                       font-size: 14px; font-weight: 500; color: var(--text-primary); transition: all 0.2s ease;">
+          ${Icon({ name: userHasLiked ? 'favorite' : 'favorite_border', className: '!text-[18px]' })}
+          ${prompt.likes_count || 0}
         </button>
       </div>
     </div>
+
+    <!-- Prompt Content -->
+    <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+      <pre style="white-space: pre-wrap; font-family: 'Inter', monospace; font-size: 14px; line-height: 1.8;
+                  color: var(--text-primary); margin: 0;">${escapeHtml(prompt.content)}</pre>
+    </div>
+
+    <!-- Tags -->
+    ${prompt.tags && prompt.tags.length > 0 ? `
+      <div style="margin-bottom: 24px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-subtle); margin-bottom: 12px; text-transform: uppercase;">Tags</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          ${prompt.tags.map(tag => `
+            <span style="padding: 6px 12px; background: var(--white-5); border: 1px solid var(--white-10); border-radius: 12px;
+                         font-size: 13px; color: var(--text-primary);">
+              ${escapeHtml(tag)}
+            </span>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 12px;">
+      <button id="copy-btn" data-prompt-id="${prompt.id}"
+              style="flex: 1; padding: 12px 24px; background: var(--primary); color: var(--background-dark);
+                     border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+                     display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s ease;">
+        ${Icon({ name: 'content_copy', className: '!text-[18px]' })}
+        Copy to Clipboard
+      </button>
+      <button id="export-btn" data-prompt-id="${prompt.id}"
+              style="padding: 12px 24px; background: var(--white-10); color: var(--text-primary);
+                     border: 1px solid var(--border-subtle); border-radius: 12px; font-size: 14px; font-weight: 600;
+                     cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
+        ${Icon({ name: 'download', className: '!text-[18px]' })}
+        Export
+      </button>
+    </div>
   `
 
-  // Show modal with animation
+  // Show modal
   modal.style.display = 'flex'
   setTimeout(() => {
     modal.style.opacity = '1'
     modalContent.style.transform = 'scale(1)'
-    modalContent.style.opacity = '1'
   }, 10)
 
-  // Attach close listener
-  const closeBtn = document.getElementById('modal-close')
-  const closeModal = () => {
-    modal.style.opacity = '0'
-    modalContent.style.transform = 'scale(0.9)'
-    setTimeout(() => {
-      modal.style.display = 'none'
-    }, 300)
-  }
-
-  closeBtn?.addEventListener('click', closeModal)
+  // Event listeners
+  document.getElementById('modal-close').addEventListener('click', closeModal)
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal()
   })
+
+  document.getElementById('like-btn').addEventListener('click', async (e) => {
+    const btn = e.currentTarget
+    const success = await likePrompt(promptId)
+    if (success) {
+      const newCount = (prompt.likes_count || 0) + 1
+      prompt.likes_count = newCount
+      btn.innerHTML = `${Icon({ name: 'favorite', className: '!text-[18px]' })} ${newCount}`
+      btn.style.background = 'var(--white-15)'
+    }
+  })
+
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    const success = await copyPromptToClipboard(promptId)
+    if (success) {
+      const btn = document.getElementById('copy-btn')
+      btn.innerHTML = `${Icon({ name: 'check', className: '!text-[18px]' })} Copied!`
+      setTimeout(() => {
+        btn.innerHTML = `${Icon({ name: 'content_copy', className: '!text-[18px]' })} Copy to Clipboard`
+      }, 2000)
+    }
+  })
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    exportPromptAsMarkdown(promptId)
+  })
+}
+
+function closeModal() {
+  const modal = document.getElementById('prompt-modal')
+  const modalContent = document.getElementById('modal-content')
+  modal.style.opacity = '0'
+  modalContent.style.transform = 'scale(0.9)'
+  setTimeout(() => {
+    modal.style.display = 'none'
+  }, 300)
 }
 
 /**
- * Set up event listeners
+ * Setup Event Listeners
  */
 function setupLibraryEventListeners(contentContainer) {
-  // View toggle buttons
-  const viewToggleBtns = contentContainer.querySelectorAll('.view-toggle-btn')
-  viewToggleBtns.forEach(btn => {
+  // View toggle
+  const viewBtns = contentContainer.querySelectorAll('.view-toggle-btn')
+  viewBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      const view = btn.dataset.view
-      if (view !== currentView) {
-        currentView = view
-        const contentArea = contentContainer.querySelector('#library-content')
-        if (contentArea) {
-          contentArea.innerHTML = renderCurrentView()
-          reattachContentListeners(contentArea)
-        }
-
-        // Update button styles
-        viewToggleBtns.forEach(b => {
-          const isActive = b.dataset.view === currentView
-          b.style.background = isActive ? (currentView === 'discover' ? 'var(--accent-blue)' : 'var(--accent-purple)') : 'rgba(255, 255, 255, 0.05)'
-          b.style.borderColor = isActive ? (currentView === 'discover' ? 'var(--accent-blue)' : 'var(--accent-purple)') : 'var(--border-color)'
-        })
+      currentView = btn.dataset.view
+      const contentArea = contentContainer.querySelector('#library-content')
+      if (contentArea) {
+        contentArea.innerHTML = renderCurrentView()
+        reattachContentListeners(contentArea)
       }
+
+      // Update button styles
+      viewBtns.forEach(b => {
+        const isActive = b.dataset.view === currentView
+        b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+        b.style.boxShadow = isActive ? '0 4px 16px rgba(255, 255, 255, 0.1)' : 'none'
+        b.style.border = isActive ? 'none' : '1px solid var(--border-subtle)'
+      })
     })
   })
 
   // Carousel listeners
-  const carouselContainer = contentContainer.querySelector('#prompt-carousel')
-  if (carouselContainer) {
-    attachCarouselListeners(carouselContainer)
-  }
+  const carousel = contentContainer.querySelector('#prompt-carousel')
+  attachCarouselListeners(carousel)
 
-  // Content listeners
+  // Content area listeners
   const contentArea = contentContainer.querySelector('#library-content')
-  if (contentArea) {
-    reattachContentListeners(contentArea)
-  }
+  reattachContentListeners(contentArea)
+
+  // Inject styles
+  injectLibraryStyles()
 }
 
-/**
- * Reattach content listeners after view change
- */
 function reattachContentListeners(contentArea) {
-  if (currentView === 'discover') {
-    // Search input
-    const searchInput = contentArea.querySelector('#prompt-search')
-    searchInput?.addEventListener('input', debounce((e) => {
-      currentSearchQuery = e.target.value
-      filterPrompts()
-      const grid = contentArea.querySelector('#prompts-grid')
-      if (grid) {
-        grid.innerHTML = renderPromptsGrid()
-        attachPromptCardListeners(grid)
-      }
-    }, 300))
+  if (!contentArea) return
 
-    // Category filters
-    const categoryBtns = contentArea.querySelectorAll('.category-filter-btn')
-    categoryBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentCategory = btn.dataset.category
-        filterPrompts()
-
-        // Update button styles
-        categoryBtns.forEach(b => {
-          const isActive = b.dataset.category === currentCategory
-          const activeColor = b.dataset.category === 'all' ? 'var(--accent-blue)' :
-                             b.dataset.category === 'writing' ? 'var(--accent-purple)' :
-                             b.dataset.category === 'coding' ? 'var(--accent-green)' :
-                             b.dataset.category === 'research' ? 'var(--accent-yellow)' :
-                             b.dataset.category === 'creative' ? '#ec4899' : '#64748b'
-
-          b.style.background = isActive ? activeColor : 'rgba(255, 255, 255, 0.05)'
-          b.style.borderColor = isActive ? activeColor : 'var(--border-color)'
-        })
-
-        const grid = contentArea.querySelector('#prompts-grid')
-        if (grid) {
-          grid.innerHTML = renderPromptsGrid()
-          attachPromptCardListeners(grid)
-        }
-      })
-    })
-
-    // Sort select
-    const sortSelect = contentArea.querySelector('#sort-select')
-    sortSelect?.addEventListener('change', (e) => {
-      currentSortBy = e.target.value
-      filterPrompts()
-      const grid = contentArea.querySelector('#prompts-grid')
-      if (grid) {
-        grid.innerHTML = renderPromptsGrid()
-        attachPromptCardListeners(grid)
-      }
-    })
-
-    // Prompt cards
+  // Search
+  const searchInput = contentArea.querySelector('#prompt-search')
+  searchInput?.addEventListener('input', debounce((e) => {
+    currentSearchQuery = e.target.value
+    filterPrompts()
     const grid = contentArea.querySelector('#prompts-grid')
-    if (grid) {
+    if (grid) grid.innerHTML = renderPromptsGrid()
+    attachPromptCardListeners(grid)
+  }, 300))
+
+  // Search focus
+  searchInput?.addEventListener('focus', (e) => {
+    e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
+    e.target.style.borderColor = 'var(--white-30)'
+    e.target.style.background = 'var(--white-10)'
+    const icon = contentArea.querySelector('.search-icon-lib')
+    if (icon) icon.style.color = 'var(--text-primary)'
+  })
+
+  searchInput?.addEventListener('blur', (e) => {
+    e.target.style.boxShadow = 'none'
+    e.target.style.borderColor = 'var(--border-subtle)'
+    e.target.style.background = 'var(--white-5)'
+    const icon = contentArea.querySelector('.search-icon-lib')
+    if (icon) icon.style.color = 'var(--text-subtle)'
+  })
+
+  // Category filters
+  const filterBtns = contentArea.querySelectorAll('.category-filter-btn')
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCategory = btn.dataset.category
+      filterPrompts()
+      const grid = contentArea.querySelector('#prompts-grid')
+      if (grid) grid.innerHTML = renderPromptsGrid()
       attachPromptCardListeners(grid)
-    }
-  } else {
-    // Export buttons
-    const exportBtns = contentArea.querySelectorAll('.export-btn')
-    exportBtns.forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        e.stopPropagation()
-        const promptId = btn.dataset.id
-        const prompt = myPrompts.find(p => p.id === promptId)
-        if (prompt) {
-          await exportPromptAsMarkdown(prompt)
-        }
+
+      // Update button styles
+      filterBtns.forEach(b => {
+        const isActive = b.dataset.category === currentCategory
+        b.style.background = isActive ? 'var(--primary)' : 'var(--white-5)'
+        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+        b.style.boxShadow = isActive ? '0 4px 16px rgba(255, 255, 255, 0.1)' : 'none'
+        b.style.transform = isActive ? 'scale(1.05)' : 'scale(1)'
+        b.style.border = isActive ? 'none' : '1px solid var(--white-10)'
       })
     })
-  }
-}
 
-/**
- * Attach prompt card listeners
- */
-function attachPromptCardListeners(grid) {
-  const cards = grid.querySelectorAll('.prompt-card')
-  cards.forEach(card => {
+    // Hover effects
+    btn.addEventListener('mouseenter', (e) => {
+      if (e.target.dataset.category !== currentCategory) {
+        e.target.style.background = 'var(--white-10)'
+        e.target.style.color = 'var(--text-primary)'
+        e.target.style.borderColor = 'var(--white-20)'
+      }
+    })
+
+    btn.addEventListener('mouseleave', (e) => {
+      if (e.target.dataset.category !== currentCategory) {
+        e.target.style.background = 'var(--white-5)'
+        e.target.style.color = 'var(--text-subtle)'
+        e.target.style.borderColor = 'var(--white-10)'
+      }
+    })
+  })
+
+  // Sort
+  const sortSelect = contentArea.querySelector('#sort-select')
+  sortSelect?.addEventListener('change', (e) => {
+    currentSortBy = e.target.value
+    filterPrompts()
+    const grid = contentArea.querySelector('#prompts-grid')
+    if (grid) grid.innerHTML = renderPromptsGrid()
+    attachPromptCardListeners(grid)
+  })
+
+  // Prompt cards
+  const grid = contentArea.querySelector('#prompts-grid')
+  attachPromptCardListeners(grid)
+
+  // My prompt cards
+  const myPromptCards = contentArea.querySelectorAll('.my-prompt-card')
+  myPromptCards.forEach(card => {
     card.addEventListener('click', () => {
-      const promptId = card.dataset.id
-      showPromptDetails(promptId)
+      showPromptModal(card.dataset.id)
+    })
+
+    card.addEventListener('mouseenter', (e) => {
+      e.currentTarget.style.background = 'var(--white-8)'
+      e.currentTarget.style.borderColor = 'var(--white-20)'
+    })
+
+    card.addEventListener('mouseleave', (e) => {
+      e.currentTarget.style.background = 'var(--white-5)'
+      e.currentTarget.style.borderColor = 'var(--border-subtle)'
     })
   })
 }
 
-/**
- * Debounce function
- */
+function attachPromptCardListeners(grid) {
+  if (!grid) return
+
+  const cards = grid.querySelectorAll('.prompt-card')
+  cards.forEach(card => {
+    card.addEventListener('click', () => {
+      showPromptModal(card.dataset.id)
+    })
+
+    card.addEventListener('mouseenter', (e) => {
+      e.currentTarget.style.background = 'var(--white-8)'
+      e.currentTarget.style.borderColor = 'var(--white-20)'
+      const arrow = e.currentTarget.querySelector('.prompt-arrow')
+      if (arrow) {
+        arrow.style.opacity = '1'
+        arrow.style.transform = 'translateX(0)'
+      }
+    })
+
+    card.addEventListener('mouseleave', (e) => {
+      e.currentTarget.style.background = 'var(--white-5)'
+      e.currentTarget.style.borderColor = 'var(--border-subtle)'
+      const arrow = e.currentTarget.querySelector('.prompt-arrow')
+      if (arrow) {
+        arrow.style.opacity = '0'
+        arrow.style.transform = 'translateX(-8px)'
+      }
+    })
+  })
+}
+
+function injectLibraryStyles() {
+  if (document.getElementById('library-window-styles')) return
+
+  const style = document.createElement('style')
+  style.id = 'library-window-styles'
+  style.textContent = `
+    .library-search-input::placeholder {
+      color: var(--text-subtle);
+    }
+
+    .search-icon-lib {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-subtle);
+      transition: color 0.4s ease;
+      font-size: 20px !important;
+      pointer-events: none;
+    }
+
+    .prompt-arrow .material-symbols-outlined {
+      color: var(--text-primary);
+    }
+
+    #modal-close:hover {
+      background: var(--white-20);
+      transform: scale(1.1);
+    }
+
+    #like-btn:hover,
+    #copy-btn:hover,
+    #export-btn:hover {
+      transform: scale(1.05);
+    }
+
+    #copy-btn:hover {
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+    }
+
+    #export-btn:hover {
+      background: var(--white-15);
+    }
+  `
+  document.head.appendChild(style)
+}
+
+// Utility functions
 function debounce(func, wait) {
   let timeout
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
+  return function(...args) {
     clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
+    timeout = setTimeout(() => func(...args), wait)
   }
 }
 
-/**
- * Format date
- */
 function formatDate(dateString) {
-  if (!dateString) return 'Recently'
-
   const date = new Date(dateString)
   const now = new Date()
   const diffTime = Math.abs(now - date)
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-  if (diffDays < 1) {
-    return 'Today'
-  } else if (diffDays < 2) {
-    return 'Yesterday'
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`
-  } else if (diffDays < 30) {
-    const weeks = Math.floor(diffDays / 7)
-    return `${weeks} week${weeks !== 1 ? 's' : ''} ago`
-  } else if (diffDays < 365) {
-    const months = Math.floor(diffDays / 30)
-    return `${months} month${months !== 1 ? 's' : ''} ago`
-  } else {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
+  if (diffDays < 1) return 'Today'
+  if (diffDays < 2) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays}d ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-/**
- * Escape HTML
- */
 function escapeHtml(text) {
   if (!text) return ''
   const div = document.createElement('div')
