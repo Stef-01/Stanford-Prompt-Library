@@ -54,16 +54,33 @@ export async function renderMainApp(container, user) {
     // Render desktop layout
     container.innerHTML = `
       <div class="desktop">
-        <!-- Desktop Top Bar -->
+        <!-- Desktop Top Bar - Monochrome Design -->
         <div class="desktop-top-bar">
           <div class="desktop-top-bar-left">
-            <span class="desktop-logo">📚 Stanford Prompt Library</span>
-            ${isInBypassMode ? '<span style="margin-left: 10px; font-size: 11px; color: #f59e0b;">🔓 Testing Mode</span>' : ''}
+            <span class="material-symbols-outlined" style="font-size: 24px; margin-right: 8px;">grid_view</span>
+            <span class="desktop-logo">Stanford Prompt Library</span>
           </div>
-          <div class="desktop-top-bar-right">
-            <span style="color: var(--text-secondary);">${userData.display_name || 'User'}</span>
-            <span style="color: var(--text-secondary);">|</span>
-            <span id="desktop-clock"></span>
+          <div class="desktop-top-bar-right" style="display: flex; align-items: center; gap: 16px;">
+            ${isInBypassMode ? `
+              <div style="display: flex; align-items: center; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 24px; font-size: 12px;">
+                <span style="position: relative; display: flex; width: 8px; height: 8px;">
+                  <span style="position: absolute; display: inline-flex; width: 100%; height: 100%; border-radius: 50%; background: #22c55e; opacity: 0.75; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+                  <span style="position: relative; display: inline-flex; border-radius: 50%; width: 8px; height: 8px; background: #22c55e;"></span>
+                </span>
+                <span style="color: var(--text-subtle); font-weight: 500;">Testing Mode</span>
+              </div>
+            ` : ''}
+            <span id="desktop-clock" style="color: var(--text-subtle); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;"></span>
+            <div style="width: 1px; height: 24px; background: var(--border-subtle);"></div>
+            <button class="desktop-top-bar-btn" title="Profile" data-window="profile">
+              <span class="material-symbols-outlined" style="font-size: 20px;">person</span>
+            </button>
+            <button class="desktop-top-bar-btn" title="Settings" data-window="settings">
+              <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
+            </button>
+            <button class="desktop-top-bar-btn" title="Sign Out" data-action="signout" style="color: var(--text-subtle); transition: color 0.2s ease;">
+              <span class="material-symbols-outlined" style="font-size: 20px;">logout</span>
+            </button>
           </div>
         </div>
 
@@ -72,77 +89,46 @@ export async function renderMainApp(container, user) {
           <!-- Windows will be added here -->
         </div>
 
-        <!-- Bottom Dock -->
+        <!-- Bottom Dock - Monochrome Design -->
         <nav class="navbar-dock">
-          <div class="dock-icon" data-window="explore" title="Explore Prompts">
-            <svg fill="none" stroke="#3b82f6" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
+          <div class="dock-icon" data-window="explore" title="Explore">
+            <span class="material-symbols-outlined">explore</span>
             <span class="dock-label">Explore</span>
           </div>
-          <div class="dock-icon" data-window="library" title="My Library">
-            <svg fill="none" stroke="#8b5cf6" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
+          <div class="dock-icon" data-window="library" title="Library">
+            <span class="material-symbols-outlined">auto_stories</span>
             <span class="dock-label">Library</span>
           </div>
-          <div class="dock-icon" data-window="submit" title="Submit Prompt">
-            <svg fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-            </svg>
+          <div class="dock-icon dock-icon-primary" data-window="submit" title="Submit">
+            <span class="material-symbols-outlined">add</span>
             <span class="dock-label">Submit</span>
           </div>
           <div class="dock-icon" data-window="leaderboard" title="Leaderboard">
-            <svg fill="none" stroke="#eab308" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-            </svg>
+            <span class="material-symbols-outlined">leaderboard</span>
             <span class="dock-label">Leaderboard</span>
           </div>
-          <div class="dock-icon" data-window="profile" title="Your Profile">
-            <svg fill="none" stroke="#22c55e" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
+          <div class="dock-icon" data-window="profile" title="Profile">
+            <span class="material-symbols-outlined">person</span>
             <span class="dock-label">Profile</span>
           </div>
-          <div class="dock-icon" data-window="games" title="Games & Challenges">
-            <svg fill="none" stroke="#ec4899" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+          <div class="dock-icon" data-window="games" title="Games">
+            <span class="material-symbols-outlined">sports_esports</span>
             <span class="dock-label">Games</span>
           </div>
           <div class="dock-icon" data-window="learn" title="Learn">
-            <svg fill="none" stroke="#f59e0b" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
+            <span class="material-symbols-outlined">school</span>
             <span class="dock-label">Learn</span>
           </div>
           <div class="dock-icon" data-window="opportunities" title="Opportunities">
-            <svg fill="none" stroke="#06b6d4" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
+            <span class="material-symbols-outlined">work_outline</span>
             <span class="dock-label">Opportunities</span>
           </div>
           ${userIsAdmin ? `
-            <div class="dock-icon" data-window="admin" title="Admin Panel">
-              <svg fill="none" stroke="#a855f7" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-              </svg>
+            <div class="dock-icon" data-window="admin" title="Admin">
+              <span class="material-symbols-outlined">shield</span>
               <span class="dock-label">Admin</span>
             </div>
           ` : ''}
-          <div class="dock-icon" data-window="settings" title="Settings">
-            <svg fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <span class="dock-label">Settings</span>
-          </div>
-          <div class="dock-icon" data-action="signout" title="Sign Out">
-            <svg fill="none" stroke="#ef4444" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-            </svg>
-            <span class="dock-label">Sign Out</span>
-          </div>
         </nav>
       </div>
     `
@@ -319,15 +305,46 @@ async function renderWindowContent(windowId, contentContainer) {
 }
 
 /**
- * Set up dock icon event listeners
+ * Set up dock icon and top bar event listeners
  */
 function setupDockEventListeners(isInBypassMode) {
+  // Dock icons
   const dockIcons = document.querySelectorAll('.dock-icon')
-
   dockIcons.forEach(icon => {
     icon.addEventListener('click', async () => {
       const windowId = icon.dataset.window
       const action = icon.dataset.action
+
+      // Handle sign out
+      if (action === 'signout') {
+        const confirmSignout = confirm(isInBypassMode
+          ? 'Exit testing mode and return to sign-in?'
+          : 'Are you sure you want to sign out?')
+
+        if (confirmSignout) {
+          if (isInBypassMode) {
+            deactivateBypass()
+            window.location.reload()
+          } else {
+            await signOut()
+          }
+        }
+        return
+      }
+
+      // Handle window toggle
+      if (windowId) {
+        toggleWindow(windowId)
+      }
+    })
+  })
+
+  // Top bar buttons
+  const topBarBtns = document.querySelectorAll('.desktop-top-bar-btn')
+  topBarBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const windowId = btn.dataset.window
+      const action = btn.dataset.action
 
       // Handle sign out
       if (action === 'signout') {

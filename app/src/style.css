@@ -1388,24 +1388,17 @@ body.desktop-mode {
   flex-direction: column;
 }
 
-/* Top Bar - Enhanced */
+/* Top Bar - Monochrome Design */
 .desktop-top-bar {
-  height: 32px;
-  background: linear-gradient(
-    180deg,
-    rgba(10, 10, 15, 0.92) 0%,
-    rgba(0, 0, 0, 0.88) 100%
-  );
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  height: 80px;
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 24px;
   z-index: 9999;
   position: fixed;
   top: 0;
@@ -1416,22 +1409,61 @@ body.desktop-mode {
 .desktop-top-bar-left {
   display: flex;
   align-items: center;
-  gap: 20px;
-  font-size: 13px;
+  gap: 12px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.desktop-top-bar-left:hover {
+  opacity: 0.8;
 }
 
 .desktop-top-bar-right {
   display: flex;
   align-items: center;
-  gap: 15px;
-  font-size: 13px;
+  gap: 16px;
 }
 
 .desktop-logo {
   font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.desktop-top-bar-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: var(--text-subtle);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.desktop-top-bar-btn:hover {
+  background: var(--white-10);
+  color: var(--text-primary);
+}
+
+.desktop-top-bar-btn:active {
+  transform: scale(0.95);
+}
+
+.desktop-top-bar-btn[data-action="signout"]:hover {
+  color: #ef4444;
+}
+
+/* Ping animation for status indicator */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
 }
 
 /* Main Desktop Area */
@@ -1439,7 +1471,7 @@ body.desktop-mode {
   flex: 1;
   position: relative;
   overflow: hidden;
-  margin-top: 32px;
+  margin-top: 80px;
   padding-bottom: 100px;
 }
 
@@ -1544,6 +1576,23 @@ body.desktop-mode {
 .dock-icon:hover .material-symbols-outlined,
 .dock-icon:hover svg {
   transform: scale(1.1);
+}
+
+/* Primary dock icon (Submit button) */
+.dock-icon-primary {
+  background: var(--primary);
+  color: var(--background-dark);
+  border-radius: 12px;
+}
+
+.dock-icon-primary .material-symbols-outlined {
+  color: var(--background-dark);
+  font-weight: 400;
+}
+
+.dock-icon-primary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
 }
 
 .dock-label {
