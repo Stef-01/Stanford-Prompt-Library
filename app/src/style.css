@@ -10,18 +10,39 @@
   line-height: 1.6;
   font-weight: 400;
 
-  /* Colors */
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2a2a2a;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --accent-blue: #3b82f6;
-  --accent-purple: #a855f7;
-  --accent-green: #22c55e;
-  --accent-red: #ef4444;
-  --accent-yellow: #eab308;
-  --border-color: rgba(255, 255, 255, 0.1);
+  /* Monochrome Color System */
+  --primary: #FFFFFF;
+  --background-dark: #0A0A0A;
+  --background-secondary: #1A1A1A;
+
+  /* Text */
+  --text-primary: #FFFFFF;
+  --text-subtle: rgba(255, 255, 255, 0.5);
+  --subtle-white: rgba(255, 255, 255, 0.5);
+
+  /* Overlays */
+  --white-5: rgba(255, 255, 255, 0.05);
+  --white-8: rgba(255, 255, 255, 0.08);
+  --white-10: rgba(255, 255, 255, 0.10);
+  --white-15: rgba(255, 255, 255, 0.15);
+  --white-20: rgba(255, 255, 255, 0.20);
+  --white-30: rgba(255, 255, 255, 0.30);
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --border-active: rgba(255, 255, 255, 0.3);
+
+  /* Glass Effect */
+  --glass-bg: rgba(0, 0, 0, 0.6);
+  --glass-blur: 24px;
+
+  /* Legacy support - map old vars to new monochrome system */
+  --bg-primary: var(--background-dark);
+  --bg-secondary: var(--background-secondary);
+  --bg-tertiary: var(--background-secondary);
+  --text-secondary: var(--text-subtle);
+  --border-color: var(--border-subtle);
 
   /* Animation Easings */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -31,7 +52,15 @@
 
   color-scheme: dark;
   color: var(--text-primary);
-  background-color: var(--bg-primary);
+  background-color: var(--background-dark);
+}
+
+/* Material Symbols Outlined Icon System */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  font-size: 24px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Universal smooth transitions for interactive elements */
@@ -42,7 +71,7 @@ select,
 textarea,
 .card,
 [role="button"] {
-  transition: all 0.3s var(--ease-spring);
+  transition: all 0.4s var(--ease-spring);
 }
 
 /* Respect reduced motion preference */
@@ -83,8 +112,8 @@ body {
   content: '';
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(59, 130, 246, 0.1);
-  border-top-color: var(--accent-blue);
+  border: 4px solid var(--white-10);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -1414,64 +1443,50 @@ body.desktop-mode {
   padding-bottom: 100px;
 }
 
-/* Bottom Navigation Dock - Enhanced Glassmorphism */
+/* Bottom Navigation Dock - Dark Mode Glassmorphism */
 .navbar-dock {
   position: fixed;
-  bottom: 20px;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(
-    135deg,
-    rgba(30, 30, 40, 0.88) 0%,
-    rgba(20, 20, 30, 0.92) 100%
-  );
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 24px;
-  padding: 12px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 8px;
   display: flex;
-  gap: 15px;
+  gap: 4px;
   box-shadow:
-    0 24px 50px rgba(0, 0, 0, 0.6),
-    0 8px 20px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    0 25px 50px -12px rgba(0, 0, 0, 0.8),
+    0 0 0 1px var(--white-5);
   z-index: 10000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s var(--ease-smooth);
+  pointer-events: auto;
 }
 
 .navbar-dock:hover {
   box-shadow:
-    0 28px 60px rgba(0, 0, 0, 0.65),
-    0 12px 25px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-  transform: translateX(-50%) translateY(-2px);
+    0 30px 60px -12px rgba(0, 0, 0, 0.9),
+    0 0 0 1px var(--white-10);
 }
 
-/* Dock Icons - Enhanced with Spring Animations */
+/* Dock Icons - Monochrome with Spring Animations */
 .dock-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.4s var(--ease-spring);
   position: relative;
   overflow: visible;
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  color: var(--text-subtle);
 }
 
 .dock-icon::before {
@@ -1481,12 +1496,8 @@ body.desktop-mode {
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: 16px;
-  background: radial-gradient(
-    circle at center,
-    rgba(255, 255, 255, 0.15) 0%,
-    transparent 70%
-  );
+  border-radius: 12px;
+  background: var(--white-10);
   opacity: 0;
   transition: opacity 0.3s ease-out;
 }
@@ -1498,24 +1509,15 @@ body.desktop-mode {
   left: 50%;
   transform: translateX(-50%) scaleX(0);
   width: 80%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), transparent);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--white-30), transparent);
   border-radius: 2px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.3s var(--ease-spring);
 }
 
 .dock-icon:hover {
   /* Transform handled by JavaScript magnification system */
-  box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.4),
-    0 8px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(255, 255, 255, 0.10) 100%
-  );
-  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-primary);
 }
 
 .dock-icon:hover::before {
@@ -1531,17 +1533,17 @@ body.desktop-mode {
   transition: all 0.1s ease-out;
 }
 
+.dock-icon .material-symbols-outlined,
 .dock-icon svg {
-  width: 28px;
-  height: 28px;
-  margin-bottom: 4px;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s var(--ease-spring);
 }
 
+.dock-icon:hover .material-symbols-outlined,
 .dock-icon:hover svg {
   transform: scale(1.1);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .dock-label {
@@ -1614,29 +1616,21 @@ body.desktop-mode {
   }
 }
 
-/* Desktop Windows - Enhanced Glassmorphism */
+/* Desktop Windows - Monochrome Glassmorphism */
 .desktop-window {
   position: absolute;
-  background: linear-gradient(
-    135deg,
-    rgba(30, 30, 40, 0.95) 0%,
-    rgba(20, 20, 30, 0.98) 100%
-  );
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  box-shadow:
-    0 24px 70px rgba(0, 0, 0, 0.6),
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   display: none;
   overflow: hidden;
   min-width: 400px;
   min-height: 300px;
   z-index: 100;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s var(--ease-smooth);
   perspective: 1000px;
   transform-style: preserve-3d;
 }
@@ -1649,7 +1643,7 @@ body.desktop-mode {
 .desktop-window.active {
   display: flex;
   flex-direction: column;
-  animation: windowOpen 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: windowOpen 0.4s var(--ease-spring) forwards;
 }
 
 .desktop-window.closing {
@@ -1658,49 +1652,31 @@ body.desktop-mode {
 
 .desktop-window.maximized {
   border-radius: 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow:
-    0 32px 90px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.4s var(--ease-smooth);
+  box-shadow: 0 30px 80px -12px rgba(0, 0, 0, 0.7);
 }
 
 .desktop-window:hover {
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 28px 80px rgba(0, 0, 0, 0.65),
-    0 12px 40px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  transform: translateY(-1px);
+  border-color: var(--border-hover);
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
 }
 
-/* Window Header - Enhanced */
+/* Window Header - Monochrome */
 .window-header {
-  height: 44px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.2);
+  height: 48px;
+  background: var(--white-5);
+  border-bottom: 1px solid var(--white-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
+  padding: 0 16px;
   cursor: move;
   flex-shrink: 0;
   transition: background 0.2s ease;
 }
 
 .window-header:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.10) 0%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
+  background: var(--white-8);
 }
 
 .window-controls {
@@ -1853,29 +1829,52 @@ body.desktop-mode {
   transform: scale(1.1);
 }
 
-/* Responsive Desktop */
-@media (max-width: 968px) {
+/* Mobile Full-Screen Modals */
+@media (max-width: 767px) {
   .desktop-window {
-    width: 90% !important;
-    height: 80% !important;
-    left: 5% !important;
-    top: 10% !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    min-width: 100vw !important;
+    min-height: 100vh !important;
+  }
+
+  .window-header .window-controls {
+    /* Hide minimize and maximize on mobile, keep close */
+  }
+
+  .window-control.minimize,
+  .window-control.maximize {
+    display: none;
   }
 
   .navbar-dock {
-    bottom: 10px;
-    padding: 8px 12px;
-    gap: 10px;
+    bottom: 8px;
+    padding: 8px;
+    gap: 4px;
   }
 
   .dock-icon {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
   }
 
+  .dock-icon .material-symbols-outlined,
   .dock-icon svg {
-    width: 24px;
-    height: 24px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Tablet/Desktop - Normal Windowed Behavior */
+@media (min-width: 768px) {
+  .desktop-window {
+    /* Allow draggable, resizable windows */
+    resize: both;
   }
 }
 
