@@ -70,6 +70,15 @@ export const wallpapers = [
     description: 'Digital rain effect inspired by The Matrix',
     animation: 'matrix-rain',
     backgroundColor: '#000000'
+  },
+  {
+    id: 'stanford-insignia',
+    name: 'Insignia',
+    type: 'canvas',
+    emoji: '🌲',
+    description: 'Animated Stanford logo with rotating effects',
+    animation: 'stanford-insignia',
+    backgroundColor: '#0A0F1E'
   }
 ];
 

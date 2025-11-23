@@ -1,6 +1,6 @@
 /**
- * Matrix Rain Animation - Enhanced
- * High-resolution digital rain effect with Stanford logo background
+ * Matrix Rain Animation
+ * Clean digital rain effect without overlays
  */
 
 export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
@@ -29,8 +29,8 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
   const matrix = "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:・.\"=*+-<>¦";
   const matrixArray = matrix.split("");
 
-  // Higher resolution font
-  const fontSize = 16 + (intensity * 1.5);
+  // Font size adjusted to prevent overlap
+  const fontSize = 14 + (intensity * 1);
   const speed = 30 + (10 - intensity) * 4;
   const columns = Math.floor(window.innerWidth / fontSize);
   const colors = palettes[colorPalette] || palettes.mono;
@@ -51,102 +51,6 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
   let isInitialWipe = true;
   let wipeComplete = false;
 
-  // Draw glowing Stanford "S" logo in background
-  function drawStanfordLogo() {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const scale = Math.min(window.innerWidth, window.innerHeight) / 4;
-
-    ctx.save();
-    ctx.translate(centerX, centerY);
-
-    // Glow effect
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = colors.glow;
-
-    // Draw Stanford "S" outline
-    ctx.strokeStyle = colors.primary;
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.15;
-
-    // Outer octagonal border
-    ctx.beginPath();
-    const sides = 8;
-    const radius = scale;
-    for (let i = 0; i < sides; i++) {
-      const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
-      const x = Math.cos(angle) * radius;
-      const y = Math.sin(angle) * radius;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.stroke();
-
-    // Inner "S" shape - stylized Stanford S
-    ctx.beginPath();
-    ctx.strokeStyle = colors.primary;
-    ctx.lineWidth = 4;
-    ctx.globalAlpha = 0.2;
-
-    // Top curve of S
-    ctx.moveTo(-scale * 0.3, -scale * 0.4);
-    ctx.bezierCurveTo(
-      -scale * 0.3, -scale * 0.6,
-      scale * 0.3, -scale * 0.6,
-      scale * 0.3, -scale * 0.4
-    );
-    ctx.bezierCurveTo(
-      scale * 0.3, -scale * 0.2,
-      -scale * 0.1, -scale * 0.2,
-      -scale * 0.1, 0
-    );
-
-    // Bottom curve of S
-    ctx.bezierCurveTo(
-      -scale * 0.1, 0.2 * scale,
-      scale * 0.3, 0.2 * scale,
-      scale * 0.3, 0.4 * scale
-    );
-    ctx.bezierCurveTo(
-      scale * 0.3, 0.6 * scale,
-      -scale * 0.3, 0.6 * scale,
-      -scale * 0.3, 0.4 * scale
-    );
-    ctx.stroke();
-
-    // Tree in center (Stanford tree)
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = colors.primary;
-    ctx.beginPath();
-    // Tree trunk
-    ctx.fillRect(-scale * 0.05, scale * 0.1, scale * 0.1, scale * 0.2);
-    // Tree foliage - triangular
-    ctx.moveTo(0, -scale * 0.5);
-    ctx.lineTo(-scale * 0.2, scale * 0.1);
-    ctx.lineTo(scale * 0.2, scale * 0.1);
-    ctx.closePath();
-    ctx.fill();
-
-    // Grid lines for tech effect
-    ctx.strokeStyle = colors.primary;
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.05;
-    const gridSize = 20;
-    for (let i = -radius; i <= radius; i += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(i, -radius);
-      ctx.lineTo(i, radius);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-radius, i);
-      ctx.lineTo(radius, i);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
   function animate(currentTime) {
     if (currentTime - lastTime < speed) {
       animationFrame = requestAnimationFrame(animate);
@@ -158,12 +62,9 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // Draw logo behind rain
-    drawStanfordLogo();
-
     // High-quality text rendering
-    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
-    ctx.textAlign = 'center';
+    ctx.font = `${fontSize}px "Courier New", monospace`;
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
     // Enable smoother text
@@ -192,34 +93,34 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
     // Draw characters
     for (let i = 0; i < drops.length; i++) {
       const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
-      const x = i * fontSize + fontSize / 2;
+      const x = i * fontSize;
       const y = drops[i] * fontSize;
 
       // Bright head of the trail
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 10;
       ctx.shadowColor = colors.primary;
       ctx.fillStyle = colors.primary;
       ctx.globalAlpha = brightness[i];
       ctx.fillText(text, x, y);
 
       // Trail effect - dimmer characters above
-      const trailLength = 8 + Math.floor(intensity / 2);
+      const trailLength = 6 + Math.floor(intensity / 3);
       for (let j = 1; j <= trailLength; j++) {
         const trailY = y - j * fontSize;
         if (trailY > 0) {
-          const alpha = ((trailLength - j) / trailLength) * 0.5 * brightness[i];
+          const alpha = ((trailLength - j) / trailLength) * 0.4 * brightness[i];
           ctx.globalAlpha = alpha;
-          ctx.shadowBlur = 5;
+          ctx.shadowBlur = 3;
           const trailText = matrixArray[Math.floor(Math.random() * matrixArray.length)];
           ctx.fillText(trailText, x, trailY);
         }
       }
 
-      // Random bright flashes
-      if (Math.random() > 0.98) {
+      // Random bright flashes (less frequent)
+      if (Math.random() > 0.985) {
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#FFFFFF';
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = 15;
         ctx.fillText(text, x, y);
       }
 
