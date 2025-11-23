@@ -1,6 +1,6 @@
 /**
- * Matrix Rain Animation
- * Digital rain effect inspired by The Matrix
+ * Matrix Rain Animation - Enhanced
+ * High-resolution digital rain effect with Stanford logo background
  */
 
 export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
@@ -10,33 +10,142 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // Enable high-DPI rendering
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.scale(dpr, dpr);
+
   const palettes = {
-    purple: { primary: '#8B5CF6', secondary: '#3B82F6' },
-    teal: { primary: '#06B6D4', secondary: '#10B981' },
-    pink: { primary: '#EC4899', secondary: '#F97316' },
-    mono: { primary: '#0F0', secondary: '#00FF00' }
+    purple: { primary: '#8B5CF6', secondary: '#3B82F6', glow: 'rgba(139, 92, 246, 0.8)' },
+    teal: { primary: '#06B6D4', secondary: '#10B981', glow: 'rgba(6, 182, 212, 0.8)' },
+    pink: { primary: '#EC4899', secondary: '#F97316', glow: 'rgba(236, 72, 153, 0.8)' },
+    mono: { primary: '#00FF41', secondary: '#00FF00', glow: 'rgba(0, 255, 65, 0.8)' }
   };
 
-  // Characters to use - Katakana and alphanumeric
-  const matrix = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  // Characters - authentic Matrix set
+  const matrix = "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:・.\"=*+-<>¦";
   const matrixArray = matrix.split("");
 
-  // Adjust font size and speed based on intensity
-  const fontSize = 12 + (intensity * 2);
-  const speed = 25 + (10 - intensity) * 5; // Lower intensity = slower (higher ms)
-  const columns = Math.floor(canvas.width / fontSize);
+  // Higher resolution font
+  const fontSize = 16 + (intensity * 1.5);
+  const speed = 30 + (10 - intensity) * 4;
+  const columns = Math.floor(window.innerWidth / fontSize);
   const colors = palettes[colorPalette] || palettes.mono;
 
-  // Array to track drop position for each column
+  // Drop state
   const drops = [];
-  for (let x = 0; x < columns; x++) {
-    drops[x] = Math.floor(Math.random() * canvas.height / fontSize) * -1; // Start above screen
-  }
+  const dropSpeeds = [];
+  const brightness = [];
 
-  console.log('[Matrix Rain] Initialized with', columns, 'columns, font size:', fontSize, 'speed:', speed);
+  for (let x = 0; x < columns; x++) {
+    drops[x] = 0;
+    dropSpeeds[x] = 0.5 + Math.random() * 0.5;
+    brightness[x] = 0.5 + Math.random() * 0.5;
+  }
 
   let animationFrame = null;
   let lastTime = 0;
+  let isInitialWipe = true;
+  let wipeComplete = false;
+
+  // Draw glowing Stanford "S" logo in background
+  function drawStanfordLogo() {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const scale = Math.min(window.innerWidth, window.innerHeight) / 4;
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+
+    // Glow effect
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = colors.glow;
+
+    // Draw Stanford "S" outline
+    ctx.strokeStyle = colors.primary;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.15;
+
+    // Outer octagonal border
+    ctx.beginPath();
+    const sides = 8;
+    const radius = scale;
+    for (let i = 0; i < sides; i++) {
+      const angle = (Math.PI * 2 * i) / sides - Math.PI / 2;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    // Inner "S" shape - stylized Stanford S
+    ctx.beginPath();
+    ctx.strokeStyle = colors.primary;
+    ctx.lineWidth = 4;
+    ctx.globalAlpha = 0.2;
+
+    // Top curve of S
+    ctx.moveTo(-scale * 0.3, -scale * 0.4);
+    ctx.bezierCurveTo(
+      -scale * 0.3, -scale * 0.6,
+      scale * 0.3, -scale * 0.6,
+      scale * 0.3, -scale * 0.4
+    );
+    ctx.bezierCurveTo(
+      scale * 0.3, -scale * 0.2,
+      -scale * 0.1, -scale * 0.2,
+      -scale * 0.1, 0
+    );
+
+    // Bottom curve of S
+    ctx.bezierCurveTo(
+      -scale * 0.1, 0.2 * scale,
+      scale * 0.3, 0.2 * scale,
+      scale * 0.3, 0.4 * scale
+    );
+    ctx.bezierCurveTo(
+      scale * 0.3, 0.6 * scale,
+      -scale * 0.3, 0.6 * scale,
+      -scale * 0.3, 0.4 * scale
+    );
+    ctx.stroke();
+
+    // Tree in center (Stanford tree)
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = colors.primary;
+    ctx.beginPath();
+    // Tree trunk
+    ctx.fillRect(-scale * 0.05, scale * 0.1, scale * 0.1, scale * 0.2);
+    // Tree foliage - triangular
+    ctx.moveTo(0, -scale * 0.5);
+    ctx.lineTo(-scale * 0.2, scale * 0.1);
+    ctx.lineTo(scale * 0.2, scale * 0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    // Grid lines for tech effect
+    ctx.strokeStyle = colors.primary;
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.05;
+    const gridSize = 20;
+    for (let i = -radius; i <= radius; i += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(i, -radius);
+      ctx.lineTo(i, radius);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-radius, i);
+      ctx.lineTo(radius, i);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
 
   function animate(currentTime) {
     if (currentTime - lastTime < speed) {
@@ -45,43 +154,90 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
     }
     lastTime = currentTime;
 
-    // Black background with slight opacity for fade effect
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Semi-transparent background for fade effect
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // Set text styling
-    ctx.font = `${fontSize}px monospace`;
+    // Draw logo behind rain
+    drawStanfordLogo();
+
+    // High-quality text rendering
+    ctx.font = `bold ${fontSize}px "Courier New", monospace`;
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
 
-    // Draw characters
-    for (let i = 0; i < drops.length; i++) {
-      // Random character from matrix
-      const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+    // Enable smoother text
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
-      // Bright head of the trail
-      ctx.fillStyle = colors.primary;
-      ctx.fillText(text, i * fontSize + fontSize / 2, drops[i] * fontSize);
-
-      // Add dimmer trail characters above
-      for (let j = 1; j <= 5; j++) {
-        const trailY = (drops[i] - j) * fontSize;
-        if (trailY > 0) {
-          const alpha = (6 - j) / 6;
-          ctx.fillStyle = `rgba(0, 255, 0, ${alpha * 0.5})`;
-          const trailText = matrixArray[Math.floor(Math.random() * matrixArray.length)];
-          ctx.fillText(trailText, i * fontSize + fontSize / 2, trailY);
+    // Initial screen wipe effect
+    if (isInitialWipe) {
+      let allComplete = true;
+      for (let i = 0; i < drops.length; i++) {
+        if (drops[i] * fontSize < window.innerHeight) {
+          allComplete = false;
         }
       }
 
-      // Reset drop to top randomly after it has crossed the screen
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
+      if (allComplete) {
+        isInitialWipe = false;
+        wipeComplete = true;
+        // Reset drops for continuous rain
+        for (let x = 0; x < columns; x++) {
+          drops[x] = Math.floor(Math.random() * window.innerHeight / fontSize) * -1;
+        }
       }
-
-      // Increment drop position
-      drops[i]++;
     }
 
+    // Draw characters
+    for (let i = 0; i < drops.length; i++) {
+      const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+      const x = i * fontSize + fontSize / 2;
+      const y = drops[i] * fontSize;
+
+      // Bright head of the trail
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = colors.primary;
+      ctx.fillStyle = colors.primary;
+      ctx.globalAlpha = brightness[i];
+      ctx.fillText(text, x, y);
+
+      // Trail effect - dimmer characters above
+      const trailLength = 8 + Math.floor(intensity / 2);
+      for (let j = 1; j <= trailLength; j++) {
+        const trailY = y - j * fontSize;
+        if (trailY > 0) {
+          const alpha = ((trailLength - j) / trailLength) * 0.5 * brightness[i];
+          ctx.globalAlpha = alpha;
+          ctx.shadowBlur = 5;
+          const trailText = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+          ctx.fillText(trailText, x, trailY);
+        }
+      }
+
+      // Random bright flashes
+      if (Math.random() > 0.98) {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowBlur = 20;
+        ctx.fillText(text, x, y);
+      }
+
+      // Reset logic
+      if (wipeComplete) {
+        // Normal rain mode - reset randomly
+        if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
+          drops[i] = 0;
+          brightness[i] = 0.5 + Math.random() * 0.5;
+        }
+      }
+
+      // Increment with variable speed
+      drops[i] += dropSpeeds[i] * (intensity / 5);
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
     animationFrame = requestAnimationFrame(animate);
   }
 
@@ -89,15 +245,23 @@ export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
 
   // Handle window resize
   const handleResize = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.scale(dpr, dpr);
 
-    // Recalculate columns
-    const newColumns = Math.floor(canvas.width / fontSize);
+    const newColumns = Math.floor(window.innerWidth / fontSize);
     drops.length = newColumns;
+    dropSpeeds.length = newColumns;
+    brightness.length = newColumns;
+
     for (let x = 0; x < newColumns; x++) {
       if (drops[x] === undefined) {
-        drops[x] = Math.floor(Math.random() * canvas.height / fontSize) * -1;
+        drops[x] = Math.floor(Math.random() * window.innerHeight / fontSize) * -1;
+        dropSpeeds[x] = 0.5 + Math.random() * 0.5;
+        brightness[x] = 0.5 + Math.random() * 0.5;
       }
     }
   };
