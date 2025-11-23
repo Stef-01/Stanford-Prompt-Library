@@ -771,11 +771,15 @@ function showCarouselModal(contentContainer) {
     <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 10000;
                 display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;">
 
-      <!-- Close Button -->
-      <button id="carousel-modal-close" style="position: absolute; top: 24px; right: 24px; width: 48px; height: 48px;
-                   background: var(--white-10); border: none; border-radius: 50%; cursor: pointer; z-index: 10001;
-                   display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">
-        ${Icon({ name: 'close', className: '!text-[24px] text-white' })}
+      <!-- Close Button - Enhanced Prominence -->
+      <button id="carousel-modal-close" style="position: absolute; top: 24px; right: 24px;
+                   padding: 12px 20px; background: rgba(239, 68, 68, 0.9); border: 2px solid rgba(255, 255, 255, 0.3);
+                   border-radius: 12px; cursor: pointer; z-index: 10001;
+                   display: flex; align-items: center; justify-content: center; gap: 8px;
+                   transition: all 0.3s var(--ease-spring); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                   font-size: 14px; font-weight: 600; color: white;">
+        ${Icon({ name: 'close', className: '!text-[20px] text-white' })}
+        <span>Exit Featured View</span>
       </button>
 
       <!-- Size Toggle Button -->
@@ -846,13 +850,15 @@ function showCarouselModal(contentContainer) {
   })
 
   closeBtn?.addEventListener('mouseenter', (e) => {
-    e.currentTarget.style.background = 'var(--white-15)'
-    e.currentTarget.style.transform = 'scale(1.05)'
+    e.currentTarget.style.background = 'rgba(239, 68, 68, 1)'
+    e.currentTarget.style.transform = 'scale(1.05) translateY(-2px)'
+    e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.5)'
   })
 
   closeBtn?.addEventListener('mouseleave', (e) => {
-    e.currentTarget.style.background = 'var(--white-10)'
-    e.currentTarget.style.transform = 'scale(1)'
+    e.currentTarget.style.background = 'rgba(239, 68, 68, 0.9)'
+    e.currentTarget.style.transform = 'scale(1) translateY(0)'
+    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)'
   })
 
   // Close on background click

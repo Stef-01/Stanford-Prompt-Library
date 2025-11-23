@@ -61,6 +61,15 @@ export const wallpapers = [
     description: 'Particles following a flow field pattern',
     animation: 'flow-field',
     backgroundColor: '#0e0e1a'
+  },
+  {
+    id: 'matrix-rain',
+    name: 'Matrix Rain',
+    type: 'canvas',
+    emoji: '💚',
+    description: 'Digital rain effect inspired by The Matrix',
+    animation: 'matrix-rain',
+    backgroundColor: '#000000'
   }
 ];
 
