@@ -211,7 +211,7 @@ async function createAllWindows() {
     { id: 'submit', title: 'Submit Prompt', icon: '✨', width: 700, height: 650, top: 120, left: 250 },
     { id: 'leaderboard', title: 'Leaderboard', icon: '🏆', width: 700, height: 550, top: 140, left: 300 },
     { id: 'profile', title: 'Profile', icon: '👤', width: 650, height: 600, top: 160, left: 350 },
-    { id: 'games', title: 'Games', icon: '🎮', width: 700, height: 550, top: 180, left: 400 },
+    { id: 'games', title: 'Bear Invaders', icon: '🐻', width: 850, height: 680, top: 60, left: 250 },
     { id: 'learn', title: 'Learn', icon: '📖', width: 700, height: 550, top: 200, left: 450 },
     { id: 'opportunities', title: 'Opportunities', icon: '💼', width: 700, height: 550, top: 220, left: 500 },
     { id: 'settings', title: 'Settings', icon: '⚙️', width: 600, height: 550, top: 240, left: 550 }
