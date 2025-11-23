@@ -95,12 +95,14 @@ function updateUI(gameState, game, container) {
       if (startBtn) {
         startBtn.addEventListener('click', () => game.startGame());
         startBtn.addEventListener('mouseenter', (e) => {
-          e.target.style.transform = 'scale(1.1)';
-          e.target.style.boxShadow = '0 0 30px rgba(139, 92, 246, 0.8)';
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
         });
         startBtn.addEventListener('mouseleave', (e) => {
-          e.target.style.transform = 'scale(1)';
-          e.target.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.5)';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         });
       }
       break;
@@ -147,14 +149,18 @@ function updateUI(gameState, game, container) {
 
         btn.addEventListener('mouseenter', (e) => {
           if (!e.target.disabled) {
-            e.target.style.transform = 'scale(1.05)';
-            e.target.style.boxShadow = '0 0 15px rgba(139, 92, 246, 0.6)';
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.background = 'rgba(255, 255, 255, 0.12)';
+            e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
           }
         });
 
         btn.addEventListener('mouseleave', (e) => {
-          e.target.style.transform = 'scale(1)';
-          e.target.style.boxShadow = 'none';
+          if (!e.target.disabled) {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+            e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+          }
         });
       });
 
@@ -162,10 +168,14 @@ function updateUI(gameState, game, container) {
       if (closeShopBtn) {
         closeShopBtn.addEventListener('click', () => game.resume());
         closeShopBtn.addEventListener('mouseenter', (e) => {
-          e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
         });
         closeShopBtn.addEventListener('mouseleave', (e) => {
-          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         });
       }
       break;
@@ -178,12 +188,14 @@ function updateUI(gameState, game, container) {
       if (restartBtn) {
         restartBtn.addEventListener('click', () => game.startGame());
         restartBtn.addEventListener('mouseenter', (e) => {
-          e.target.style.transform = 'scale(1.1)';
-          e.target.style.boxShadow = '0 0 30px rgba(139, 92, 246, 0.8)';
+          e.target.style.transform = 'translateY(-2px)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.4)';
         });
         restartBtn.addEventListener('mouseleave', (e) => {
-          e.target.style.transform = 'scale(1)';
-          e.target.style.boxShadow = '0 0 20px rgba(139, 92, 246, 0.5)';
+          e.target.style.transform = 'translateY(0)';
+          e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
         });
       }
       break;

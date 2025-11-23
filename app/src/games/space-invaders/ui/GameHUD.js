@@ -71,43 +71,71 @@ export function renderMenuOverlay() {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: rgba(0, 31, 91, 0.95);
+      background: rgba(10, 15, 30, 0.98);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: white;
       z-index: 100;
     ">
       <h1 style="
-        font-size: 48px;
-        margin-bottom: 10px;
-        color: #fdb515;
-        text-shadow: 0 0 20px #fdb515;
-        font-family: 'Courier New', monospace;
+        font-size: 56px;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, #fdb515, #f4a300);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        letter-spacing: 2px;
       ">
-        🐻 BEAR INVADERS 🐻
+        BEAR INVADERS
       </h1>
-      <p style="font-size: 18px; margin-bottom: 40px; color: rgba(255, 255, 255, 0.8);">
-        Defend against the smiley bear invasion!
+      <div style="font-size: 36px; margin-bottom: 16px;">🐻</div>
+      <p style="
+        font-size: 16px;
+        margin-bottom: 48px;
+        color: rgba(255, 255, 255, 0.6);
+        max-width: 400px;
+        text-align: center;
+        line-height: 1.6;
+      ">
+        Defend against the golden bear invasion! Earn coins, upgrade your ship, and survive the waves.
       </p>
 
       <button id="start-game-btn" style="
-        padding: 15px 40px;
-        font-size: 20px;
-        background: #8B5CF6;
+        padding: 16px 48px;
+        font-size: 18px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
         color: white;
-        border: 2px solid white;
-        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
         cursor: pointer;
-        font-weight: bold;
-        transition: all 0.3s ease;
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        letter-spacing: 1px;
       ">
         START GAME
       </button>
 
-      <div style="margin-top: 40px; text-align: center; font-size: 14px; color: rgba(255, 255, 255, 0.6); font-family: monospace;">
-        <div>← → or A D: Move</div>
-        <div>SPACE: Shoot</div>
-        <div>U: Upgrade Shop</div>
-        <div>ESC: Pause</div>
+      <div style="
+        margin-top: 64px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        text-align: left;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        font-family: monospace;
+        padding: 24px 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+      ">
+        <div><span style="color: rgba(255, 255, 255, 0.8);">Move:</span> ← → / A D</div>
+        <div><span style="color: rgba(255, 255, 255, 0.8);">Shoot:</span> SPACE</div>
+        <div><span style="color: rgba(255, 255, 255, 0.8);">Shop:</span> U</div>
+        <div><span style="color: rgba(255, 255, 255, 0.8);">Pause:</span> ESC</div>
       </div>
     </div>
   `;
@@ -125,20 +153,34 @@ export function renderPausedOverlay() {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(10, 15, 30, 0.95);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: white;
       z-index: 100;
     ">
-      <h2 style="font-size: 36px; margin-bottom: 20px; color: #00FF41;">PAUSED</h2>
+      <h2 style="
+        font-size: 42px;
+        margin-bottom: 32px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 700;
+        letter-spacing: 4px;
+      ">
+        PAUSED
+      </h2>
       <button id="resume-game-btn" style="
-        padding: 12px 30px;
-        font-size: 18px;
-        background: #8B5CF6;
+        padding: 14px 40px;
+        font-size: 16px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
         color: white;
-        border: 2px solid white;
-        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
         cursor: pointer;
-        font-weight: bold;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        letter-spacing: 1px;
       ">
         RESUME
       </button>
@@ -158,29 +200,71 @@ export function renderGameOverOverlay(score, currency) {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(10, 15, 30, 0.98);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: white;
       z-index: 100;
     ">
-      <h2 style="font-size: 48px; margin-bottom: 20px; color: #ff4444; text-shadow: 0 0 20px #ff4444;">
+      <h2 style="
+        font-size: 52px;
+        margin-bottom: 32px;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 800;
+        letter-spacing: 3px;
+      ">
         GAME OVER
       </h2>
-      <div style="font-size: 24px; margin-bottom: 10px; color: #00FF41;">
-        Final Score: ${score}
-      </div>
-      <div style="font-size: 18px; margin-bottom: 40px; color: #fdb515;">
-        Currency Kept: ${Math.floor(currency / 2)} 💰
+      <div style="
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 48px;
+        padding: 32px 48px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+      ">
+        <div style="
+          font-size: 20px;
+          color: rgba(255, 255, 255, 0.7);
+          display: flex;
+          justify-content: space-between;
+          gap: 40px;
+        ">
+          <span>Final Score:</span>
+          <span style="
+            font-weight: 700;
+            background: linear-gradient(135deg, #00FF41, #00DD35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          ">${score}</span>
+        </div>
+        <div style="
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.6);
+          display: flex;
+          justify-content: space-between;
+          gap: 40px;
+        ">
+          <span>Currency Kept:</span>
+          <span style="color: #fdb515; font-weight: 600;">💰 ${Math.floor(currency / 2)}</span>
+        </div>
       </div>
       <button id="restart-game-btn" style="
-        padding: 15px 40px;
-        font-size: 20px;
-        background: #8B5CF6;
+        padding: 16px 48px;
+        font-size: 18px;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
         color: white;
-        border: 2px solid white;
-        border-radius: 8px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
         cursor: pointer;
-        font-weight: bold;
-        box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        letter-spacing: 1px;
       ">
         PLAY AGAIN
       </button>

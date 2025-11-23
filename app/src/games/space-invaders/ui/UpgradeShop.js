@@ -14,22 +14,37 @@ export function renderUpgradeShop(gameState) {
       bottom: 0;
       display: flex;
       flex-direction: column;
-      background: rgba(0, 31, 91, 0.98);
+      background: rgba(10, 15, 30, 0.98);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: white;
       z-index: 100;
       overflow-y: auto;
     ">
       <!-- Header -->
       <div style="
-        padding: 20px;
-        background: rgba(0, 0, 0, 0.5);
-        border-bottom: 2px solid #fdb515;
+        padding: 24px 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       ">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 style="font-size: 28px; margin: 0; color: #fdb515; text-shadow: 0 0 10px #fdb515;">
+          <h2 style="
+            font-size: 28px;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.9);
+          ">
             ⚡ UPGRADE SHOP
           </h2>
-          <div style="font-size: 24px; font-weight: bold; color: #fdb515;">
+          <div style="
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fdb515, #f4a300);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          ">
             💰 ${currency}
           </div>
         </div>
@@ -38,20 +53,22 @@ export function renderUpgradeShop(gameState) {
       <!-- Upgrade Grid -->
       <div style="
         flex: 1;
-        padding: 20px;
+        padding: 32px;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
         align-content: start;
       ">
         ${upgrades.map(upgrade => `
           <div class="upgrade-card" style="
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid ${upgrade.canAfford ? '#8B5CF6' : 'rgba(255, 255, 255, 0.2)'};
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            ${upgrade.currentLevel >= upgrade.maxLevel ? 'opacity: 0.6;' : ''}
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid ${upgrade.canAfford ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            ${upgrade.currentLevel >= upgrade.maxLevel ? 'opacity: 0.5;' : ''}
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
           ">
             <!-- Icon and Name -->
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
@@ -65,22 +82,30 @@ export function renderUpgradeShop(gameState) {
             </div>
 
             <!-- Progress Bar -->
-            <div style="margin-bottom: 12px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px;">
+            <div style="margin-bottom: 16px;">
+              <div style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                font-size: 12px;
+                color: rgba(255, 255, 255, 0.6);
+                font-weight: 500;
+              ">
                 <span>Level ${upgrade.currentLevel}/${upgrade.maxLevel}</span>
               </div>
               <div style="
                 width: 100%;
-                height: 8px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
+                height: 6px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 3px;
                 overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
               ">
                 <div style="
                   width: ${(upgrade.currentLevel / upgrade.maxLevel) * 100}%;
                   height: 100%;
-                  background: linear-gradient(90deg, #8B5CF6, #3B82F6);
-                  transition: width 0.3s ease;
+                  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.2));
+                  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
                 "></div>
               </div>
             </div>
@@ -88,13 +113,15 @@ export function renderUpgradeShop(gameState) {
             <!-- Purchase Button -->
             ${upgrade.currentLevel >= upgrade.maxLevel ? `
               <div style="
-                padding: 10px;
+                padding: 12px;
                 text-align: center;
-                background: rgba(0, 255, 0, 0.2);
-                border: 1px solid #00FF41;
-                border-radius: 6px;
-                color: #00FF41;
-                font-weight: bold;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 10px;
+                color: rgba(255, 255, 255, 0.6);
+                font-weight: 600;
+                font-size: 14px;
+                letter-spacing: 1px;
               ">
                 ✓ MAXED OUT
               </div>
@@ -105,18 +132,21 @@ export function renderUpgradeShop(gameState) {
                 ${!upgrade.canAfford ? 'disabled' : ''}
                 style="
                   width: 100%;
-                  padding: 12px;
-                  font-size: 16px;
-                  font-weight: bold;
-                  background: ${upgrade.canAfford ? '#8B5CF6' : 'rgba(255, 255, 255, 0.1)'};
-                  color: ${upgrade.canAfford ? 'white' : 'rgba(255, 255, 255, 0.4)'};
-                  border: 2px solid ${upgrade.canAfford ? 'white' : 'rgba(255, 255, 255, 0.2)'};
-                  border-radius: 8px;
+                  padding: 14px;
+                  font-size: 14px;
+                  font-weight: 600;
+                  letter-spacing: 0.5px;
+                  background: ${upgrade.canAfford ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)'};
+                  color: ${upgrade.canAfford ? 'white' : 'rgba(255, 255, 255, 0.3)'};
+                  border: 1px solid ${upgrade.canAfford ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.1)'};
+                  border-radius: 10px;
                   cursor: ${upgrade.canAfford ? 'pointer' : 'not-allowed'};
-                  transition: all 0.2s ease;
+                  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                  backdrop-filter: blur(10px);
+                  -webkit-backdrop-filter: blur(10px);
                 "
               >
-                ${upgrade.canAfford ? 'PURCHASE' : 'INSUFFICIENT FUNDS'} - ${upgrade.cost} 💰
+                ${upgrade.canAfford ? `<span style="color: #fdb515;">💰 ${upgrade.cost}</span> - PURCHASE` : 'INSUFFICIENT FUNDS'}
               </button>
             `}
           </div>
@@ -125,22 +155,25 @@ export function renderUpgradeShop(gameState) {
 
       <!-- Footer -->
       <div style="
-        padding: 20px;
-        background: rgba(0, 0, 0, 0.5);
-        border-top: 2px solid #8B5CF6;
+        padding: 24px 32px;
+        background: rgba(255, 255, 255, 0.03);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         justify-content: center;
       ">
         <button id="close-shop-btn" style="
-          padding: 12px 40px;
-          font-size: 18px;
-          background: rgba(255, 255, 255, 0.1);
+          padding: 14px 48px;
+          font-size: 16px;
+          font-weight: 600;
+          letter-spacing: 1px;
+          background: rgba(255, 255, 255, 0.05);
           color: white;
-          border: 2px solid white;
-          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 12px;
           cursor: pointer;
-          font-weight: bold;
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
         ">
           CLOSE SHOP (ESC)
         </button>

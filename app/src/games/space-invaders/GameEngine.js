@@ -259,12 +259,13 @@ export class GameEngine {
     this.invaderMoveTimer++;
 
     // Move invaders every X frames (slows down movement)
-    const moveInterval = Math.max(5, 20 - this.wave);
+    // Start at 60 frames (1 second at 60fps), decrease slowly per wave
+    const moveInterval = Math.max(20, 60 - (this.wave * 3));
     if (this.invaderMoveTimer >= moveInterval) {
       this.invaderMoveTimer = 0;
 
-      // Move horizontally
-      this.invaderOffsetX += this.invaderDirection * GAME_CONFIG.INVADER_MOVE_SPEED * 10;
+      // Move horizontally (slower multiplier)
+      this.invaderOffsetX += this.invaderDirection * GAME_CONFIG.INVADER_MOVE_SPEED * 5;
 
       // Check if need to move down
       const rightMost = Math.max(...this.invaders.filter(inv => inv.alive).map(inv => inv.x));
