@@ -7,6 +7,7 @@ import { GAME_CONFIG, BEAR_WAVE } from './config.js';
 import { Player } from './entities/Player.js';
 import { BearInvader } from './entities/BearInvader.js';
 import { Bullet } from './entities/Bullet.js';
+import { EnemyBullet } from './entities/EnemyBullet.js';
 import { CollisionSystem } from './systems/CollisionSystem.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 
@@ -36,6 +37,7 @@ export class GameEngine {
     this.player = null;
     this.invaders = [];
     this.bullets = [];
+    this.enemyBullets = [];
 
     // Invader movement
     this.invaderOffsetX = 0;
@@ -45,6 +47,7 @@ export class GameEngine {
 
     // Shooting
     this.lastShotTime = 0;
+    this.lastEnemyShotTime = 0;
 
     // Animation
     this.animationFrame = null;
@@ -132,17 +135,32 @@ export class GameEngine {
 
     this.invaders = [];
     this.bullets = [];
+    this.enemyBullets = [];
     this.invaderOffsetX = 0;
     this.invaderOffsetY = 0;
     this.invaderDirection = 1;
 
-    // Scale down position for different wave sizes
-    const scale = 1;
-    BEAR_WAVE.forEach(({ x, y }) => {
-      this.invaders.push(new BearInvader(x * scale, y * scale));
-    });
+    // Progressive difficulty: more bears each wave
+    // Wave 1 starts with ~50 bears (base pattern replicated)
+    const bearsPerPattern = BEAR_WAVE.length; // ~70 bears in the base pattern
+    const patternsToCreate = Math.ceil((30 + (this.wave * 20)) / bearsPerPattern);
 
-    console.log(`[SpaceInvaders] Created ${this.invaders.length} bears`);
+    for (let patternIndex = 0; patternIndex < patternsToCreate; patternIndex++) {
+      const offsetX = patternIndex * 35; // Horizontal offset for each pattern
+      const offsetY = Math.floor(patternIndex / 2) * 25; // Vertical offset every 2 patterns
+
+      BEAR_WAVE.forEach(({ x, y }) => {
+        const newX = x + offsetX;
+        const newY = y + offsetY;
+
+        // Only add if within reasonable bounds
+        if (newX < 45 && newY < 25) {
+          this.invaders.push(new BearInvader(newX, newY));
+        }
+      });
+    }
+
+    console.log(`[SpaceInvaders] Created ${this.invaders.length} bears for wave ${this.wave}`);
   }
 
   shoot() {
@@ -237,8 +255,15 @@ export class GameEngine {
     this.bullets.forEach(bullet => bullet.update());
     this.bullets = this.bullets.filter(bullet => bullet.active);
 
+    // Update enemy bullets
+    this.enemyBullets.forEach(bullet => bullet.update());
+    this.enemyBullets = this.enemyBullets.filter(bullet => bullet.active);
+
     // Update invaders movement
     this.updateInvaders();
+
+    // Enemy shooting (gets more frequent in later waves)
+    this.updateEnemyShooting(currentTime);
 
     // Check collisions
     this.checkCollisions();
@@ -258,6 +283,31 @@ export class GameEngine {
     if (lowestInvader > GAME_CONFIG.CANVAS_HEIGHT - 80) {
       this.gameOver();
     }
+  }
+
+  updateEnemyShooting(currentTime) {
+    // Bears start shooting after wave 2, getting more aggressive over time
+    if (this.wave < 2) return;
+
+    // Shooting frequency increases with wave number
+    const shootInterval = Math.max(800, 2000 - (this.wave * 100));
+
+    if (currentTime - this.lastEnemyShotTime < shootInterval) return;
+
+    // Get all alive invaders
+    const aliveInvaders = this.invaders.filter(inv => inv.alive);
+    if (aliveInvaders.length === 0) return;
+
+    // Number of bears that shoot at once increases with wave
+    const shootersCount = Math.min(Math.floor(this.wave / 3) + 1, 5);
+
+    for (let i = 0; i < shootersCount; i++) {
+      // Pick a random bear to shoot
+      const shooter = aliveInvaders[Math.floor(Math.random() * aliveInvaders.length)];
+      this.enemyBullets.push(new EnemyBullet(shooter.x, shooter.y + 10));
+    }
+
+    this.lastEnemyShotTime = currentTime;
   }
 
   updateInvaders() {
@@ -306,6 +356,28 @@ export class GameEngine {
         }
       }
     }
+
+    // Enemy Bullets vs Player
+    this.enemyBullets.forEach(bullet => {
+      if (!bullet.active) return;
+
+      const playerBounds = this.player.getBounds();
+      const bulletBounds = bullet.getBounds();
+
+      // Simple AABB collision
+      if (bulletBounds.x < playerBounds.x + playerBounds.width &&
+          bulletBounds.x + bulletBounds.width > playerBounds.x &&
+          bulletBounds.y < playerBounds.y + playerBounds.height &&
+          bulletBounds.y + bulletBounds.height > playerBounds.y) {
+        bullet.active = false;
+        if (this.player.takeDamage()) {
+          if (this.player.lives <= 0) {
+            this.gameOver();
+          }
+        }
+        this.notifyStateChange();
+      }
+    });
   }
 
   render() {
@@ -318,6 +390,9 @@ export class GameEngine {
 
     // Draw bullets
     this.bullets.forEach(bullet => bullet.draw(this.ctx));
+
+    // Draw enemy bullets
+    this.enemyBullets.forEach(bullet => bullet.draw(this.ctx));
 
     // Draw player
     this.player.draw(this.ctx);

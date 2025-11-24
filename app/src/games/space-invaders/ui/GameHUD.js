@@ -19,6 +19,32 @@ export function renderGameHUD(gameState) {
       pointer-events: none;
       z-index: 10;
     ">
+      <!-- Exit Button -->
+      <button id="exit-game-btn" style="
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        pointer-events: auto;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        line-height: 1;
+        z-index: 1000;
+      " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'; this.style.color='white';" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.color='rgba(255, 255, 255, 0.8)';">
+        ✕
+      </button>
+
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <!-- Left: Score and Wave -->
         <div>
@@ -46,7 +72,7 @@ export function renderGameHUD(gameState) {
         </div>
 
         <!-- Right: Currency -->
-        <div style="text-align: right;">
+        <div style="text-align: right; padding-right: 45px;">
           <div style="font-size: 18px; font-weight: bold; color: #fdb515; text-shadow: 0 0 8px #fdb515;">
             💰 ${currency}
           </div>

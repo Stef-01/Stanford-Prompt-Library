@@ -113,6 +113,22 @@ function updateUI(gameState, game, container) {
       hudDiv.className = 'game-hud';
       hudDiv.innerHTML = hudHTML;
       container.appendChild(hudDiv);
+
+      // Add exit button event listener
+      const exitBtn = container.querySelector('#exit-game-btn');
+      if (exitBtn) {
+        exitBtn.addEventListener('click', () => {
+          if (confirm('Exit to games menu?')) {
+            game.cleanup();
+            // Trigger window close
+            const windowElement = document.querySelector('[data-window-id="games"]');
+            if (windowElement) {
+              const closeBtn = windowElement.querySelector('.window-close-btn');
+              if (closeBtn) closeBtn.click();
+            }
+          }
+        });
+      }
       break;
 
     case 'paused':
