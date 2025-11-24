@@ -61,6 +61,15 @@ export const wallpapers = [
     description: 'Particles following a flow field pattern',
     animation: 'flow-field',
     backgroundColor: '#0e0e1a'
+  },
+  {
+    id: 'matrix-rain',
+    name: 'Matrix Rain',
+    type: 'canvas',
+    emoji: '💚',
+    description: 'Falling characters inspired by The Matrix',
+    animation: 'matrix-rain',
+    backgroundColor: '#000000'
   }
 ];
 
@@ -79,6 +88,11 @@ export const colorPalettes = {
     name: 'Pink',
     colors: ['#EC4899', '#F97316', '#EF4444'],
     gradient: 'linear-gradient(135deg, #EC4899, #F97316)'
+  },
+  green: {
+    name: 'Matrix Green',
+    colors: ['#0F0', '#00FF00', '#00DD00'],
+    gradient: 'linear-gradient(135deg, #00FF00, #00DD00)'
   },
   mono: {
     name: 'Monochrome',

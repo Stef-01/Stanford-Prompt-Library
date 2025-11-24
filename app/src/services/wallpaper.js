@@ -9,6 +9,7 @@ import { startWaveField } from '../wallpapers/animations/wave-field.js';
 import { startParticleField } from '../wallpapers/animations/particle-field.js';
 import { startGradientMesh } from '../wallpapers/animations/gradient-mesh.js';
 import { startFlowField } from '../wallpapers/animations/flow-field.js';
+import { startMatrixRain } from '../wallpapers/animations/matrix-rain.js';
 
 // Storage keys
 const STORAGE_WALLPAPER = 'stanford-wallpaper-id';
@@ -156,6 +157,8 @@ function startCanvasAnimation(animationName, canvas, intensity, palette) {
       return startParticleField(canvas, intensity, palette);
     case 'flow-field':
       return startFlowField(canvas, intensity, palette);
+    case 'matrix-rain':
+      return startMatrixRain(canvas, intensity, palette);
     default:
       console.error('Unknown animation:', animationName);
       return () => {};
