@@ -6,21 +6,43 @@ import { supabase } from '../config/supabase.js'
  */
 export async function signInWithGoogle() {
   try {
+    // Use environment variable if available, fallback to current origin
+    const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin
+
+    console.log('🔐 [Auth] Starting Google OAuth flow...')
+    console.log('🔐 [Auth] Current URL:', window.location.origin)
+    console.log('🔐 [Auth] Redirect URL:', redirectUrl)
+    console.log('🔐 [Auth] Using env var:', import.meta.env.VITE_APP_URL ? 'Yes' : 'No (dynamic)')
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectUrl,
         queryParams: {
           access_type: 'offline',
-          prompt: 'select_account'
-        }
+          prompt: 'select_account',
+          // Hint for Stanford domain to help Google pre-select correct account
+          hd: 'stanford.edu'
+        },
+        // Don't skip browser redirect
+        skipBrowserRedirect: false
       }
     })
 
-    if (error) throw error
+    if (error) {
+      console.error('❌ [Auth] OAuth initiation error:', error)
+      throw error
+    }
+
+    console.log('✅ [Auth] OAuth redirect initiated')
     return data
   } catch (error) {
-    console.error('Sign in error:', error)
+    console.error('❌ [Auth] Sign in error:', error)
+    console.error('❌ [Auth] Error details:', {
+      message: error.message,
+      status: error.status,
+      name: error.name
+    })
     throw error
   }
 }
