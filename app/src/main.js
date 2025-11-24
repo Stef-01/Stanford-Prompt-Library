@@ -6,6 +6,7 @@ import { renderSignInGate } from './components/SignInGate.js'
 import { renderSubmitPromptGate } from './components/SubmitPromptGate.js'
 import { renderPendingApprovalGate } from './components/PendingApprovalGate.js'
 import { renderMainApp } from './components/MainApp.js'
+import { validateAuthConfig, displayConfigValidation } from './utils/validate-config.js'
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -47,12 +48,75 @@ async function init() {
   try {
     console.log('🚀 Stanford Prompt Library initializing...')
 
+    // Validate configuration first
+    validateAuthConfig()
+
     // Show loading state
     app.innerHTML = '<div class="loading">Loading...</div>'
 
+    // Check if this is an OAuth callback (has code/token in URL)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const queryParams = new URLSearchParams(window.location.search)
+
+    const hasOAuthParams =
+      hashParams.has('access_token') ||
+      queryParams.has('code') ||
+      hashParams.has('error') ||
+      hashParams.has('error_description')
+
+    if (hasOAuthParams) {
+      console.log('🔄 OAuth callback detected in URL')
+      console.log('🔄 Hash params:', Array.from(hashParams.keys()).join(', ') || 'none')
+      console.log('🔄 Query params:', Array.from(queryParams.keys()).join(', ') || 'none')
+
+      // Check for error in OAuth callback
+      if (hashParams.has('error') || queryParams.has('error')) {
+        const error = hashParams.get('error') || queryParams.get('error')
+        const errorDesc = hashParams.get('error_description') || queryParams.get('error_description')
+        console.error('❌ OAuth callback error:', error, errorDesc)
+
+        // Show error to user
+        app.innerHTML = `
+          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
+            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
+              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
+              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Authentication Failed</h1>
+              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+                ${errorDesc || error || 'An error occurred during sign-in'}
+              </p>
+              <button onclick="window.location.href='/'" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+                Try Again
+              </button>
+            </div>
+          </div>
+        `
+        return
+      }
+
+      console.log('🔄 Processing OAuth callback...')
+
+      // Wait a moment for Supabase to process the callback
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // Clean URL after processing to prevent re-processing
+      console.log('🔄 Cleaning URL...')
+      window.history.replaceState({}, document.title, '/')
+    }
+
     // First, get the current session to check if user is already authenticated
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError) {
+      console.error('❌ Session check error:', sessionError)
+      throw sessionError
+    }
+
     console.log('Initial session check:', session ? 'Session exists' : 'No session')
+
+    if (session) {
+      console.log('✅ User:', session.user.email)
+      console.log('✅ Session expires:', new Date(session.expires_at * 1000).toLocaleString())
+    }
 
     // Set up auth state listener FIRST, before checking access
     // This prevents race conditions between listener and initial check
@@ -78,6 +142,11 @@ async function init() {
 
     // Now do the initial access check and render
     await checkAccessAndRender()
+
+    // Show config warnings if any (only in dev mode)
+    if (import.meta.env.DEV) {
+      displayConfigValidation(document.body)
+    }
 
   } catch (error) {
     console.error('Initialization error:', error)

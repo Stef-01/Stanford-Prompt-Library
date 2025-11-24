@@ -35,5 +35,55 @@ See: ENV_SETUP.md for detailed instructions
 }
 
 console.log('[Supabase Config] ✅ Creating Supabase client...')
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Ensure OAuth callbacks are detected automatically
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+
+    // Use PKCE flow for OAuth (more secure, better compatibility)
+    flowType: 'pkce',
+
+    // Ensure proper storage
+    storage: window.localStorage,
+    storageKey: 'supabase.auth.token',
+
+    // Debug mode for better error messages in development
+    debug: import.meta.env.DEV
+  }
+})
 console.log('[Supabase Config] ✅ Supabase client created successfully')
+
+// Log initial session status
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    console.error('[Supabase] ❌ Initial session check error:', error)
+  } else if (data.session) {
+    console.log('[Supabase] ✅ Active session found:', data.session.user.email)
+    console.log('[Supabase] Session expires:', new Date(data.session.expires_at * 1000).toLocaleString())
+  } else {
+    console.log('[Supabase] No active session')
+  }
+})
+
+// Monitor all auth state changes for debugging
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log(`[Supabase Auth] Event: ${event}`)
+
+  if (event === 'SIGNED_IN') {
+    console.log('[Supabase Auth] ✅ Sign-in successful:', session?.user?.email)
+  } else if (event === 'SIGNED_OUT') {
+    console.log('[Supabase Auth] 👋 User signed out')
+  } else if (event === 'TOKEN_REFRESHED') {
+    console.log('[Supabase Auth] 🔄 Token refreshed')
+  } else if (event === 'USER_UPDATED') {
+    console.log('[Supabase Auth] 📝 User updated')
+  } else if (event === 'INITIAL_SESSION') {
+    console.log('[Supabase Auth] 🔍 Initial session:', session ? 'exists' : 'none')
+  }
+
+  if (session) {
+    console.log('[Supabase Auth] Session expires at:', new Date(session.expires_at * 1000).toLocaleString())
+  }
+})
