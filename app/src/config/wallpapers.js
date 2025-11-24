@@ -98,6 +98,11 @@ export const colorPalettes = {
     colors: ['#EC4899', '#F97316', '#EF4444'],
     gradient: 'linear-gradient(135deg, #EC4899, #F97316)'
   },
+  green: {
+    name: 'Matrix Green',
+    colors: ['#0F0', '#00FF00', '#00DD00'],
+    gradient: 'linear-gradient(135deg, #00FF00, #00DD00)'
+  },
   mono: {
     name: 'Monochrome',
     colors: ['#6B7280', '#9CA3AF', '#E5E7EB'],
