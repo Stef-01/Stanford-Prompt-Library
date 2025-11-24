@@ -3,46 +3,43 @@
  * These are placeholder windows for features to be implemented in the future
  */
 
+import { initSpaceInvaders } from '../../games/space-invaders/SpaceInvaders.js';
+
+// Track game cleanup function
+let gameCleanup = null;
+
 /**
- * Render Games Window - Placeholder for gamification features
+ * Render Games Window - Space Invaders Game
  */
 export function renderGamesWindow(contentContainer) {
-  contentContainer.innerHTML = `
-    <div style="padding: 40px; text-align: center;">
-      <div style="font-size: 64px; margin-bottom: 20px;">🎮</div>
-      <h2 style="font-size: 24px; margin-bottom: 15px; color: var(--text-primary);">Games & Challenges</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 30px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-        Coming soon! Compete in prompt engineering challenges, earn badges, and test your skills against the community.
-      </p>
+  console.log('[GamesWindow] Rendering Space Invaders');
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; max-width: 600px; margin: 0 auto;">
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px;">
-          <div style="font-size: 32px; margin-bottom: 10px;">🏅</div>
-          <h3 style="font-size: 16px; margin-bottom: 5px; color: var(--text-primary);">Daily Challenges</h3>
-          <p style="font-size: 12px; color: var(--text-secondary);">Complete daily prompt challenges</p>
-        </div>
+  // Clean up previous game instance if exists
+  if (gameCleanup) {
+    gameCleanup();
+    gameCleanup = null;
+  }
 
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px;">
-          <div style="font-size: 32px; margin-bottom: 10px;">⚡</div>
-          <h3 style="font-size: 16px; margin-bottom: 5px; color: var(--text-primary);">Speed Rounds</h3>
-          <p style="font-size: 12px; color: var(--text-secondary);">Fast-paced prompt writing</p>
-        </div>
+  // Clear container
+  contentContainer.innerHTML = '';
+  contentContainer.style.padding = '0';
+  contentContainer.style.overflow = 'hidden';
 
-        <div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 20px;">
-          <div style="font-size: 32px; margin-bottom: 10px;">🎯</div>
-          <h3 style="font-size: 16px; margin-bottom: 5px; color: var(--text-primary);">Achievements</h3>
-          <p style="font-size: 12px; color: var(--text-secondary);">Unlock special badges</p>
-        </div>
-      </div>
+  // Initialize Space Invaders
+  gameCleanup = initSpaceInvaders(contentContainer);
 
-      <div style="margin-top: 40px; padding: 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid var(--accent-blue); border-radius: 12px; max-width: 500px; margin-left: auto; margin-right: auto;">
-        <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
-          <strong style="color: var(--accent-blue);">💡 Have ideas?</strong><br/>
-          Let us know what games and challenges you'd like to see!
-        </p>
-      </div>
-    </div>
-  `
+  // Store cleanup function for when window closes
+  contentContainer.dataset.cleanup = 'true';
+}
+
+/**
+ * Cleanup Games Window
+ */
+export function cleanupGamesWindow() {
+  if (gameCleanup) {
+    gameCleanup();
+    gameCleanup = null;
+  }
 }
 
 /**
