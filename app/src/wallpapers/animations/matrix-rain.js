@@ -1,139 +1,176 @@
 /**
  * Matrix Rain Animation
- * Falling characters effect inspired by The Matrix
+ * Clean digital rain effect without overlays
  */
 
-export function startMatrixRain(canvas, intensity = 5, colorPalette = 'green') {
+export function startMatrixRain(canvas, intensity = 5, colorPalette = 'mono') {
   console.log('[Matrix Rain] Starting animation', { intensity, colorPalette });
 
   const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  // Color palettes
+  // Enable high-DPI rendering
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.scale(dpr, dpr);
+
   const palettes = {
-    green: ['#0F0', '#00FF00', '#00DD00'],      // Classic Matrix green
-    cyan: ['#00FFF0', '#00DDDD', '#00BBBB'],    // Cyan variant
-    purple: ['#8B5CF6', '#A78BFA', '#C4B5FD'], // Purple variant
-    pink: ['#FF00FF', '#DD00DD', '#BB00BB'],    // Pink variant
-    mono: ['#FFFFFF', '#DDDDDD', '#BBBBBB']     // White/mono variant
+    purple: { primary: '#8B5CF6', secondary: '#3B82F6', glow: 'rgba(139, 92, 246, 0.8)' },
+    teal: { primary: '#06B6D4', secondary: '#10B981', glow: 'rgba(6, 182, 212, 0.8)' },
+    pink: { primary: '#EC4899', secondary: '#F97316', glow: 'rgba(236, 72, 153, 0.8)' },
+    mono: { primary: '#00FF41', secondary: '#00FF00', glow: 'rgba(0, 255, 65, 0.8)' }
   };
 
-  const colors = palettes[colorPalette] || palettes.green;
-
-  // Characters to use - Japanese katakana + numbers + letters
-  const matrix = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  // Characters - authentic Matrix set
+  const matrix = "ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:・.\"=*+-<>¦";
   const matrixArray = matrix.split("");
 
-  // Calculate font size and columns based on intensity
-  // Higher intensity = smaller characters = more columns = denser effect
-  const fontSize = Math.max(10, 18 - intensity);
-  const columns = Math.floor(canvas.width / fontSize);
+  // Font size adjusted to prevent overlap
+  const fontSize = 14 + (intensity * 1);
+  const speed = 30 + (10 - intensity) * 4;
+  const columns = Math.floor(window.innerWidth / fontSize);
+  const colors = palettes[colorPalette] || palettes.mono;
 
-  // Array to track drop position for each column
+  // Drop state
   const drops = [];
+  const dropSpeeds = [];
+  const brightness = [];
+
   for (let x = 0; x < columns; x++) {
-    drops[x] = Math.floor(Math.random() * canvas.height / fontSize) * -1; // Stagger start positions
+    drops[x] = 0;
+    dropSpeeds[x] = 0.5 + Math.random() * 0.5;
+    brightness[x] = 0.5 + Math.random() * 0.5;
   }
 
-  // Speed varies with intensity
-  const baseSpeed = 35; // milliseconds per frame
-  const speed = Math.max(15, baseSpeed - (intensity * 3));
-
-  console.log('[Matrix Rain] Configuration:', {
-    fontSize,
-    columns,
-    speed: speed + 'ms',
-    characterSet: matrixArray.length + ' chars'
-  });
-
-  let intervalId = null;
   let animationFrame = null;
+  let lastTime = 0;
+  let isInitialWipe = true;
+  let wipeComplete = false;
 
-  function draw() {
-    // Black background with slight opacity for fade trail effect
-    // Lower opacity = longer trails
-    const fadeOpacity = 0.03 + (intensity * 0.005);
-    ctx.fillStyle = `rgba(0, 0, 0, ${fadeOpacity})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  function animate(currentTime) {
+    if (currentTime - lastTime < speed) {
+      animationFrame = requestAnimationFrame(animate);
+      return;
+    }
+    lastTime = currentTime;
 
-    // Set text color and font
-    ctx.fillStyle = colors[0];
-    ctx.font = fontSize + 'px monospace';
+    // Semi-transparent background for fade effect
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    // High-quality text rendering
+    ctx.font = `${fontSize}px "Courier New", monospace`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    // Enable smoother text
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Initial screen wipe effect
+    if (isInitialWipe) {
+      let allComplete = true;
+      for (let i = 0; i < drops.length; i++) {
+        if (drops[i] * fontSize < window.innerHeight) {
+          allComplete = false;
+        }
+      }
+
+      if (allComplete) {
+        isInitialWipe = false;
+        wipeComplete = true;
+        // Reset drops for continuous rain
+        for (let x = 0; x < columns; x++) {
+          drops[x] = Math.floor(Math.random() * window.innerHeight / fontSize) * -1;
+        }
+      }
+    }
 
     // Draw characters
     for (let i = 0; i < drops.length; i++) {
-      // Random character from matrix
       const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
-
       const x = i * fontSize;
       const y = drops[i] * fontSize;
 
-      // Draw brighter character at the leading edge
-      if (y > 0) {
-        // Draw trail characters with reduced opacity
-        ctx.fillStyle = colors[2] + '44'; // Low opacity for trail
-        ctx.fillText(text, x, y - fontSize);
+      // Bright head of the trail
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = colors.primary;
+      ctx.fillStyle = colors.primary;
+      ctx.globalAlpha = brightness[i];
+      ctx.fillText(text, x, y);
 
-        // Draw main bright character
-        ctx.fillStyle = colors[0] + 'FF'; // Full opacity
-        ctx.fillText(text, x, y);
-
-        // Add extra glow to leading character
-        if (intensity >= 7) {
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = colors[0];
-          ctx.fillText(text, x, y);
-          ctx.shadowBlur = 0;
+      // Trail effect - dimmer characters above
+      const trailLength = 6 + Math.floor(intensity / 3);
+      for (let j = 1; j <= trailLength; j++) {
+        const trailY = y - j * fontSize;
+        if (trailY > 0) {
+          const alpha = ((trailLength - j) / trailLength) * 0.4 * brightness[i];
+          ctx.globalAlpha = alpha;
+          ctx.shadowBlur = 3;
+          const trailText = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+          ctx.fillText(trailText, x, trailY);
         }
       }
 
-      // Reset drop to top randomly after it has crossed the screen
-      // Higher intensity = more frequent resets = denser effect
-      const resetChance = 0.975 - (intensity * 0.002);
-      if (drops[i] * fontSize > canvas.height && Math.random() > resetChance) {
-        drops[i] = 0;
+      // Random bright flashes (less frequent)
+      if (Math.random() > 0.985) {
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.shadowBlur = 15;
+        ctx.fillText(text, x, y);
       }
 
-      // Increment drop position
-      drops[i]++;
+      // Reset logic
+      if (wipeComplete) {
+        // Normal rain mode - reset randomly
+        if (drops[i] * fontSize > window.innerHeight && Math.random() > 0.975) {
+          drops[i] = 0;
+          brightness[i] = 0.5 + Math.random() * 0.5;
+        }
+      }
+
+      // Increment with variable speed
+      drops[i] += dropSpeeds[i] * (intensity / 5);
     }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    animationFrame = requestAnimationFrame(animate);
   }
 
-  // Start animation loop
-  intervalId = setInterval(draw, speed);
+  animate(0);
 
   // Handle window resize
   const handleResize = () => {
-    const oldWidth = canvas.width;
-    const oldHeight = canvas.height;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.scale(dpr, dpr);
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const newColumns = Math.floor(window.innerWidth / fontSize);
+    drops.length = newColumns;
+    dropSpeeds.length = newColumns;
+    brightness.length = newColumns;
 
-    // Recalculate columns if width changed significantly
-    if (Math.abs(canvas.width - oldWidth) > 100) {
-      const newColumns = Math.floor(canvas.width / fontSize);
-      // Adjust drops array
-      if (newColumns > drops.length) {
-        for (let i = drops.length; i < newColumns; i++) {
-          drops[i] = Math.floor(Math.random() * canvas.height / fontSize) * -1;
-        }
-      } else if (newColumns < drops.length) {
-        drops.length = newColumns;
+    for (let x = 0; x < newColumns; x++) {
+      if (drops[x] === undefined) {
+        drops[x] = Math.floor(Math.random() * window.innerHeight / fontSize) * -1;
+        dropSpeeds[x] = 0.5 + Math.random() * 0.5;
+        brightness[x] = 0.5 + Math.random() * 0.5;
       }
-      console.log('[Matrix Rain] Resized to', newColumns, 'columns');
     }
   };
-
   window.addEventListener('resize', handleResize);
 
-  // Return cleanup function
+  // Cleanup function
   return () => {
     console.log('[Matrix Rain] Stopping animation');
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
     if (animationFrame) {
       cancelAnimationFrame(animationFrame);
     }

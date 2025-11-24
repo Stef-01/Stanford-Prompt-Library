@@ -67,9 +67,18 @@ export const wallpapers = [
     name: 'Matrix Rain',
     type: 'canvas',
     emoji: '💚',
-    description: 'Falling characters inspired by The Matrix',
+    description: 'Digital rain effect inspired by The Matrix',
     animation: 'matrix-rain',
     backgroundColor: '#000000'
+  },
+  {
+    id: 'stanford-insignia',
+    name: 'Insignia',
+    type: 'canvas',
+    emoji: '🌲',
+    description: 'Animated Stanford logo with rotating effects',
+    animation: 'stanford-insignia',
+    backgroundColor: '#0A0F1E'
   }
 ];
 

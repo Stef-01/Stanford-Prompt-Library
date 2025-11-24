@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Desktop Backgrounds</title>
+    <style>
+        :root {
+            --color-bg: #0A0F1E;
+            --color-surface: #131A2B;
+            --color-surface-elevated: #1C2537;
+            --color-text: #E8E8E8;
+            --color-text-secondary: #A0A0A0;
+            --color-primary: #8B5CF6;
+            --color-accent-blue: #3B82F6;
+            --color-accent-teal: #06B6D4;
+            --color-accent-pink: #EC4899;
+            --color-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-bg);
+            color: var(--color-text);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Background Canvas Layer */
+        .background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 1s ease;
+            z-index: 0;
+        }
+
+        .background-layer.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: rgba(19, 26, 43, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 24px;
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            width: 380px;
+            transition: transform 0.3s ease;
+        }
+
+        .settings-toggle {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 56px;
+            height: 56px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .settings-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6);
+        }
+
+        .settings-toggle.active {
+            transform: translateX(-340px);
+        }
+
+        .settings-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .panel-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-header::before {
+            content: '🎨';
+            font-size: 20px;
+        }
+
+        .backgrounds-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .bg-option {
+            aspect-ratio: 1;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+            background: var(--color-surface-elevated);
+        }
+
+        .bg-option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .bg-option.active {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .bg-option-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .bg-option-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            color: white;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--color-text-secondary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--color-surface-elevated);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            min-width: 45px;
+            text-align: right;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            border-color: white;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Background-specific styles */
+        #neural-canvas { background: #0A0F1E; }
+        #waves-canvas { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); }
+        #particles-canvas { background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1e 100%); }
+        #gradient-mesh { background: #0f0f1f; }
+        #flow-field-canvas { background: #0e0e1a; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .background-layer {
+            animation: fadeIn 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Layers -->
+    <div id="neural" class="background-layer">
+        <canvas id="neural-canvas"></canvas>
+    </div>
+    <div id="waves" class="background-layer hidden">
+        <canvas id="waves-canvas"></canvas>
+    </div>
+    <div id="particles" class="background-layer hidden">
+        <canvas id="particles-canvas"></canvas>
+    </div>
+    <div id="gradient-mesh" class="background-layer hidden">
+        <div id="gradient-mesh-container"></div>
+    </div>
+    <div id="flow-field" class="background-layer hidden">
+        <canvas id="flow-field-canvas"></canvas>
+    </div>
+
+    <!-- Settings Toggle Button -->
+    <button class="settings-toggle" id="settingsToggle">
+        <svg viewBox="0 0 24 24">
+            <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/>
+        </svg>
+    </button>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel" style="display: none;">
+        <div class="panel-header">Desktop Background</div>
+        
+        <div class="backgrounds-grid">
+            <div class="bg-option active" data-bg="neural">
+                <div class="bg-option-preview">🧠</div>
+                <div class="bg-option-label">Neural Network</div>
+            </div>
+            <div class="bg-option" data-bg="waves">
+                <div class="bg-option-preview">🌊</div>
+                <div class="bg-option-label">Wave Field</div>
+            </div>
+            <div class="bg-option" data-bg="particles">
+                <div class="bg-option-preview">✨</div>
+                <div class="bg-option-label">Particles</div>
+            </div>
+            <div class="bg-option" data-bg="gradient-mesh">
+                <div class="bg-option-preview">🎨</div>
+                <div class="bg-option-label">Gradient Mesh</div>
+            </div>
+            <div class="bg-option" data-bg="flow-field">
+                <div class="bg-option-preview">🌀</div>
+                <div class="bg-option-label">Flow Field</div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">⚡ Intensity</div>
+            <div class="slider-container">
+                <input type="range" id="intensitySlider" min="1" max="10" value="5">
+                <span class="slider-value" id="intensityValue">Medium</span>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">🎨 Color Palette</div>
+            <div class="color-palette">
+                <div class="color-swatch active" data-palette="purple" style="background: linear-gradient(135deg, #8B5CF6, #3B82F6);"></div>
+                <div class="color-swatch" data-palette="teal" style="background: linear-gradient(135deg, #06B6D4, #10B981);"></div>
+                <div class="color-swatch" data-palette="pink" style="background: linear-gradient(135deg, #EC4899, #F97316);"></div>
+                <div class="color-swatch" data-palette="mono" style="background: linear-gradient(135deg, #6B7280, #E5E7EB);"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentBg = 'neural';
+        let intensity = 5;
+        let colorPalette = 'purple';
+        let animationFrames = {};
+
+        // Color palettes
+        const palettes = {
+            purple: ['#8B5CF6', '#3B82F6', '#EC4899'],
+            teal: ['#06B6D4', '#10B981', '#14B8A6'],
+            pink: ['#EC4899', '#F97316', '#EF4444'],
+            mono: ['#6B7280', '#9CA3AF', '#E5E7EB']
+        };
+
+        // Settings Toggle
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsPanel = document.getElementById('settingsPanel');
+        let panelOpen = false;
+
+        settingsToggle.addEventListener('click', () => {
+            panelOpen = !panelOpen;
+            settingsPanel.style.display = panelOpen ? 'block' : 'none';
+            settingsToggle.classList.toggle('active', panelOpen);
+        });
+
+        // Background switching
+        document.querySelectorAll('.bg-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const newBg = option.dataset.bg;
+                if (newBg === currentBg) return;
+
+                // Update active state
+                document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+
+                // Switch backgrounds
+                switchBackground(newBg);
+            });
+        });
+
+        function switchBackground(newBg) {
+            const currentLayer = document.getElementById(currentBg);
+            const newLayer = document.getElementById(newBg);
+
+            // Cancel current animation
+            if (animationFrames[currentBg]) {
+                cancelAnimationFrame(animationFrames[currentBg]);
+            }
+
+            // Fade transition
+            currentLayer.classList.add('hidden');
+            newLayer.classList.remove('hidden');
+
+            // Start new animation
+            currentBg = newBg;
+            startAnimation(newBg);
+        }
+
+        // Intensity control
+        const intensitySlider = document.getElementById('intensitySlider');
+        const intensityValue = document.getElementById('intensityValue');
+
+        intensitySlider.addEventListener('input', (e) => {
+            intensity = parseInt(e.target.value);
+            const labels = ['Minimal', 'Very Low', 'Low', 'Medium-Low', 'Medium', 'Medium-High', 'High', 'Very High', 'Intense', 'Maximum'];
+            intensityValue.textContent = labels[intensity - 1];
+            restartCurrentAnimation();
+        });
+
+        // Color palette control
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            swatch.addEventListener('click', () => {
+                document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+                swatch.classList.add('active');
+                colorPalette = swatch.dataset.palette;
+                restartCurrentAnimation();
+            });
+        });
+
+        function restartCurrentAnimation() {
+            if (animationFrames[currentBg]) {
+                cancelAnimationFrame(animationFrames[currentBg]);
+            }
+            startAnimation(currentBg);
+        }
+
+        function startAnimation(bgType) {
+            switch(bgType) {
+                case 'neural': startNeuralNetwork(); break;
+                case 'waves': startWaveField(); break;
+                case 'particles': startParticleField(); break;
+                case 'gradient-mesh': startGradientMesh(); break;
+                case 'flow-field': startFlowField(); break;
+            }
+        }
+
+        // ===== NEURAL NETWORK =====
+        function startNeuralNetwork() {
+            const canvas = document.getElementById('neural-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const nodeCount = 50 + (intensity * 5);
+            const nodes = [];
+            const colors = palettes[colorPalette];
+
+            for (let i = 0; i < nodeCount; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.3 * (intensity / 5),
+                    vy: (Math.random() - 0.5) * 0.3 * (intensity / 5),
+                    radius: 2 + Math.random() * 2
+                });
+            }
+
+            function animate() {
+                ctx.fillStyle = 'rgba(10, 15, 30, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Update and draw nodes
+                nodes.forEach(node => {
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+                    if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+
+                    // Draw node
+                    const gradient = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.radius * 3);
+                    gradient.addColorStop(0, colors[0] + '88');
+                    gradient.addColorStop(1, colors[0] + '00');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, node.radius * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Draw connections
+                const maxDist = 150 - (intensity * 5);
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < maxDist) {
+                            const alpha = (1 - dist / maxDist) * 0.3;
+                            ctx.strokeStyle = colors[1] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                animationFrames.neural = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // ===== WAVE FIELD =====
+        function startWaveField() {
+            const canvas = document.getElementById('waves-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const colors = palettes[colorPalette];
+            let time = 0;
+
+            function animate() {
+                ctx.fillStyle = 'rgba(26, 26, 46, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const waves = 3 + Math.floor(intensity / 3);
+                for (let w = 0; w < waves; w++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height / 2);
+
+                    const amplitude = 30 + (w * 15) * (intensity / 5);
+                    const frequency = 0.002 + (w * 0.001);
+                    const speed = 0.3 + (w * 0.2) * (intensity / 5);
+
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = canvas.height / 2 + Math.sin(x * frequency + time * speed) * amplitude;
+                        ctx.lineTo(x, y);
+                    }
+
+                    const alpha = Math.floor((0.15 - w * 0.03) * 255).toString(16).padStart(2, '0');
+                    ctx.strokeStyle = colors[w % colors.length] + alpha;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+
+                time += 0.02;
+                animationFrames.waves = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // ===== PARTICLE FIELD =====
+        function startParticleField() {
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particleCount = 500 * (intensity / 5);
+            const particles = [];
+            const colors = palettes[colorPalette];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5 * (intensity / 5),
+                    vy: (Math.random() - 0.5) * 0.5 * (intensity / 5),
+                    size: Math.random() * 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: Math.random()
+                });
+            }
+
+            function animate() {
+                ctx.fillStyle = 'rgba(26, 26, 62, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+
+                    p.alpha = 0.3 + Math.sin(Date.now() * 0.001 + p.x) * 0.3;
+
+                    ctx.fillStyle = p.color + Math.floor(p.alpha * 255).toString(16).padStart(2, '0');
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                animationFrames.particles = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // ===== GRADIENT MESH =====
+        function startGradientMesh() {
+            const container = document.getElementById('gradient-mesh-container');
+            container.innerHTML = '';
+            
+            const colors = palettes[colorPalette];
+            const orbCount = 2 + Math.floor(intensity / 3);
+
+            for (let i = 0; i < orbCount; i++) {
+                const orb = document.createElement('div');
+                orb.style.position = 'absolute';
+                orb.style.width = '600px';
+                orb.style.height = '600px';
+                orb.style.borderRadius = '50%';
+                orb.style.filter = 'blur(80px)';
+                orb.style.opacity = '0.4';
+                orb.style.background = colors[i % colors.length];
+                
+                const startX = Math.random() * 100;
+                const startY = Math.random() * 100;
+                orb.style.left = startX + '%';
+                orb.style.top = startY + '%';
+
+                const duration = 15 - intensity;
+                orb.style.animation = `float${i} ${duration}s ease-in-out infinite`;
+
+                container.appendChild(orb);
+
+                // Create keyframes
+                const keyframes = `
+                    @keyframes float${i} {
+                        0%, 100% { transform: translate(0, 0) scale(1); }
+                        25% { transform: translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px) scale(1.1); }
+                        50% { transform: translate(${(Math.random() - 0.5) * 150}px, ${(Math.random() - 0.5) * 150}px) scale(0.9); }
+                        75% { transform: translate(${(Math.random() - 0.5) * 100}px, ${(Math.random() - 0.5) * 100}px) scale(1.05); }
+                    }
+                `;
+                const style = document.createElement('style');
+                style.textContent = keyframes;
+                document.head.appendChild(style);
+            }
+
+            container.style.width = '100%';
+            container.style.height = '100%';
+            container.style.position = 'relative';
+            container.style.overflow = 'hidden';
+            container.style.background = '#0f0f1f';
+        }
+
+        // ===== FLOW FIELD =====
+        function startFlowField() {
+            const canvas = document.getElementById('flow-field-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particleCount = 1000 * (intensity / 5);
+            const particles = [];
+            const colors = palettes[colorPalette];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    history: [],
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            function noise(x, y) {
+                return Math.sin(x * 0.01) * Math.cos(y * 0.01);
+            }
+
+            let time = 0;
+
+            function animate() {
+                ctx.fillStyle = 'rgba(14, 14, 26, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(p => {
+                    const angle = noise(p.x, p.y + time) * Math.PI * 2;
+                    const speed = 0.5 * (intensity / 5);
+                    
+                    p.x += Math.cos(angle) * speed;
+                    p.y += Math.sin(angle) * speed;
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+
+                    p.history.push({x: p.x, y: p.y});
+                    if (p.history.length > 20) p.history.shift();
+
+                    ctx.beginPath();
+                    p.history.forEach((pos, i) => {
+                        if (i === 0) {
+                            ctx.moveTo(pos.x, pos.y);
+                        } else {
+                            ctx.lineTo(pos.x, pos.y);
+                        }
+                    });
+
+                    const alpha = Math.floor(0.3 * 255).toString(16).padStart(2, '0');
+                    ctx.strokeStyle = p.color + alpha;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+
+                time += 0.5;
+                animationFrames['flow-field'] = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Start initial background
+        startAnimation(currentBg);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            restartCurrentAnimation();
+        });
+    </script>
+</body>
+</html>
+

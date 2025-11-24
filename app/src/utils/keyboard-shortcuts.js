@@ -1,4 +1,5 @@
 import { toggleWindow, closeWindow, openWindow } from './desktop-windows.js'
+import { Icon } from '../components/ui/Icon.js'
 
 /**
  * Keyboard Shortcuts System
@@ -167,70 +168,91 @@ function showShortcutsHelp(userIsAdmin = false) {
   const shortcutsList = Object.entries(shortcuts)
     .filter(([key, shortcut]) => !shortcut.requiresAdmin || userIsAdmin)
     .map(([key, shortcut]) => `
-      <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-        <td style="padding: 8px 12px; color: var(--text-secondary); font-size: 13px;">
-          <kbd style="background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">${modKey}+${key.toUpperCase()}</kbd>
+      <tr style="border-bottom: 1px solid var(--border-subtle);">
+        <td style="padding: 12px 16px; color: var(--text-subtle); font-size: 14px;">
+          <kbd style="background: var(--white-10); padding: 6px 12px; border-radius: 6px; font-family: 'Courier New', monospace;
+                      color: var(--text-primary); border: 1px solid var(--border-subtle); font-weight: 500; font-size: 13px;">${modKey}+${key.toUpperCase()}</kbd>
         </td>
-        <td style="padding: 8px 12px; color: var(--text-primary); font-size: 13px;">
+        <td style="padding: 12px 16px; color: var(--text-primary); font-size: 14px;">
           ${shortcut.label}
         </td>
       </tr>
     `).join('')
 
   modal.innerHTML = `
-    <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
+    <div style="background: var(--white-5); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle);
+                border-radius: 20px; padding: 40px; max-width: 600px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);">
       <!-- Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: var(--text-primary); font-size: 20px;">⌨️ Keyboard Shortcuts</h2>
-        <button id="close-shortcuts-help" style="background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='none'">
-          ×
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--white-10);
+                      display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle);">
+            ${Icon({ name: 'keyboard', className: 'text-white !text-[24px]' })}
+          </div>
+          <h2 style="margin: 0; color: var(--text-primary); font-size: 24px; font-weight: 700;">Keyboard Shortcuts</h2>
+        </div>
+        <button id="close-shortcuts-help" style="background: var(--white-5); border: 1px solid var(--border-subtle);
+                                                  color: var(--text-primary); cursor: pointer; padding: 8px;
+                                                  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+                                                  border-radius: 8px; transition: all 0.2s var(--ease-spring);">
+          ${Icon({ name: 'close', className: '!text-[20px]' })}
         </button>
       </div>
 
       <!-- Shortcuts Table -->
-      <div style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+      <div style="max-height: 400px; overflow-y: auto; margin-bottom: 24px; padding-right: 4px;">
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
-            <tr style="border-bottom: 2px solid var(--border-color);">
-              <th style="padding: 8px 12px; text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; font-weight: 600;">Shortcut</th>
-              <th style="padding: 8px 12px; text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; font-weight: 600;">Action</th>
+            <tr style="border-bottom: 2px solid var(--border-subtle); background: var(--white-5);">
+              <th style="padding: 12px 16px; text-align: left; color: var(--text-subtle); font-size: 12px;
+                         text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Shortcut</th>
+              <th style="padding: 12px 16px; text-align: left; color: var(--text-subtle); font-size: 12px;
+                         text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Action</th>
             </tr>
           </thead>
           <tbody>
             ${shortcutsList}
-            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-              <td style="padding: 8px 12px; color: var(--text-secondary); font-size: 13px;">
-                <kbd style="background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">Esc</kbd>
+            <tr style="border-bottom: 1px solid var(--border-subtle);">
+              <td style="padding: 12px 16px; color: var(--text-subtle); font-size: 14px;">
+                <kbd style="background: var(--white-10); padding: 6px 12px; border-radius: 6px; font-family: 'Courier New', monospace;
+                            color: var(--text-primary); border: 1px solid var(--border-subtle); font-weight: 500; font-size: 13px;">Esc</kbd>
               </td>
-              <td style="padding: 8px 12px; color: var(--text-primary); font-size: 13px;">Close active window</td>
+              <td style="padding: 12px 16px; color: var(--text-primary); font-size: 14px;">Close active window</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-              <td style="padding: 8px 12px; color: var(--text-secondary); font-size: 13px;">
-                <kbd style="background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">${modKey}+W</kbd>
+            <tr style="border-bottom: 1px solid var(--border-subtle);">
+              <td style="padding: 12px 16px; color: var(--text-subtle); font-size: 14px;">
+                <kbd style="background: var(--white-10); padding: 6px 12px; border-radius: 6px; font-family: 'Courier New', monospace;
+                            color: var(--text-primary); border: 1px solid var(--border-subtle); font-weight: 500; font-size: 13px;">${modKey}+W</kbd>
               </td>
-              <td style="padding: 8px 12px; color: var(--text-primary); font-size: 13px;">Close active window</td>
+              <td style="padding: 12px 16px; color: var(--text-primary); font-size: 14px;">Close active window</td>
             </tr>
-            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
-              <td style="padding: 8px 12px; color: var(--text-secondary); font-size: 13px;">
-                <kbd style="background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">Alt+Tab</kbd>
+            <tr style="border-bottom: 1px solid var(--border-subtle);">
+              <td style="padding: 12px 16px; color: var(--text-subtle); font-size: 14px;">
+                <kbd style="background: var(--white-10); padding: 6px 12px; border-radius: 6px; font-family: 'Courier New', monospace;
+                            color: var(--text-primary); border: 1px solid var(--border-subtle); font-weight: 500; font-size: 13px;">Alt+Tab</kbd>
               </td>
-              <td style="padding: 8px 12px; color: var(--text-primary); font-size: 13px;">Cycle through windows</td>
+              <td style="padding: 12px 16px; color: var(--text-primary); font-size: 14px;">Cycle through windows</td>
             </tr>
             <tr>
-              <td style="padding: 8px 12px; color: var(--text-secondary); font-size: 13px;">
-                <kbd style="background: rgba(255, 255, 255, 0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">${modKey}+Shift+?</kbd>
+              <td style="padding: 12px 16px; color: var(--text-subtle); font-size: 14px;">
+                <kbd style="background: var(--white-10); padding: 6px 12px; border-radius: 6px; font-family: 'Courier New', monospace;
+                            color: var(--text-primary); border: 1px solid var(--border-subtle); font-weight: 500; font-size: 13px;">${modKey}+Shift+?</kbd>
               </td>
-              <td style="padding: 8px 12px; color: var(--text-primary); font-size: 13px;">Show this help</td>
+              <td style="padding: 12px 16px; color: var(--text-primary); font-size: 14px;">Show this help</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Footer -->
-      <div style="text-align: center; padding-top: 15px; border-top: 1px solid var(--border-color);">
-        <p style="margin: 0; color: var(--text-secondary); font-size: 12px;">
-          Press <kbd style="background: rgba(255, 255, 255, 0.1); padding: 2px 6px; border-radius: 3px;">Esc</kbd> or click outside to close
-        </p>
+      <div style="text-align: center; padding-top: 20px; border-top: 1px solid var(--border-subtle);">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          ${Icon({ name: 'info', className: '!text-[16px] text-[var(--text-subtle)]' })}
+          <p style="margin: 0; color: var(--text-subtle); font-size: 13px;">
+            Press <kbd style="background: var(--white-10); padding: 3px 8px; border-radius: 4px; font-family: 'Courier New', monospace;
+                              border: 1px solid var(--border-subtle); font-size: 12px;">Esc</kbd> or click outside to close
+          </p>
+        </div>
       </div>
     </div>
   `
@@ -240,6 +262,16 @@ function showShortcutsHelp(userIsAdmin = false) {
   // Close handlers
   const closeBtn = modal.querySelector('#close-shortcuts-help')
   closeBtn.addEventListener('click', () => modal.remove())
+
+  // Hover effects for close button
+  closeBtn.addEventListener('mouseenter', () => {
+    closeBtn.style.background = 'var(--white-10)'
+    closeBtn.style.borderColor = 'var(--white-20)'
+  })
+  closeBtn.addEventListener('mouseleave', () => {
+    closeBtn.style.background = 'var(--white-5)'
+    closeBtn.style.borderColor = 'var(--border-subtle)'
+  })
 
   modal.addEventListener('click', (e) => {
     if (e.target === modal) {
