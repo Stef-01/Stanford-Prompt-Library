@@ -66,6 +66,11 @@ export async function renderMainApp(container, user) {
             <button class="desktop-top-bar-btn" title="Profile" data-window="profile">
               <span class="material-symbols-outlined" style="font-size: 20px;">person</span>
             </button>
+            ${userIsAdmin ? `
+            <button class="desktop-top-bar-btn admin-btn" title="Admin Panel" data-window="admin" style="color: var(--primary); animation: pulse 2s ease-in-out infinite;">
+              <span class="material-symbols-outlined" style="font-size: 20px;">shield_person</span>
+            </button>
+            ` : ''}
             <button class="desktop-top-bar-btn" title="Settings" data-window="settings">
               <span class="material-symbols-outlined" style="font-size: 20px;">settings</span>
             </button>

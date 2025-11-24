@@ -320,6 +320,27 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
             <small style="font-size: 13px; color: var(--text-subtle); margin-top: 8px; display: block;">Minimum 50 characters</small>
           </div>
 
+          <!-- Author Display Name -->
+          <div class="form-group">
+            <label for="submit-author-name" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              ${Icon({ name: 'person', className: '!text-[20px]' })}
+              <span>Display Name <span style="font-size: 13px; font-weight: 400; color: var(--text-subtle);">(optional)</span></span>
+            </label>
+            <input
+              type="text"
+              id="submit-author-name"
+              name="author_name"
+              placeholder="Leave blank to use your real name, or enter a pseudonym"
+              class="form-input"
+              style="width: 100%; padding: 14px 16px; background: var(--white-5); border: 1px solid var(--border-subtle);
+                     border-radius: 12px; color: var(--text-primary); font-size: 16px;
+                     transition: all 0.4s var(--ease-spring);"
+            />
+            <small style="font-size: 13px; color: var(--text-subtle); margin-top: 8px; display: block;">
+              Choose how your name appears on this prompt. Leave blank to use your account name, or enter a pseudonym for privacy.
+            </small>
+          </div>
+
           <!-- Image Upload (Optional) -->
           <div class="form-group">
             <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--text-primary);">
@@ -540,7 +561,8 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         description: formData.get('description'),
         content: formData.get('content'),
         category: formData.get('category'),
-        tags: selectedTags
+        tags: selectedTags,
+        author_name: formData.get('author_name') || null
       }
 
       // Validate with animations
