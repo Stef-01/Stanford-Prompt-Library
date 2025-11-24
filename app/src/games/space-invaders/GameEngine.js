@@ -74,7 +74,7 @@ export class GameEngine {
 
     if (e.key === ' ' && this.state === 'playing') {
       e.preventDefault();
-      this.shoot();
+      // Don't shoot here - handled in update loop for continuous shooting
     }
 
     if (e.key === 'Escape') {
@@ -227,6 +227,11 @@ export class GameEngine {
 
     // Update player
     this.player.update(this.keys, GAME_CONFIG.CANVAS_WIDTH);
+
+    // Continuous shooting when holding space
+    if (this.keys[' ']) {
+      this.shoot();
+    }
 
     // Update bullets
     this.bullets.forEach(bullet => bullet.update());
