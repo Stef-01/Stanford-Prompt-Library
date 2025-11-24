@@ -140,25 +140,16 @@ export class GameEngine {
     this.invaderOffsetY = 0;
     this.invaderDirection = 1;
 
-    // Progressive difficulty: more bears each wave
-    // Wave 1 starts with ~50 bears (base pattern replicated)
-    const bearsPerPattern = BEAR_WAVE.length; // ~70 bears in the base pattern
-    const patternsToCreate = Math.ceil((30 + (this.wave * 20)) / bearsPerPattern);
+    // Progressive difficulty: Wave 1 = 10 bears, then increases
+    // Calculate how many bears to spawn based on wave number
+    const bearsThisWave = 10 + ((this.wave - 1) * 5); // Wave 1: 10, Wave 2: 15, Wave 3: 20, etc.
 
-    for (let patternIndex = 0; patternIndex < patternsToCreate; patternIndex++) {
-      const offsetX = patternIndex * 35; // Horizontal offset for each pattern
-      const offsetY = Math.floor(patternIndex / 2) * 25; // Vertical offset every 2 patterns
+    // Take only the first N bears from the pattern based on wave number
+    const bearsToSpawn = BEAR_WAVE.slice(0, Math.min(bearsThisWave, BEAR_WAVE.length));
 
-      BEAR_WAVE.forEach(({ x, y }) => {
-        const newX = x + offsetX;
-        const newY = y + offsetY;
-
-        // Only add if within reasonable bounds
-        if (newX < 45 && newY < 25) {
-          this.invaders.push(new BearInvader(newX, newY));
-        }
-      });
-    }
+    bearsToSpawn.forEach(({ x, y }) => {
+      this.invaders.push(new BearInvader(x, y));
+    });
 
     console.log(`[SpaceInvaders] Created ${this.invaders.length} bears for wave ${this.wave}`);
   }
@@ -286,11 +277,11 @@ export class GameEngine {
   }
 
   updateEnemyShooting(currentTime) {
-    // Bears start shooting after wave 2, getting more aggressive over time
-    if (this.wave < 2) return;
+    // Bears shoot back from wave 1, getting more aggressive over time
 
     // Shooting frequency increases with wave number
-    const shootInterval = Math.max(800, 2000 - (this.wave * 100));
+    // Wave 1 shoots every 3 seconds, gets faster each wave
+    const shootInterval = Math.max(600, 3000 - (this.wave * 200));
 
     if (currentTime - this.lastEnemyShotTime < shootInterval) return;
 

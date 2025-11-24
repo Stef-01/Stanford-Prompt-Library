@@ -11,6 +11,7 @@ let currentCarouselIndex = 0
 let carouselInterval = null
 let currentView = 'discover' // discover, myPrompts
 let currentViewMode = 'details' // details, image, featured
+let discoveryMode = 'featured' // hot, featured, new
 
 // Placeholder prompts for carousel demo
 const placeholderPrompts = [
@@ -283,7 +284,58 @@ function renderDiscoverView() {
     return `
       <div id="featured-carousel-container" style="position: fixed; inset: 0; top: var(--notch-height, 32px);
                                                      background: var(--background-dark); z-index: 1; margin: 0;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding-top: calc(12px + 42px);">
+
+        <!-- Exit Button and Discovery Mode Selector -->
+        <div style="position: absolute; top: 12px; left: 0; right: 0; z-index: 10; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;">
+          <!-- Discovery Mode Selector -->
+          <div style="display: flex; gap: 8px; background: var(--white-10); backdrop-filter: blur(12px);
+                      border: 1px solid var(--border-subtle); border-radius: 12px; padding: 6px;">
+            <button
+              class="discovery-mode-btn ${discoveryMode === 'hot' ? 'active' : ''}"
+              data-discovery-mode="hot"
+              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 6px;
+                     ${discoveryMode === 'hot'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'local_fire_department', className: '!text-[16px]' })}
+              <span>Hot</span>
+            </button>
+            <button
+              class="discovery-mode-btn ${discoveryMode === 'featured' ? 'active' : ''}"
+              data-discovery-mode="featured"
+              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 6px;
+                     ${discoveryMode === 'featured'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'star', className: '!text-[16px]' })}
+              <span>Featured</span>
+            </button>
+            <button
+              class="discovery-mode-btn ${discoveryMode === 'new' ? 'active' : ''}"
+              data-discovery-mode="new"
+              style="padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600;
+                     transition: all 0.3s var(--ease-spring); display: inline-flex; align-items: center; gap: 6px;
+                     ${discoveryMode === 'new'
+                       ? 'background: var(--primary); color: var(--background-dark);'
+                       : 'background: transparent; color: var(--text-subtle);'}">
+              ${Icon({ name: 'fiber_new', className: '!text-[16px]' })}
+              <span>New</span>
+            </button>
+          </div>
+
+          <!-- Exit Button -->
+          <button
+            id="exit-featured-btn"
+            style="width: 40px; height: 40px; border-radius: 50%; background: var(--white-10); backdrop-filter: blur(12px);
+                   border: 1px solid var(--border-subtle); cursor: pointer; display: flex; align-items: center; justify-content: center;
+                   transition: all 0.3s var(--ease-spring); color: var(--text-primary);">
+            ${Icon({ name: 'close', className: '!text-[24px]' })}
+          </button>
+        </div>
+
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding-top: calc(12px + 56px);">
           <div id="prompt-carousel" style="width: 100%; height: 100%; position: relative;">
             ${renderCarousel()}
           </div>
@@ -1124,6 +1176,63 @@ function reattachContentListeners(contentArea) {
       attachCarouselListeners(carousel)
       startCarousel()
     }
+
+    // Exit featured mode button
+    const exitBtn = contentArea.querySelector('#exit-featured-btn')
+    exitBtn?.addEventListener('click', () => {
+      currentViewMode = 'details'
+      const contentContainer = document.querySelector('[data-window-id="library"] .window-content')
+      const contentArea = contentContainer?.querySelector('#library-content')
+      if (contentArea) {
+        contentArea.innerHTML = renderCurrentView()
+        reattachContentListeners(contentArea)
+        stopCarousel()
+      }
+
+      // Update view mode button styles
+      const viewModeBtns = contentContainer?.querySelectorAll('.view-mode-btn')
+      viewModeBtns?.forEach(b => {
+        const isActive = b.dataset.mode === currentViewMode
+        b.style.background = isActive ? 'var(--primary)' : 'transparent'
+        b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+      })
+    })
+
+    // Discovery mode selector buttons
+    const discoveryBtns = contentArea.querySelectorAll('.discovery-mode-btn')
+    discoveryBtns?.forEach(btn => {
+      btn.addEventListener('click', () => {
+        discoveryMode = btn.dataset.discoveryMode
+
+        // Filter prompts based on discovery mode
+        if (discoveryMode === 'hot') {
+          // Sort by likes_count (hot prompts)
+          allPrompts.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+        } else if (discoveryMode === 'new') {
+          // Sort by created_at (newest first)
+          allPrompts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        } else {
+          // Featured - keep as is or filter featured status
+          allPrompts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        }
+
+        // Reset carousel index and refresh
+        currentCarouselIndex = 0
+        const carousel = contentArea.querySelector('#prompt-carousel')
+        if (carousel) {
+          carousel.innerHTML = renderCarousel()
+          attachCarouselListeners(carousel)
+        }
+
+        // Update button styles
+        discoveryBtns.forEach(b => {
+          const isActive = b.dataset.discoveryMode === discoveryMode
+          b.style.background = isActive ? 'var(--primary)' : 'transparent'
+          b.style.color = isActive ? 'var(--background-dark)' : 'var(--text-subtle)'
+        })
+      })
+    })
+
     return // No other listeners needed in featured mode
   }
 

@@ -118,14 +118,12 @@ function updateUI(gameState, game, container) {
       const exitBtn = container.querySelector('#exit-game-btn');
       if (exitBtn) {
         exitBtn.addEventListener('click', () => {
-          if (confirm('Exit to games menu?')) {
-            game.cleanup();
-            // Trigger window close
-            const windowElement = document.querySelector('[data-window-id="games"]');
-            if (windowElement) {
-              const closeBtn = windowElement.querySelector('.window-close-btn');
-              if (closeBtn) closeBtn.click();
-            }
+          game.cleanup();
+          // Trigger window close
+          const windowElement = document.querySelector('[data-window-id="games"]');
+          if (windowElement) {
+            const closeBtn = windowElement.querySelector('.window-close-btn');
+            if (closeBtn) closeBtn.click();
           }
         });
       }

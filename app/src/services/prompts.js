@@ -13,7 +13,7 @@ export async function submitPrompt(promptData) {
     // Get user to check if this is their first prompt
     const { data: userData } = await supabase
       .from('users')
-      .select('has_submitted_prompt')
+      .select('has_submitted_prompt, display_name')
       .eq('id', user.id)
       .single()
 
@@ -28,6 +28,7 @@ export async function submitPrompt(promptData) {
         description: promptData.description,
         category: promptData.category,
         tags: promptData.tags || [],
+        author_name: promptData.author_name || userData?.display_name || user.email?.split('@')[0],
         is_initial_prompt: isInitialPrompt,
         status: 'pending',
         is_public: false
