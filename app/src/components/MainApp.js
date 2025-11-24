@@ -8,7 +8,6 @@ import {
   closeWindow,
   startClock
 } from '../utils/desktop-windows.js'
-import { deactivateBypass, isBypassActive } from '../utils/access-code.js'
 import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 import { initAnimationSystem } from '../animations/config.js'
 import { initDockMagnification } from '../utils/dock-magnification.js'
@@ -49,8 +48,6 @@ export async function renderMainApp(container, user) {
     userIsAdmin = await isAdmin()
     console.log('✅ Admin status:', userIsAdmin)
 
-    const isInBypassMode = isBypassActive()
-
     // Render desktop layout
     container.innerHTML = `
       <div class="desktop">
@@ -64,15 +61,6 @@ export async function renderMainApp(container, user) {
 
           <!-- Right Controls Notch -->
           <div class="desktop-notch-right">
-            ${isInBypassMode ? `
-              <div style="display: flex; align-items: center; gap: 8px; background: var(--white-5); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 24px; font-size: 12px;">
-                <span style="position: relative; display: flex; width: 8px; height: 8px;">
-                  <span style="position: absolute; display: inline-flex; width: 100%; height: 100%; border-radius: 50%; background: #22c55e; opacity: 0.75; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
-                  <span style="position: relative; display: inline-flex; border-radius: 50%; width: 8px; height: 8px; background: #22c55e;"></span>
-                </span>
-                <span style="color: var(--text-subtle); font-weight: 500;">Testing Mode</span>
-              </div>
-            ` : ''}
             <span id="desktop-clock" style="color: var(--text-subtle); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums;"></span>
             <div style="width: 1px; height: 24px; background: var(--border-subtle);"></div>
             <button class="desktop-top-bar-btn" title="Profile" data-window="profile">
@@ -155,7 +143,7 @@ export async function renderMainApp(container, user) {
     await createAllWindows()
 
     // Attach dock icon event listeners
-    setupDockEventListeners(isInBypassMode)
+    setupDockEventListeners()
 
     // Initialize dock magnification effect
     initDockMagnification()
@@ -206,7 +194,7 @@ async function createAllWindows() {
 
   // Window definitions
   const windows = [
-    { id: 'explore', title: 'Explore Prompts', icon: '🔍', width: 900, height: 600, top: 80, left: 150 },
+    { id: 'explore', title: 'Explore', icon: '🔍', width: 900, height: 600, top: 80, left: 150 },
     { id: 'library', title: 'My Library', icon: '📚', width: 800, height: 600, top: 100, left: 200 },
     { id: 'submit', title: 'Submit Prompt', icon: '✨', width: 700, height: 650, top: 120, left: 250 },
     { id: 'leaderboard', title: 'Leaderboard', icon: '🏆', width: 700, height: 550, top: 140, left: 300 },
@@ -310,7 +298,7 @@ async function renderWindowContent(windowId, contentContainer) {
 /**
  * Set up dock icon and top bar event listeners
  */
-function setupDockEventListeners(isInBypassMode) {
+function setupDockEventListeners() {
   // Dock icons
   const dockIcons = document.querySelectorAll('.dock-icon')
   dockIcons.forEach(icon => {
@@ -320,17 +308,10 @@ function setupDockEventListeners(isInBypassMode) {
 
       // Handle sign out
       if (action === 'signout') {
-        const confirmSignout = confirm(isInBypassMode
-          ? 'Exit testing mode and return to sign-in?'
-          : 'Are you sure you want to sign out?')
+        const confirmSignout = confirm('Are you sure you want to sign out?')
 
         if (confirmSignout) {
-          if (isInBypassMode) {
-            deactivateBypass()
-            window.location.reload()
-          } else {
-            await signOut()
-          }
+          await signOut()
         }
         return
       }
@@ -351,17 +332,10 @@ function setupDockEventListeners(isInBypassMode) {
 
       // Handle sign out
       if (action === 'signout') {
-        const confirmSignout = confirm(isInBypassMode
-          ? 'Exit testing mode and return to sign-in?'
-          : 'Are you sure you want to sign out?')
+        const confirmSignout = confirm('Are you sure you want to sign out?')
 
         if (confirmSignout) {
-          if (isInBypassMode) {
-            deactivateBypass()
-            window.location.reload()
-          } else {
-            await signOut()
-          }
+          await signOut()
         }
         return
       }

@@ -80,13 +80,13 @@ export const GAME_CONFIG = {
   COLOR_UI: '#FFFFFF'
 };
 
-// Upgrade definitions
+// Upgrade definitions (unlimited levels!)
 export const UPGRADES = {
   fireRate: {
     name: 'Fire Rate',
     description: 'Shoot faster',
     icon: '⚡',
-    maxLevel: 5,
+    maxLevel: Infinity,
     baseCost: 50,
     costMultiplier: 1.5,
     effect: (level) => GAME_CONFIG.BASE_FIRE_RATE / (1 + level * 0.3)
@@ -95,7 +95,7 @@ export const UPGRADES = {
     name: 'Bullet Damage',
     description: 'More damage per shot',
     icon: '💥',
-    maxLevel: 5,
+    maxLevel: Infinity,
     baseCost: 75,
     costMultiplier: 1.8,
     effect: (level) => 1 + level
@@ -104,16 +104,16 @@ export const UPGRADES = {
     name: 'Multi-Shot',
     description: 'Fire multiple bullets',
     icon: '🔫',
-    maxLevel: 3,
+    maxLevel: Infinity,
     baseCost: 150,
     costMultiplier: 2.5,
-    effect: (level) => level + 1 // 1-4 bullets
+    effect: (level) => Math.min(level + 1, 20) // Cap at 20 bullets for performance
   },
   shield: {
     name: 'Shield',
     description: 'Extra hit points',
     icon: '🛡️',
-    maxLevel: 5,
+    maxLevel: Infinity,
     baseCost: 100,
     costMultiplier: 2.0,
     effect: (level) => level * 2 // +2 HP per level
@@ -122,7 +122,7 @@ export const UPGRADES = {
     name: 'Speed Boost',
     description: 'Move faster',
     icon: '🚀',
-    maxLevel: 3,
+    maxLevel: Infinity,
     baseCost: 60,
     costMultiplier: 1.6,
     effect: (level) => GAME_CONFIG.PLAYER_SPEED * (1 + level * 0.4)
