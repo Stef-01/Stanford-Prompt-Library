@@ -5,7 +5,7 @@ import { getCurrentUser } from './auth.js'
  * Submit a new prompt
  * Automatically marks as initial prompt if user hasn't submitted before
  */
-export async function submitPrompt(promptData) {
+export async function submitPrompt(promptData, imageFile = null) {
   try {
     const user = await getCurrentUser()
     if (!user) throw new Error('Not authenticated')
@@ -19,6 +19,40 @@ export async function submitPrompt(promptData) {
 
     const isInitialPrompt = !userData?.has_submitted_prompt
 
+    // Handle image upload if provided
+    let imageUrl = null
+    if (imageFile) {
+      try {
+        // Generate unique filename
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+        // Upload to Supabase storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('prompt-images')
+          .upload(fileName, imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          })
+
+        if (uploadError) {
+          console.error('Image upload error:', uploadError)
+          // Don't fail the entire submission if image upload fails
+          console.warn('Continuing without image due to upload error')
+        } else {
+          // Get public URL for the uploaded image
+          const { data: { publicUrl } } = supabase.storage
+            .from('prompt-images')
+            .getPublicUrl(fileName)
+
+          imageUrl = publicUrl
+        }
+      } catch (imgError) {
+        console.error('Image processing error:', imgError)
+        // Continue without image
+      }
+    }
+
     const { data, error } = await supabase
       .from('prompts')
       .insert([{
@@ -31,7 +65,8 @@ export async function submitPrompt(promptData) {
         author_name: promptData.author_name || userData?.display_name || user.email?.split('@')[0],
         is_initial_prompt: isInitialPrompt,
         status: 'pending',
-        is_public: false
+        is_public: false,
+        image_url: imageUrl
       }])
       .select()
       .single()

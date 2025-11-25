@@ -300,6 +300,18 @@ function renderPromptCard(prompt) {
         </div>
       ` : ''}
 
+      ${prompt.image_url ? `
+        <!-- Example Image -->
+        <div style="background: var(--white-10); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+            ${Icon({ name: 'image', className: 'text-subtle-white !text-[20px]' })}
+            <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">Example Image</span>
+          </div>
+          <img src="${prompt.image_url}" alt="Prompt example"
+               style="max-width: 100%; height: auto; border-radius: 8px; display: block;" />
+        </div>
+      ` : ''}
+
       <!-- Prompt Content -->
       <div style="background: var(--white-10); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">

@@ -1005,6 +1005,18 @@ async function showPromptModal(promptId) {
       </div>
     </div>
 
+    ${prompt.image_url ? `
+      <!-- Example Image -->
+      <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-subtle); margin-bottom: 12px; text-transform: uppercase; display: flex; align-items: center; gap: 8px;">
+          ${Icon({ name: 'image', className: '!text-[16px]' })}
+          Example Image
+        </div>
+        <img src="${prompt.image_url}" alt="${escapeHtml(prompt.title)}"
+             style="width: 100%; height: auto; border-radius: 8px; display: block;" />
+      </div>
+    ` : ''}
+
     <!-- Prompt Content -->
     <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
       <pre style="white-space: pre-wrap; font-family: 'Inter', monospace; font-size: 14px; line-height: 1.8;
