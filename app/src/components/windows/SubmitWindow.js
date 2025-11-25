@@ -678,29 +678,28 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
       showToast(errorMessage + helpText, 'error', 5000)
       setButtonLoading(submitBtn, false)
     }
-  }
   })
 
-// Form input focus effects
-const formInputs = contentContainer.querySelectorAll('.form-input')
-formInputs.forEach(input => {
-  input.addEventListener('focus', (e) => {
-    e.target.style.outline = 'none'
-    e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
-    e.target.style.borderColor = 'var(--white-30)'
-    e.target.style.background = 'var(--white-10)'
-  })
+  // Form input focus effects
+  const formInputs = contentContainer.querySelectorAll('.form-input')
+  formInputs.forEach(input => {
+    input.addEventListener('focus', (e) => {
+      e.target.style.outline = 'none'
+      e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
+      e.target.style.borderColor = 'var(--white-30)'
+      e.target.style.background = 'var(--white-10)'
+    })
 
-  input.addEventListener('blur', (e) => {
-    e.target.style.boxShadow = 'none'
-    e.target.style.borderColor = 'var(--border-subtle)'
-    if (e.target.id === 'submit-content') {
-      e.target.style.background = 'var(--white-8)'
-    } else {
-      e.target.style.background = 'var(--white-5)'
-    }
+    input.addEventListener('blur', (e) => {
+      e.target.style.boxShadow = 'none'
+      e.target.style.borderColor = 'var(--border-subtle)'
+      if (e.target.id === 'submit-content') {
+        e.target.style.background = 'var(--white-8)'
+      } else {
+        e.target.style.background = 'var(--white-5)'
+      }
+    })
   })
-})
 }
 
 /**
