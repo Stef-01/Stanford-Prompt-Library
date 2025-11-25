@@ -4,6 +4,7 @@
  */
 
 import { Icon } from '../ui/Icon.js'
+import { showToast } from '../ui/Toast.js'
 import { submitPrompt, getCategories } from '../../services/prompts.js'
 import { validatePromptSubmission } from '../../utils/validation.js'
 import { closeWindow } from '../../utils/desktop-windows.js'
@@ -88,8 +89,8 @@ function renderTagHierarchy() {
              style="display: ${isExpanded ? 'flex' : 'none'}; flex-wrap: wrap; gap: 8px; margin-left: 32px; margin-top: 8px;
                     animation: ${isExpanded ? 'slideDown 0.3s var(--ease-spring)' : 'none'};">
           ${tagData.children.map(childTag => {
-            const isChildSelected = selectedTags.includes(childTag)
-            return `
+      const isChildSelected = selectedTags.includes(childTag)
+      return `
               <button
                 type="button"
                 class="tag-child ${isChildSelected ? 'selected' : ''}"
@@ -104,7 +105,7 @@ function renderTagHierarchy() {
                 ${childTag}
               </button>
             `
-          }).join('')}
+    }).join('')}
         </div>
       </div>
     `
@@ -485,14 +486,14 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image file is too large. Maximum size is 5MB.')
+      showToast('Image file is too large. Maximum size is 5MB.', 'error')
       imageInput.value = ''
       return
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (PNG, JPG, or WebP).')
+      showToast('Please select an image file (PNG, JPG, or WebP).', 'error')
       imageInput.value = ''
       return
     }
@@ -610,7 +611,7 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
       // Validate content quality to prevent spam
       const validation = validatePromptSubmission(promptData)
       if (!validation.isValid) {
-        alert(`❌ Validation Failed:\n\n${validation.message}\n\nPlease revise your submission and try again.`)
+        showToast(`Validation Failed: ${validation.message}`, 'error')
         setButtonLoading(submitBtn, false)
         return
       }
@@ -636,14 +637,16 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         // Show success message and close window after delay
         setTimeout(() => {
           const message = result.isInitialPrompt
-            ? 'Your first prompt has been submitted!\n\nIt will be reviewed by an admin shortly. Once approved, you\'ll become a full member and can submit more prompts.'
-            : 'Prompt submitted successfully!\n\nYour prompt will be reviewed and published soon.'
+            ? 'Your first prompt has been submitted! It will be reviewed shortly.'
+            : 'Prompt submitted successfully!'
 
-          alert(`✅ Success!\n\n${message}`)
+          showToast(message, 'success')
 
           // Close the submit window
-          closeWindow('submit')
-        }, 800)
+          setTimeout(() => {
+            closeWindow('submit')
+          }, 1000)
+        }, 500)
       } else {
         // If submission didn't return success, restore button
         setButtonLoading(submitBtn, false)
@@ -672,31 +675,32 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         helpText = '\n\nError: ' + errorStr + '\n\nIf this error persists, check:\n• Database setup (run VERIFY_DATABASE_SETUP.sql)\n• Browser console for details (F12)'
       }
 
-      alert(errorMessage + helpText)
+      showToast(errorMessage + helpText, 'error', 5000)
       setButtonLoading(submitBtn, false)
     }
+  }
   })
 
-  // Form input focus effects
-  const formInputs = contentContainer.querySelectorAll('.form-input')
-  formInputs.forEach(input => {
-    input.addEventListener('focus', (e) => {
-      e.target.style.outline = 'none'
-      e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
-      e.target.style.borderColor = 'var(--white-30)'
-      e.target.style.background = 'var(--white-10)'
-    })
-
-    input.addEventListener('blur', (e) => {
-      e.target.style.boxShadow = 'none'
-      e.target.style.borderColor = 'var(--border-subtle)'
-      if (e.target.id === 'submit-content') {
-        e.target.style.background = 'var(--white-8)'
-      } else {
-        e.target.style.background = 'var(--white-5)'
-      }
-    })
+// Form input focus effects
+const formInputs = contentContainer.querySelectorAll('.form-input')
+formInputs.forEach(input => {
+  input.addEventListener('focus', (e) => {
+    e.target.style.outline = 'none'
+    e.target.style.boxShadow = '0 0 0 2px var(--white-20)'
+    e.target.style.borderColor = 'var(--white-30)'
+    e.target.style.background = 'var(--white-10)'
   })
+
+  input.addEventListener('blur', (e) => {
+    e.target.style.boxShadow = 'none'
+    e.target.style.borderColor = 'var(--border-subtle)'
+    if (e.target.id === 'submit-content') {
+      e.target.style.background = 'var(--white-8)'
+    } else {
+      e.target.style.background = 'var(--white-5)'
+    }
+  })
+})
 }
 
 /**
@@ -742,7 +746,7 @@ function renderSelectedTags(container) {
 /**
  * Remove tag (called from onclick)
  */
-window.removeTag = function(tag) {
+window.removeTag = function (tag) {
   selectedTags = selectedTags.filter(t => t !== tag)
 
   // Update display
