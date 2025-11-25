@@ -614,7 +614,8 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         return
       }
 
-      const result = await submitPrompt(promptData)
+      // Submit with image if provided
+      const result = await submitPrompt(promptData, selectedImage)
 
       if (result.success) {
         // Show success message
