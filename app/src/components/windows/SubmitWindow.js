@@ -626,6 +626,7 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         `
         submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
         submitBtn.style.color = 'white'
+        submitBtn.disabled = false // Re-enable after loading
 
         // Reset form
         form.reset()
@@ -663,9 +664,10 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
           // Close the submit window
           closeWindow('submit')
         }, 800)
+      } else {
+        // If submission didn't return success, restore button
+        setButtonLoading(submitBtn, false)
       }
-
-      setButtonLoading(submitBtn, false)
 
     } catch (error) {
       console.error('Submit error:', error)
