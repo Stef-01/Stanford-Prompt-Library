@@ -6,6 +6,7 @@
 import { Icon } from '../ui/Icon.js'
 import { submitPrompt, getCategories } from '../../services/prompts.js'
 import { validatePromptSubmission } from '../../utils/validation.js'
+import { closeWindow } from '../../utils/desktop-windows.js'
 import {
   initFormAnimations,
   showInputError,
@@ -618,8 +619,13 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
       const result = await submitPrompt(promptData, selectedImage)
 
       if (result.success) {
-        // Show success message
-        alert(`✅ Success!\n\n${result.message}`)
+        // Show success state on button
+        submitBtn.innerHTML = `
+          <span class="material-symbols-outlined" style="font-size: 20px;">check_circle</span>
+          <span>Submitted Successfully!</span>
+        `
+        submitBtn.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)'
+        submitBtn.style.color = 'white'
 
         // Reset form
         form.reset()
@@ -641,17 +647,50 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         imageLabel.textContent = 'Choose Image'
         clearImageBtn.style.display = 'none'
 
-        // Call success callback
+        // Call success callback to refresh library
         if (onSuccess) {
           onSuccess()
         }
+
+        // Show success message and close window after delay
+        setTimeout(() => {
+          const message = result.isInitialPrompt
+            ? 'Your first prompt has been submitted!\n\nIt will be reviewed by an admin shortly. Once approved, you\'ll become a full member and can submit more prompts.'
+            : 'Prompt submitted successfully!\n\nYour prompt will be reviewed and published soon.'
+
+          alert(`✅ Success!\n\n${message}`)
+
+          // Close the submit window
+          closeWindow('submit')
+        }, 800)
       }
 
       setButtonLoading(submitBtn, false)
 
     } catch (error) {
       console.error('Submit error:', error)
-      alert('Failed to submit prompt: ' + error.message)
+
+      // Parse error message for common issues
+      let errorMessage = 'Failed to submit prompt'
+      let helpText = ''
+
+      const errorStr = error.message || error.toString()
+
+      if (errorStr.includes('author_name') || errorStr.includes('schema cache')) {
+        errorMessage = '⚠️ Database Setup Required'
+        helpText = '\n\nThe database is missing required columns. Please run the database migration:\n\n1. Open Supabase SQL Editor\n2. Run MIGRATION_RUN_THIS_FIRST.sql\n3. Verify with VERIFY_DATABASE_SETUP.sql\n\nSee DATABASE_SETUP_GUIDE.md for detailed instructions.'
+      } else if (errorStr.includes('prompt-images') || errorStr.includes('bucket')) {
+        errorMessage = '⚠️ Storage Bucket Missing'
+        helpText = '\n\nThe image storage bucket is not set up. You can:\n\n• Submit without an image (remove the image and try again)\n• Or set up storage by following Step 2 in DATABASE_SETUP_GUIDE.md'
+      } else if (errorStr.includes('permission') || errorStr.includes('policy')) {
+        errorMessage = '⚠️ Storage Permission Error'
+        helpText = '\n\nStorage policies are not configured. Follow Step 3 in DATABASE_SETUP_GUIDE.md to set up storage policies.'
+      } else {
+        errorMessage = '❌ Submission Failed'
+        helpText = '\n\nError: ' + errorStr + '\n\nIf this error persists, check:\n• Database setup (run VERIFY_DATABASE_SETUP.sql)\n• Browser console for details (F12)'
+      }
+
+      alert(errorMessage + helpText)
       setButtonLoading(submitBtn, false)
     }
   })

@@ -115,7 +115,25 @@ USING (
 
 ## ✅ Verify Setup
 
-### Check Columns
+**Best Method:** Run the verification script:
+
+```sql
+-- In Supabase SQL Editor, run the entire file:
+-- VERIFY_DATABASE_SETUP.sql
+```
+
+This script will check:
+- ✅ Database columns (author_name, image_url)
+- ✅ Storage bucket (prompt-images)
+- ✅ Storage policies (4-5 policies)
+
+**Expected Output:** All ✅ checkmarks, no ❌ or ⚠️ warnings
+
+### Manual Verification
+
+If you prefer to check manually:
+
+#### Check Columns
 ```sql
 SELECT column_name, data_type
 FROM information_schema.columns
@@ -125,12 +143,12 @@ AND column_name IN ('author_name', 'image_url');
 
 **Expected result:** 2 rows showing both columns
 
-### Check Storage Bucket
+#### Check Storage Bucket
 1. Go to **Storage** in Supabase Dashboard
 2. You should see **prompt-images** bucket
 3. It should be marked as **Public**
 
-### Check Policies
+#### Check Policies
 ```sql
 SELECT policyname
 FROM pg_policies
@@ -183,3 +201,11 @@ AND policyname LIKE '%prompt%';
 ---
 
 **After completing all steps, refresh the app and try submitting a prompt!** 🚀
+
+## 🧪 Next Steps
+
+Once setup is complete:
+1. Run `VERIFY_DATABASE_SETUP.sql` to confirm everything is working
+2. See `TESTING_GUIDE.md` for comprehensive testing instructions
+3. Test prompt submission with and without images
+4. Verify error messages are helpful if something goes wrong
