@@ -628,26 +628,6 @@ function setupSubmitWindowEventListeners(contentContainer, onSuccess) {
         submitBtn.style.color = 'white'
         submitBtn.disabled = false // Re-enable after loading
 
-        // Reset form
-        form.reset()
-        selectedTags = []
-        expandedParentTags = []
-        renderSelectedTags(selectedTagsContainer)
-
-        // Re-render tag hierarchy to reset expanded states
-        const tagContainer = contentContainer.querySelector('#tag-hierarchy-container')
-        if (tagContainer) {
-          tagContainer.innerHTML = renderTagHierarchy()
-          setupTagHierarchyListeners(contentContainer, selectedTagsContainer)
-        }
-
-        // Clear image
-        selectedImage = null
-        imagePreview.style.display = 'none'
-        imagePreview.innerHTML = ''
-        imageLabel.textContent = 'Choose Image'
-        clearImageBtn.style.display = 'none'
-
         // Call success callback to refresh library
         if (onSuccess) {
           onSuccess()
