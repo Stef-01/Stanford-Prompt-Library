@@ -165,6 +165,17 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
     console.log('🎯 SubmitWindow: Form submitted!')
     isSubmitting = true
 
+    // Safety timeout: Force reset button after 20 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
+      console.error('🎯 SubmitWindow: SAFETY TIMEOUT - Force resetting button')
+      if (submitBtn) {
+        setButtonLoading(submitBtn, false)
+        submitBtn.disabled = false
+      }
+      isSubmitting = false
+      showToast('Request timed out. Please try again.', 'error')
+    }, 20000)
+
     try {
       // Set button to loading state
       setButtonLoading(submitBtn, true)
@@ -193,19 +204,28 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
 
       if (!validation.isValid) {
         console.warn('🎯 SubmitWindow: Validation failed')
+        clearTimeout(safetyTimeout)
         showToast(validation.message, 'error')
         setButtonLoading(submitBtn, false)
         isSubmitting = false
         return
       }
 
-      // Submit
+      // Submit with timeout to prevent infinite loading
       console.log('🎯 SubmitWindow: Submitting to server...')
-      const result = await submitPrompt(promptData)
+      const result = await Promise.race([
+        submitPrompt(promptData),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timed out. Please check your internet connection and try again.')), 15000)
+        )
+      ])
       console.log('🎯 SubmitWindow: Result:', result)
 
       if (result.success) {
         console.log('🎯 SubmitWindow: SUCCESS!')
+
+        // Clear safety timeout
+        clearTimeout(safetyTimeout)
 
         // Show success message
         showToast('Prompt submitted successfully! 🎉', 'success')
@@ -240,11 +260,18 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
 
     } catch (error) {
       console.error('🎯 SubmitWindow: ERROR:', error)
-      showToast(error.message || 'Failed to submit prompt', 'error')
+
+      // Clear safety timeout
+      clearTimeout(safetyTimeout)
+
+      // Show error message
+      const errorMessage = error?.message || error?.error_description || 'Failed to submit prompt. Please try again.'
+      showToast(errorMessage, 'error')
 
       // Reset button on error
       if (submitBtn) {
         setButtonLoading(submitBtn, false)
+        submitBtn.disabled = false
       }
       isSubmitting = false
     }
