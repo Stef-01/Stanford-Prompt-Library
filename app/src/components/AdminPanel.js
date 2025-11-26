@@ -171,11 +171,16 @@ export async function renderAdminPanel(container, userData) {
  * Load admin data
  */
 async function loadAdminData() {
+  console.log('📊 Loading admin data with filter:', currentFilter)
+
   try {
     // Load stats
+    console.log('  → Loading stats...')
     stats = await getAdminStats()
+    console.log('  ✅ Stats loaded:', stats)
 
     // Load prompts based on current filter
+    console.log('  → Loading prompts...')
     if (currentFilter === 'pending') {
       prompts = await getPendingPrompts()
     } else if (currentFilter === 'all') {
@@ -183,8 +188,20 @@ async function loadAdminData() {
     } else {
       prompts = await getAllPrompts({ status: currentFilter })
     }
+
+    console.log('  ✅ Prompts loaded:', prompts.length, 'prompts')
+
+    if (prompts.length > 0) {
+      console.log('  📝 Sample prompt:', prompts[0])
+    }
+
   } catch (error) {
-    console.error('Error loading admin data:', error)
+    console.error('❌ Error loading admin data:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack
+    })
+    throw error
   }
 }
 
@@ -455,8 +472,12 @@ function setupAdminEventListeners(container) {
  * Set up action button listeners
  */
 function setupActionListeners(container) {
+  console.log('🔧 Setting up action listeners...')
+
   // Prompt card hover effects
   const promptCards = container.querySelectorAll('.admin-prompt-card')
+  console.log('📋 Found', promptCards.length, 'prompt cards')
+
   promptCards.forEach(card => {
     card.addEventListener('mouseenter', (e) => {
       e.currentTarget.style.background = 'var(--white-8)'
@@ -471,9 +492,16 @@ function setupActionListeners(container) {
 
   // Approve buttons
   const approveBtns = container.querySelectorAll('.btn-approve')
+  console.log('✅ Found', approveBtns.length, 'approve buttons')
+
   approveBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const promptId = btn.dataset.promptId
+    const promptId = btn.dataset.promptId
+    console.log('  → Attaching approve listener to promptId:', promptId)
+
+    btn.addEventListener('click', async (e) => {
+      console.log('👆 Approve button clicked for promptId:', promptId)
+      e.preventDefault()
+      e.stopPropagation()
       await handleApprove(promptId, container)
     })
 
@@ -490,9 +518,16 @@ function setupActionListeners(container) {
 
   // Reject buttons
   const rejectBtns = container.querySelectorAll('.btn-reject')
+  console.log('❌ Found', rejectBtns.length, 'reject buttons')
+
   rejectBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const promptId = btn.dataset.promptId
+    const promptId = btn.dataset.promptId
+    console.log('  → Attaching reject listener to promptId:', promptId)
+
+    btn.addEventListener('click', async (e) => {
+      console.log('👆 Reject button clicked for promptId:', promptId)
+      e.preventDefault()
+      e.stopPropagation()
       await handleReject(promptId, container)
     })
 
@@ -508,18 +543,32 @@ function setupActionListeners(container) {
       e.currentTarget.style.transform = 'translateY(0)'
     })
   })
+
+  console.log('✅ Action listeners setup complete')
 }
 
 /**
  * Handle approve action
  */
 async function handleApprove(promptId, container) {
+  console.log('🟢 handleApprove called with promptId:', promptId)
+
   const confirmed = confirm('Approve this prompt? The user will gain access to the library.')
-  if (!confirmed) return
+  if (!confirmed) {
+    console.log('❌ User cancelled approval')
+    return
+  }
 
   try {
     // Show loading
     const btn = container.querySelector(`.btn-approve[data-prompt-id="${promptId}"]`)
+
+    if (!btn) {
+      console.error('❌ Approve button not found for promptId:', promptId)
+      showNotification('Error: Approve button not found', 'error')
+      return
+    }
+
     const originalHTML = btn.innerHTML
     btn.disabled = true
     btn.innerHTML = `
@@ -527,11 +576,17 @@ async function handleApprove(promptId, container) {
       <span>Approving...</span>
     `
 
+    console.log('📤 Calling approvePrompt API...')
+
     // Approve the prompt
-    await approvePrompt(promptId, true)
+    const result = await approvePrompt(promptId, true)
+
+    console.log('✅ Prompt approved successfully:', result)
 
     // Show success notification
     showNotification('Prompt approved! User has been granted access.', 'success')
+
+    console.log('🔄 Reloading admin data...')
 
     // Reload data
     await loadAdminData()
@@ -546,9 +601,18 @@ async function handleApprove(promptId, container) {
     // Re-attach listeners
     setupActionListeners(container)
 
+    console.log('✅ Admin panel refreshed successfully')
+
   } catch (error) {
-    console.error('Approve error:', error)
+    console.error('❌ Approve error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      promptId: promptId
+    })
+
     showNotification('Failed to approve prompt: ' + error.message, 'error')
+
     // Restore button
     const btn = container.querySelector(`.btn-approve[data-prompt-id="${promptId}"]`)
     if (btn) {
@@ -565,12 +629,24 @@ async function handleApprove(promptId, container) {
  * Handle reject action
  */
 async function handleReject(promptId, container) {
+  console.log('🔴 handleReject called with promptId:', promptId)
+
   const reason = prompt('Rejection reason (optional):')
-  if (reason === null) return // User cancelled
+  if (reason === null) {
+    console.log('❌ User cancelled rejection')
+    return // User cancelled
+  }
 
   try {
     // Show loading
     const btn = container.querySelector(`.btn-reject[data-prompt-id="${promptId}"]`)
+
+    if (!btn) {
+      console.error('❌ Reject button not found for promptId:', promptId)
+      showNotification('Error: Reject button not found', 'error')
+      return
+    }
+
     const originalHTML = btn.innerHTML
     btn.disabled = true
     btn.innerHTML = `
@@ -578,11 +654,17 @@ async function handleReject(promptId, container) {
       <span>Rejecting...</span>
     `
 
+    console.log('📤 Calling rejectPrompt API with reason:', reason || '(none)')
+
     // Reject the prompt
-    await rejectPrompt(promptId, reason)
+    const result = await rejectPrompt(promptId, reason)
+
+    console.log('✅ Prompt rejected successfully:', result)
 
     // Show success notification
     showNotification('Prompt rejected', 'success')
+
+    console.log('🔄 Reloading admin data...')
 
     // Reload data
     await loadAdminData()
@@ -597,9 +679,19 @@ async function handleReject(promptId, container) {
     // Re-attach listeners
     setupActionListeners(container)
 
+    console.log('✅ Admin panel refreshed successfully')
+
   } catch (error) {
-    console.error('Reject error:', error)
+    console.error('❌ Reject error:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      promptId: promptId,
+      reason: reason
+    })
+
     showNotification('Failed to reject prompt: ' + error.message, 'error')
+
     // Restore button
     const btn = container.querySelector(`.btn-reject[data-prompt-id="${promptId}"]`)
     if (btn) {
