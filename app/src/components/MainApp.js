@@ -12,6 +12,8 @@ import { initializeKeyboardShortcuts } from '../utils/keyboard-shortcuts.js'
 import { initAnimationSystem } from '../animations/config.js'
 import { initDockMagnification } from '../utils/dock-magnification.js'
 import { initWallpaper } from '../services/wallpaper.js'
+import { initMobileDetection, isMobileDevice } from '../utils/mobile-detection.js'
+import { renderMobileNavigation, setActiveNavItem } from './MobileNavigation.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -35,8 +37,9 @@ let userData = null
  */
 export async function renderMainApp(container, user) {
   try {
-    // Add desktop mode class to body
-    document.body.classList.add('desktop-mode')
+    // Initialize mobile detection and add appropriate mode classes
+    const viewport = initMobileDetection()
+    console.log('📱 Viewport detected:', viewport.deviceType)
 
     console.log('🎨 Rendering main app for user:', user.display_name)
 
@@ -153,8 +156,15 @@ export async function renderMainApp(container, user) {
     // Initialize dock magnification effect
     initDockMagnification()
 
+    // Render mobile navigation
+    console.log('📱 Rendering mobile navigation...')
+    renderMobileNavigation(document.body, userData, userIsAdmin)
+
     // Open Explore window by default
     openWindow('explore')
+
+    // Set initial active nav item for mobile
+    setActiveNavItem('explore')
 
     console.log('✅ Desktop app rendered successfully!')
 
