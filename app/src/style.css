@@ -2304,6 +2304,103 @@ body.desktop-mode {
     /* Allow draggable, resizable windows */
     resize: both;
   }
+
+  /* Hide mobile navigation on desktop */
+  .mobile-nav-toggle,
+  .mobile-nav-menu,
+  .mobile-nav-overlay {
+    display: none !important;
+  }
+}
+
+/* ============================================================================
+   MOBILE NAVIGATION STYLES
+   ============================================================================ */
+
+/* Mobile navigation toggle button */
+.mobile-nav-toggle {
+  /* Already styled inline, but add hover effects */
+}
+
+.mobile-nav-toggle:hover {
+  background: var(--white-15) !important;
+  transform: scale(1.05);
+}
+
+.mobile-nav-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Mobile navigation menu items */
+.mobile-nav-item:hover {
+  background: var(--white-5) !important;
+}
+
+.mobile-nav-item:active {
+  background: var(--white-10) !important;
+  transform: scale(0.98);
+}
+
+/* Mobile menu signout button */
+#mobile-nav-signout:hover {
+  background: var(--white-15) !important;
+  border-color: var(--border-hover) !important;
+}
+
+#mobile-nav-signout:active {
+  transform: scale(0.98);
+}
+
+/* Mobile nav close button */
+#mobile-nav-close:hover {
+  background: var(--white-15) !important;
+  border-color: var(--border-hover) !important;
+  transform: rotate(90deg);
+}
+
+/* Smooth scrolling for mobile menu */
+.mobile-nav-menu {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 767px) {
+  .mobile-nav-item {
+    min-height: 60px;
+  }
+
+  #mobile-nav-toggle {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Ensure dock doesn't overlap with hamburger button */
+  .navbar-dock {
+    padding-bottom: env(safe-area-inset-bottom, 12px);
+  }
+
+  /* Add safe area insets for notched devices */
+  .mobile-nav-menu {
+    padding-top: env(safe-area-inset-top, 0);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  #mobile-nav-toggle {
+    top: max(16px, env(safe-area-inset-top, 0) + 8px);
+    right: max(16px, env(safe-area-inset-right, 0) + 8px);
+  }
+}
+
+/* High contrast mode support for mobile nav */
+@media (prefers-contrast: high) {
+  .mobile-nav-toggle,
+  .mobile-nav-menu {
+    border-width: 2px !important;
+  }
+
+  .mobile-nav-item {
+    border-left-width: 4px !important;
+  }
 }
 
 /* ============================================================================
