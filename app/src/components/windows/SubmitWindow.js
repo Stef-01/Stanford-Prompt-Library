@@ -1,10 +1,10 @@
 /**
  * Submit Window - Prompt Submission Form
- * Enhanced with comprehensive debugging
+ * Fixed version - prevents button stuck in loading state
  */
 
 import { Icon } from '../ui/Icon.js'
-import { showToast } from '../ui/Toast.js'
+import { showToast, clearAllToasts } from '../ui/Toast.js'
 import { submitPrompt, getCategories } from '../../services/prompts.js'
 import { validatePromptSubmission } from '../../utils/validation.js'
 import { closeWindow } from '../../utils/desktop-windows.js'
@@ -12,6 +12,7 @@ import { setButtonLoading } from '../../animations/form-animations.js'
 
 let categories = []
 let selectedTags = []
+let isSubmitting = false  // Prevent double submissions
 
 // Simplified tag list (flat structure for robustness)
 const COMMON_TAGS = [
@@ -25,15 +26,14 @@ const COMMON_TAGS = [
  */
 export async function renderSubmitWindow(contentContainer, userData, onSuccess) {
   console.log('🎯 SubmitWindow: Rendering submit window')
-  console.log('🎯 SubmitWindow: Container:', contentContainer)
-  console.log('🎯 SubmitWindow: User data:', userData)
 
-  // Clear any existing toast notifications to prevent blocking
-  const oldToastContainer = document.getElementById('toast-container')
-  if (oldToastContainer) {
-    console.log('🎯 SubmitWindow: Removing old toast container')
-    oldToastContainer.remove()
-  }
+  // Reset state
+  isSubmitting = false
+  selectedTags = []
+
+  // Clear any existing toast notifications
+  clearAllToasts()
+  console.log('🎯 SubmitWindow: Cleared all toasts')
 
   // Load categories
   try {
@@ -43,9 +43,6 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
     console.error('🎯 SubmitWindow: Failed to load categories:', error)
     categories = []
   }
-
-  selectedTags = []
-  console.log('🎯 SubmitWindow: Reset selected tags')
 
   contentContainer.innerHTML = `
     <div class="submit-window-content" style="height: 100%; overflow-y: auto; padding: 24px;">
@@ -114,7 +111,7 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
     </div>
   `
 
-  console.log('🎯 SubmitWindow: HTML rendered into container')
+  console.log('🎯 SubmitWindow: HTML rendered')
 
   // Tag Selection Logic
   const tagBtns = contentContainer.querySelectorAll('.tag-btn')
@@ -134,7 +131,6 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
         btn.style.color = 'white'
         btn.style.borderColor = 'var(--primary)'
       }
-      console.log('🎯 SubmitWindow: Selected tags:', selectedTags)
     })
   })
 
@@ -142,22 +138,37 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
   const form = contentContainer.querySelector('#submit-prompt-form')
   const submitBtn = contentContainer.querySelector('#submit-prompt-btn')
 
-  console.log('🎯 SubmitWindow: Form element:', form)
-  console.log('🎯 SubmitWindow: Submit button:', submitBtn)
+  console.log('🎯 SubmitWindow: Form:', form)
+  console.log('🎯 SubmitWindow: Button state - disabled:', submitBtn?.disabled, 'class:', submitBtn?.className)
 
   if (!form || !submitBtn) {
-    console.error('🎯 SubmitWindow: ERROR - Form or submit button not found!')
+    console.error('🎯 SubmitWindow: ERROR - Form or button not found!')
     return
   }
 
+  // Ensure button starts in correct state
+  submitBtn.disabled = false
+  submitBtn.classList.remove('loading')
+  const oldSpinner = submitBtn.querySelector('.button-spinner')
+  if (oldSpinner) oldSpinner.remove()
+  console.log('🎯 SubmitWindow: Button reset to initial state')
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
-    console.log('🎯 SubmitWindow: Form submit event triggered')
-    console.log('🎯 SubmitWindow: Submit button state - disabled:', submitBtn.disabled, 'loading:', submitBtn.classList.contains('loading'))
+
+    // Prevent double submissions
+    if (isSubmitting) {
+      console.warn('🎯 SubmitWindow: Already submitting, ignoring duplicate submit')
+      return
+    }
+
+    console.log('🎯 SubmitWindow: Form submitted!')
+    isSubmitting = true
 
     try {
-      console.log('🎯 SubmitWindow: Setting button to loading state')
+      // Set button to loading state
       setButtonLoading(submitBtn, true)
+      console.log('🎯 SubmitWindow: Button set to loading')
 
       const formData = new FormData(form)
       const promptData = {
@@ -168,66 +179,76 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
         tags: selectedTags
       }
 
-      console.log('🎯 SubmitWindow: Prompt data collected:', {
-        title: promptData.title?.substring(0, 50),
-        description: promptData.description?.substring(0, 50),
+      console.log('🎯 SubmitWindow: Data collected:', {
+        titleLength: promptData.title?.length,
+        descLength: promptData.description?.length,
         contentLength: promptData.content?.length,
         category: promptData.category,
-        tagsCount: promptData.tags?.length
+        tags: promptData.tags
       })
 
       // Validation
-      console.log('🎯 SubmitWindow: Validating prompt data')
       const validation = validatePromptSubmission(promptData)
-      console.log('🎯 SubmitWindow: Validation result:', validation)
+      console.log('🎯 SubmitWindow: Validation:', validation)
 
       if (!validation.isValid) {
-        console.warn('🎯 SubmitWindow: Validation failed:', validation.message)
+        console.warn('🎯 SubmitWindow: Validation failed')
         showToast(validation.message, 'error')
         setButtonLoading(submitBtn, false)
+        isSubmitting = false
         return
       }
 
       // Submit
-      console.log('🎯 SubmitWindow: Submitting prompt to server...')
+      console.log('🎯 SubmitWindow: Submitting to server...')
       const result = await submitPrompt(promptData)
-      console.log('🎯 SubmitWindow: Submit result:', result)
+      console.log('🎯 SubmitWindow: Result:', result)
 
       if (result.success) {
-        console.log('🎯 SubmitWindow: Success! Showing toast and closing window')
-        showToast('Prompt submitted successfully!', 'success')
+        console.log('🎯 SubmitWindow: SUCCESS!')
 
-        // Reset button state before closing window
-        console.log('🎯 SubmitWindow: Resetting button state')
+        // Show success message
+        showToast('Prompt submitted successfully! 🎉', 'success')
+
+        // IMPORTANT: Reset button IMMEDIATELY before any delays
         setButtonLoading(submitBtn, false)
+        submitBtn.disabled = true  // Disable to prevent resubmission
+        isSubmitting = false
 
         // Reset form
         form.reset()
         selectedTags = []
 
+        // Call success callback
         if (onSuccess) {
-          console.log('🎯 SubmitWindow: Calling onSuccess callback')
-          onSuccess()
+          try {
+            onSuccess()
+          } catch (err) {
+            console.error('🎯 SubmitWindow: onSuccess error:', err)
+          }
         }
 
-        console.log('🎯 SubmitWindow: Scheduling window close in 1500ms')
+        // Close window after delay
+        console.log('🎯 SubmitWindow: Closing in 2000ms')
         setTimeout(() => {
-          console.log('🎯 SubmitWindow: Closing window now')
           closeWindow('submit')
-        }, 1500)
+        }, 2000)
+
       } else {
         throw new Error(result.message || 'Submission failed')
       }
 
     } catch (error) {
-      console.error('🎯 SubmitWindow: Submit error:', error)
-      console.error('🎯 SubmitWindow: Error message:', error.message)
-      console.error('🎯 SubmitWindow: Error stack:', error.stack)
+      console.error('🎯 SubmitWindow: ERROR:', error)
       showToast(error.message || 'Failed to submit prompt', 'error')
-      setButtonLoading(submitBtn, false)
+
+      // Reset button on error
+      if (submitBtn) {
+        setButtonLoading(submitBtn, false)
+      }
+      isSubmitting = false
     }
   })
 
-  console.log('🎯 SubmitWindow: Render complete, event listeners attached')
-  console.log('🎯 SubmitWindow: ---')
+  console.log('🎯 SubmitWindow: Ready!')
 }
