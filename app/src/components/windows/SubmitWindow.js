@@ -100,8 +100,8 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" id="submit-prompt-btn"
-            style="margin-top: 16px; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <button type="submit" id="submit-prompt-btn" class="btn-primary"
+            style="margin-top: 16px; width: 100%;">
             ${Icon({ name: 'send' })}
             Submit for Review
           </button>
