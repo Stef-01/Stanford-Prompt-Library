@@ -532,6 +532,12 @@ export function toggleMobileMenu() {
  * Open mobile menu
  */
 export function openMobileMenu() {
+  // Don't open on desktop
+  if (window.innerWidth >= 768) {
+    console.log('📱 Skipping mobile menu open - desktop detected')
+    return
+  }
+
   console.log('📱 Opening mobile menu')
 
   const menu = document.getElementById('mobile-nav-menu')

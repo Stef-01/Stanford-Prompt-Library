@@ -26,18 +26,32 @@ export function showToast(message, type = 'info', duration = 3000) {
       flex-direction: column;
       gap: 12px;
       pointer-events: none;
+      max-width: 420px;
     `
     document.body.appendChild(container)
   }
 
+  // Limit number of toasts (prevent stacking issues)
+  const existingToasts = container.querySelectorAll('.toast-notification')
+  if (existingToasts.length >= 3) {
+    // Remove oldest toast if we have too many
+    const oldestToast = existingToasts[0]
+    if (oldestToast) {
+      oldestToast.style.transform = 'translateX(120%)'
+      setTimeout(() => oldestToast.remove(), 300)
+    }
+  }
+
   // Create toast element
   const toast = document.createElement('div')
-  
+  toast.className = 'toast-notification'  // Add class for easier selection
+  toast.dataset.toastId = Date.now()  // Add unique ID
+
   // Icon and colors based on type
   let iconName = 'info'
   let bgColor = 'var(--white-10)'
   let borderColor = 'var(--border-subtle)'
-  
+
   if (type === 'success') {
     iconName = 'check_circle'
     bgColor = 'rgba(16, 185, 129, 0.1)'
@@ -49,6 +63,7 @@ export function showToast(message, type = 'info', duration = 3000) {
   }
 
   toast.style.cssText = `
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -98,11 +113,33 @@ export function showToast(message, type = 'info', duration = 3000) {
   // Remove after duration
   setTimeout(() => {
     toast.style.transform = 'translateX(120%)'
+    toast.style.opacity = '0'
     setTimeout(() => {
       toast.remove()
-      if (container.childNodes.length === 0) {
+
+      // Clean up container if empty
+      const remainingToasts = container.querySelectorAll('.toast-notification')
+      if (remainingToasts.length === 0) {
         container.remove()
       }
     }, 400)
   }, duration)
+}
+
+/**
+ * Clear all toast notifications
+ */
+export function clearAllToasts() {
+  const container = document.getElementById('toast-container')
+  if (container) {
+    const toasts = container.querySelectorAll('.toast-notification')
+    toasts.forEach(toast => {
+      toast.style.transform = 'translateX(120%)'
+      toast.style.opacity = '0'
+    })
+
+    setTimeout(() => {
+      container.remove()
+    }, 400)
+  }
 }
