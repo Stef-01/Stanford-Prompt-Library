@@ -1,0 +1,454 @@
+/**
+ * Library Component Styles
+ * Styles for the refactored library components
+ */
+
+/* ============================================================================
+   Library Container
+   ========================================================================= */
+
+.library-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+  padding: 1.5rem;
+}
+
+/* ============================================================================
+   Library Tabs
+   ========================================================================= */
+
+.library-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.library-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 0.938rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.library-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #ffffff);
+}
+
+.library-tab.active {
+  background: var(--primary-color, #007AFF);
+  color: white;
+}
+
+.library-tab .material-icons {
+  font-size: 1.25rem;
+}
+
+/* ============================================================================
+   Filter Bar
+   ========================================================================= */
+
+.library-filter-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-bar-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filter-bar-search .material-icons {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 1.25rem;
+}
+
+.filter-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary, #ffffff);
+  font-size: 0.938rem;
+  font-family: inherit;
+}
+
+.filter-search-input::placeholder {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.4));
+}
+
+.filter-bar-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.filter-category-select,
+.filter-sort-select {
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  font-size: 0.938rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.filter-category-select:hover,
+.filter-sort-select:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-category-select option,
+.filter-sort-select option {
+  background: var(--window-bg, #1e1e1e);
+  color: var(--text-primary, #ffffff);
+}
+
+.filter-view-toggle {
+  display: flex;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-toggle-btn {
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #ffffff);
+}
+
+.view-toggle-btn.active {
+  background: var(--primary-color, #007AFF);
+  color: white;
+}
+
+.view-toggle-btn .material-icons {
+  font-size: 1.25rem;
+}
+
+/* ============================================================================
+   Library Content
+   ========================================================================= */
+
+.library-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.library-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.library-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.library-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.library-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================================================
+   Prompt Modal
+   ========================================================================= */
+
+.prompt-detail-modal .modal-dialog {
+  max-width: 800px;
+}
+
+.prompt-modal-content {
+  padding: 2rem;
+}
+
+.prompt-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.prompt-modal-meta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.prompt-modal-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #ffffff);
+  line-height: 1.3;
+}
+
+.prompt-modal-description {
+  font-size: 1.125rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+}
+
+.prompt-modal-body {
+  margin-bottom: 2rem;
+}
+
+.prompt-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #ffffff);
+}
+
+.prompt-content-box {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.prompt-content-text {
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.938rem;
+  line-height: 1.6;
+  color: var(--text-primary, #ffffff);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.btn-copy-prompt {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: var(--text-primary, #ffffff);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy-prompt:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-copy-prompt.copied {
+  background: #10b981;
+  color: white;
+}
+
+.btn-copy-prompt .material-icons {
+  font-size: 1.25rem;
+}
+
+.prompt-modal-variables {
+  margin-bottom: 2rem;
+}
+
+.prompt-variables-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prompt-variable-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prompt-variable-item code {
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  color: var(--primary-color, #007AFF);
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+}
+
+.prompt-variable-desc {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 0.875rem;
+}
+
+.prompt-modal-example {
+  margin-bottom: 2rem;
+}
+
+.prompt-example-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.prompt-example-box pre {
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.8));
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.prompt-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prompt-modal-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.prompt-modal-stats .prompt-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 0.938rem;
+}
+
+.prompt-modal-stats .material-icons {
+  font-size: 1.125rem;
+}
+
+.prompt-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ============================================================================
+   Responsive Styles
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  .library-filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-bar-search {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .library-container {
+    padding: 1rem;
+  }
+
+  .library-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .library-tab {
+    white-space: nowrap;
+  }
+
+  .filter-bar-controls {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .filter-category-select,
+  .filter-sort-select {
+    flex: 1;
+  }
+
+  .filter-view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .prompt-modal-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .prompt-modal-actions {
+    width: 100%;
+  }
+
+  .prompt-modal-actions .btn {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .prompt-modal-title {
+    font-size: 1.5rem;
+  }
+
+  .prompt-modal-description {
+    font-size: 1rem;
+  }
+
+  .prompt-content-box,
+  .prompt-example-box {
+    padding: 1rem;
+  }
+
+  .prompt-modal-stats {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
