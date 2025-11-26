@@ -1,6 +1,6 @@
 /**
  * Submit Window - Prompt Submission Form
- * Simplified and robust version to prevent UI bugs
+ * Enhanced with comprehensive debugging
  */
 
 import { Icon } from '../ui/Icon.js'
@@ -24,21 +24,40 @@ const COMMON_TAGS = [
  * Render Submit Window Content
  */
 export async function renderSubmitWindow(contentContainer, userData, onSuccess) {
+  console.log('🎯 SubmitWindow: Rendering submit window')
+  console.log('🎯 SubmitWindow: Container:', contentContainer)
+  console.log('🎯 SubmitWindow: User data:', userData)
+
+  // Clear any existing toast notifications to prevent blocking
+  const oldToastContainer = document.getElementById('toast-container')
+  if (oldToastContainer) {
+    console.log('🎯 SubmitWindow: Removing old toast container')
+    oldToastContainer.remove()
+  }
+
   // Load categories
-  categories = await getCategories()
+  try {
+    categories = await getCategories()
+    console.log('🎯 SubmitWindow: Categories loaded:', categories.length)
+  } catch (error) {
+    console.error('🎯 SubmitWindow: Failed to load categories:', error)
+    categories = []
+  }
+
   selectedTags = []
+  console.log('🎯 SubmitWindow: Reset selected tags')
 
   contentContainer.innerHTML = `
     <div class="submit-window-content" style="height: 100%; overflow-y: auto; padding: 24px;">
       <div style="max-width: 700px; margin: 0 auto;">
-        
+
         <h2 style="font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
           ${Icon({ name: 'add_circle', className: 'text-primary' })}
           Submit a Prompt
         </h2>
 
         <form id="submit-prompt-form" style="display: flex; flex-direction: column; gap: 20px;">
-          
+
           <!-- Title -->
           <div class="form-group">
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Title *</label>
@@ -74,7 +93,7 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-primary);">Tags</label>
             <div id="tags-container" style="display: flex; flex-wrap: wrap; gap: 8px;">
               ${COMMON_TAGS.map(tag => `
-                <button type="button" class="tag-btn" data-tag="${tag}" 
+                <button type="button" class="tag-btn" data-tag="${tag}"
                   style="padding: 6px 12px; border-radius: 16px; border: 1px solid var(--border-subtle); background: var(--white-5); color: var(--text-secondary); cursor: pointer; transition: all 0.2s;">
                   ${tag}
                 </button>
@@ -84,7 +103,7 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" id="submit-prompt-btn" 
+          <button type="submit" id="submit-prompt-btn"
             style="margin-top: 16px; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
             ${Icon({ name: 'send' })}
             Submit for Review
@@ -95,8 +114,12 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
     </div>
   `
 
+  console.log('🎯 SubmitWindow: HTML rendered into container')
+
   // Tag Selection Logic
   const tagBtns = contentContainer.querySelectorAll('.tag-btn')
+  console.log('🎯 SubmitWindow: Tag buttons found:', tagBtns.length)
+
   tagBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const tag = btn.dataset.tag
@@ -111,6 +134,7 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
         btn.style.color = 'white'
         btn.style.borderColor = 'var(--primary)'
       }
+      console.log('🎯 SubmitWindow: Selected tags:', selectedTags)
     })
   })
 
@@ -118,10 +142,21 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
   const form = contentContainer.querySelector('#submit-prompt-form')
   const submitBtn = contentContainer.querySelector('#submit-prompt-btn')
 
+  console.log('🎯 SubmitWindow: Form element:', form)
+  console.log('🎯 SubmitWindow: Submit button:', submitBtn)
+
+  if (!form || !submitBtn) {
+    console.error('🎯 SubmitWindow: ERROR - Form or submit button not found!')
+    return
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault()
+    console.log('🎯 SubmitWindow: Form submit event triggered')
+    console.log('🎯 SubmitWindow: Submit button state - disabled:', submitBtn.disabled, 'loading:', submitBtn.classList.contains('loading'))
 
     try {
+      console.log('🎯 SubmitWindow: Setting button to loading state')
       setButtonLoading(submitBtn, true)
 
       const formData = new FormData(form)
@@ -133,29 +168,66 @@ export async function renderSubmitWindow(contentContainer, userData, onSuccess) 
         tags: selectedTags
       }
 
+      console.log('🎯 SubmitWindow: Prompt data collected:', {
+        title: promptData.title?.substring(0, 50),
+        description: promptData.description?.substring(0, 50),
+        contentLength: promptData.content?.length,
+        category: promptData.category,
+        tagsCount: promptData.tags?.length
+      })
+
       // Validation
+      console.log('🎯 SubmitWindow: Validating prompt data')
       const validation = validatePromptSubmission(promptData)
+      console.log('🎯 SubmitWindow: Validation result:', validation)
+
       if (!validation.isValid) {
+        console.warn('🎯 SubmitWindow: Validation failed:', validation.message)
         showToast(validation.message, 'error')
         setButtonLoading(submitBtn, false)
         return
       }
 
       // Submit
+      console.log('🎯 SubmitWindow: Submitting prompt to server...')
       const result = await submitPrompt(promptData)
+      console.log('🎯 SubmitWindow: Submit result:', result)
 
       if (result.success) {
+        console.log('🎯 SubmitWindow: Success! Showing toast and closing window')
         showToast('Prompt submitted successfully!', 'success')
-        if (onSuccess) onSuccess()
-        setTimeout(() => closeWindow('submit'), 1000)
+
+        // Reset button state before closing window
+        console.log('🎯 SubmitWindow: Resetting button state')
+        setButtonLoading(submitBtn, false)
+
+        // Reset form
+        form.reset()
+        selectedTags = []
+
+        if (onSuccess) {
+          console.log('🎯 SubmitWindow: Calling onSuccess callback')
+          onSuccess()
+        }
+
+        console.log('🎯 SubmitWindow: Scheduling window close in 1500ms')
+        setTimeout(() => {
+          console.log('🎯 SubmitWindow: Closing window now')
+          closeWindow('submit')
+        }, 1500)
       } else {
-        throw new Error('Submission failed')
+        throw new Error(result.message || 'Submission failed')
       }
 
     } catch (error) {
-      console.error('Submit error:', error)
+      console.error('🎯 SubmitWindow: Submit error:', error)
+      console.error('🎯 SubmitWindow: Error message:', error.message)
+      console.error('🎯 SubmitWindow: Error stack:', error.stack)
       showToast(error.message || 'Failed to submit prompt', 'error')
       setButtonLoading(submitBtn, false)
     }
   })
+
+  console.log('🎯 SubmitWindow: Render complete, event listeners attached')
+  console.log('🎯 SubmitWindow: ---')
 }
