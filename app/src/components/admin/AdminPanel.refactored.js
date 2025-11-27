@@ -8,7 +8,7 @@ import { createStatsPanel, updateStatsPanel } from './StatsPanel.js'
 import { createPromptReviewCard } from './PromptReviewCard.js'
 import { createPromptDetailModal } from './PromptDetailModal.js'
 import { getPendingPrompts, approvePrompt, rejectPrompt, getPromptStats } from '../../services/admin.js'
-import { showSuccess, showError } from '../../utils/helpers/index.js'
+import { showSuccess, showError } from '../../utils/helpers/toast.js'
 
 // Local constants
 const ADMIN_FILTERS = {

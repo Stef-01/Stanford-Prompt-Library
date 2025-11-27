@@ -6,7 +6,7 @@
 import { Modal } from '../ui/Modal.js'
 import { getCategoryIcon, getCategoryLabel } from '../../config/constants.js'
 import { formatDate, escapeHtml, getInitials } from '../../utils/helpers/formatters.js'
-import { showSuccess, showError } from '../../utils/helpers/index.js'
+import { showSuccess, showError } from '../../utils/helpers/toast.js'
 
 /**
  * Create and show prompt detail modal
