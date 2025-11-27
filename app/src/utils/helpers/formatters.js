@@ -231,6 +231,41 @@ export function toQueryString(params) {
     .join('&')
 }
 
+/**
+ * Debounce function execution
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+export function debounce(func, wait) {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+/**
+ * Throttle function execution
+ * @param {Function} func - Function to throttle
+ * @param {number} limit - Limit in milliseconds
+ * @returns {Function} Throttled function
+ */
+export function throttle(func, limit) {
+  let inThrottle
+  return function(...args) {
+    if (!inThrottle) {
+      func.apply(this, args)
+      inThrottle = true
+      setTimeout(() => inThrottle = false, limit)
+    }
+  }
+}
+
 export default {
   escapeHtml,
   truncate,
@@ -245,5 +280,7 @@ export default {
   formatPercentage,
   sanitizeFilename,
   parseQueryString,
-  toQueryString
+  toQueryString,
+  debounce,
+  throttle
 }

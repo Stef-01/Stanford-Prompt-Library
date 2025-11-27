@@ -4,6 +4,7 @@
  */
 
 import { Icon } from '../ui/Icon.js'
+import { debounce, escapeHtml } from '../../utils/helpers/index.js'
 
 let currentFilter = 'All' // All, AI News, Research, Tutorials, Student Work
 let currentSearchQuery = ''
@@ -417,29 +418,4 @@ function injectStyles() {
     }
   `
   document.head.appendChild(style)
-}
-
-/**
- * Debounce function
- */
-function debounce(func, wait) {
-  let timeout
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
-}
-
-/**
- * Escape HTML
- */
-function escapeHtml(text) {
-  if (!text) return ''
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
 }
