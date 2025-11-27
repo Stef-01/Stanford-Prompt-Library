@@ -1,4 +1,4 @@
-import { renderAdminPanel } from '../AdminPanel.js'
+import { renderAdminPanel } from '../admin/index.js'
 
 /**
  * Render Admin Window Content

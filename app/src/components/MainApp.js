@@ -17,10 +17,10 @@ import { renderMobileNavigation, setActiveNavItem } from './MobileNavigation.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
-import { renderLeaderboardWindow } from './windows/LeaderboardWindow.js'
+import { renderLeaderboard } from './leaderboard/index.js'
 import { renderProfileWindow } from './windows/ProfileWindow.js'
 import { renderAdminWindow } from './windows/AdminWindow.js'
-import { renderLibraryWindow } from './windows/LibraryWindow.js'
+import { renderLibrary } from './library/index.js'
 import { renderSubmitWindow } from './windows/SubmitWindow.js'
 import {
   renderGamesWindow,
@@ -262,19 +262,19 @@ async function renderWindowContent(windowId, contentContainer) {
         await renderExploreWindow(contentContainer)
         break
       case 'library':
-        await renderLibraryWindow(contentContainer, userData)
+        await renderLibrary(contentContainer, userData)
         break
       case 'submit':
         await renderSubmitWindow(contentContainer, userData, () => {
           // Refresh library window after successful submission
           const libraryContent = document.getElementById('window-content-library')
           if (libraryContent) {
-            renderLibraryWindow(libraryContent, userData)
+            renderLibrary(libraryContent, userData)
           }
         })
         break
       case 'leaderboard':
-        await renderLeaderboardWindow(contentContainer)
+        await renderLeaderboard(contentContainer)
         break
       case 'profile':
         await renderProfileWindow(contentContainer, userData)
