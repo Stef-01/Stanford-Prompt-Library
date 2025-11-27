@@ -6,4 +6,4 @@
 export { createUserLeaderboard } from './UserLeaderboard.js'
 export { createToolsLeaderboard } from './ToolsLeaderboard.js'
 export { createToolSubmitModal } from './ToolSubmitModal.js'
-export { renderLeaderboard } from './LeaderboardWindow.refactored.js'
+export { renderLeaderboardWindow as renderLeaderboard } from './LeaderboardWindow.refactored.js'
