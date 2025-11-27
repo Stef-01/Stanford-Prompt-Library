@@ -7,7 +7,7 @@ import { adminStore, appStore } from '../../state/store.js'
 import { createStatsPanel, updateStatsPanel } from './StatsPanel.js'
 import { createPromptReviewCard } from './PromptReviewCard.js'
 import { createPromptDetailModal } from './PromptDetailModal.js'
-import { getPendingPrompts, approvePrompt, rejectPrompt, getPromptStats } from '../../services/admin.js'
+import { getPendingPrompts, approvePrompt, rejectPrompt, getAdminStats } from '../../services/admin.js'
 import { showSuccess, showError } from '../../utils/helpers/toast.js'
 
 // Local constants
@@ -244,7 +244,7 @@ async function loadAdminData(force = false) {
     // Load prompts and stats in parallel
     const [prompts, stats] = await Promise.all([
       getPendingPrompts(),
-      getPromptStats()
+      getAdminStats()
     ])
 
     adminStore.setState({
