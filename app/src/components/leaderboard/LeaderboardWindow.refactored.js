@@ -8,7 +8,7 @@ import { createUserLeaderboard } from './UserLeaderboard.js'
 import { createToolsLeaderboard, filterToolsByCategory, sortTools } from './ToolsLeaderboard.js'
 import { createToolSubmitModal } from './ToolSubmitModal.js'
 import { getTimeBasedLeaderboard } from '../../services/prompts.js'
-import { getAITools, voteForTool, submitAITool } from '../../services/ai-tools.js'
+import { getApprovedAITools, voteOnTool, submitAITool } from '../../services/ai-tools.js'
 import { LEADERBOARD_VIEWS } from '../../config/constants.js'
 
 // Module state
@@ -224,7 +224,7 @@ async function loadUsersData(filter) {
  * Load AI tools data
  */
 async function loadToolsData() {
-  const tools = await getAITools()
+  const tools = await getApprovedAITools()
 
   leaderboardStore.setState({
     tools: tools || []
@@ -346,7 +346,7 @@ async function handleToolVote(toolId, voteType) {
   }, 'optimisticVote')
 
   try {
-    await voteForTool(toolId, voteType)
+    await voteOnTool(toolId, voteType)
   } catch (error) {
     console.error('[LeaderboardWindow] Vote failed:', error)
 
