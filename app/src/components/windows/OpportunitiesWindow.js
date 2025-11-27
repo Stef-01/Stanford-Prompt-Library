@@ -12,7 +12,7 @@ import {
   toggleOpportunitySave,
   trackOpportunityClick
 } from '../../services/opportunities.js'
-import { debounce, escapeHtml } from '../../utils/helpers/index.js'
+import { debounce, escapeHtml } from '../../utils/helpers/formatters.js'
 
 let currentFilter = 'all'
 let currentSearch = ''

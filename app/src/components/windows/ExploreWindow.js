@@ -4,7 +4,7 @@
  */
 
 import { Icon } from '../ui/Icon.js'
-import { debounce, escapeHtml } from '../../utils/helpers/index.js'
+import { debounce, escapeHtml } from '../../utils/helpers/formatters.js'
 
 let currentFilter = 'All' // All, AI News, Research, Tutorials, Student Work
 let currentSearchQuery = ''
