@@ -8,8 +8,15 @@ import { createStatsPanel, updateStatsPanel } from './StatsPanel.js'
 import { createPromptReviewCard } from './PromptReviewCard.js'
 import { createPromptDetailModal } from './PromptDetailModal.js'
 import { getPendingPrompts, approvePrompt, rejectPrompt, getPromptStats } from '../../services/admin.js'
-import { ADMIN_FILTERS } from '../../config/constants.js'
 import { showSuccess, showError } from '../../utils/helpers/index.js'
+
+// Local constants
+const ADMIN_FILTERS = {
+  ALL: 'all',
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected'
+}
 
 // Module state
 let unsubscribe = null
