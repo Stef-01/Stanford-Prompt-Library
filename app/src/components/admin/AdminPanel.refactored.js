@@ -9,7 +9,7 @@ import { createPromptReviewCard } from './PromptReviewCard.js'
 import { createPromptDetailModal } from './PromptDetailModal.js'
 import { getPendingPrompts, approvePrompt, rejectPrompt, getPromptStats } from '../../services/admin.js'
 import { ADMIN_FILTERS } from '../../config/constants.js'
-import { showSuccess, showError } from '../../utils/helpers/toast.js'
+import { showSuccess, showError } from '../../utils/helpers/index.js'
 
 // Module state
 let unsubscribe = null
