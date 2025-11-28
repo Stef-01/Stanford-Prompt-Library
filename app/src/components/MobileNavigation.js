@@ -4,7 +4,7 @@
  */
 
 import { Icon } from './ui/Icon.js'
-import { toggleWindow, openWindow, closeAllWindows } from '../utils/desktop-windows.js'
+import { toggleWindow, openWindow } from '../utils/desktop-windows.js'
 
 let isMenuOpen = false
 let currentSection = 'explore'
