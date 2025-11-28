@@ -17,10 +17,10 @@ import { renderMobileNavigation, setActiveNavItem } from './MobileNavigation.js'
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
-import { renderLeaderboard } from './leaderboard/index.js'
+import { renderLeaderboardWindow as renderLeaderboard } from './leaderboard/LeaderboardWindow.refactored.js'
 import { renderProfileWindow } from './windows/ProfileWindow.js'
 import { renderAdminWindow } from './windows/AdminWindow.js'
-import { renderLibrary } from './library/index.js'
+import { renderLibraryWindow as renderLibrary } from './library/LibraryWindow.refactored.js'
 import { renderSubmitWindow } from './windows/SubmitWindow.js'
 import {
   renderGamesWindow,

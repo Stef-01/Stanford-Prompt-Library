@@ -1,4 +1,4 @@
-import { renderAdminPanel } from '../admin/index.js'
+import { renderAdminPanel } from '../admin/AdminPanel.refactored.js'
 
 /**
  * Render Admin Window Content
