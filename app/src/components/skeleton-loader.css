@@ -1,0 +1,429 @@
+/**
+ * Skeleton Loader CSS
+ * Loading states and skeleton components
+ */
+
+/* ============================================
+   Base Skeleton Animations
+   ============================================ */
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ============================================
+   Skeleton Components
+   ============================================ */
+
+.skeleton-card {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-circle {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.skeleton-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+/* ============================================
+   Tool Card Skeleton
+   ============================================ */
+
+.skeleton-tool-card {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-voting {
+  width: 60px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.skeleton-voting-icon {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.skeleton-voting-count {
+  width: 40px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-tool-content {
+  flex: 1;
+  padding: 12px;
+}
+
+.skeleton-tool-title {
+  width: 60%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.skeleton-tool-desc-1 {
+  width: 100%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-tool-desc-2 {
+  width: 80%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.skeleton-tool-badges {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.skeleton-tool-badge-1 {
+  width: 80px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.skeleton-tool-badge-2 {
+  width: 60px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+/* ============================================
+   Leaderboard Row Skeleton
+   ============================================ */
+
+.skeleton-leaderboard-row {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-leaderboard-cell {
+  padding: 16px;
+}
+
+.skeleton-rank {
+  width: 30px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+.skeleton-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.skeleton-user-name {
+  width: 150px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-stat {
+  width: 50px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+.skeleton-stat-wide {
+  width: 60px;
+}
+
+/* ============================================
+   Prompt Card Skeleton
+   ============================================ */
+
+.skeleton-prompt-card {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.skeleton-prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.skeleton-prompt-title {
+  width: 70%;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.skeleton-prompt-category {
+  width: 80px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.skeleton-prompt-desc-1 {
+  width: 100%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-prompt-desc-2 {
+  width: 90%;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.skeleton-prompt-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.skeleton-prompt-tag-1 {
+  width: 70px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.skeleton-prompt-tag-2 {
+  width: 60px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.skeleton-prompt-tag-3 {
+  width: 80px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+/* ============================================
+   Profile Stats Skeleton
+   ============================================ */
+
+.skeleton-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.skeleton-stat-card {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.skeleton-stat-value {
+  width: 60px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 0 auto 12px;
+}
+
+.skeleton-stat-label {
+  width: 100px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   Content Block Skeleton
+   ============================================ */
+
+.skeleton-content-block {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.skeleton-content-line {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  height: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-content-line:last-child {
+  margin-bottom: 0;
+}
+
+/* Line width variations */
+.skeleton-line-100 { width: 100%; }
+.skeleton-line-95 { width: 95%; }
+.skeleton-line-90 { width: 90%; }
+.skeleton-line-85 { width: 85%; }
+.skeleton-line-92 { width: 92%; }
+
+/* ============================================
+   Spinner
+   ============================================ */
+
+.skeleton-spinner {
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 20px auto;
+}
+
+.skeleton-spinner-sm {
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-blue);
+}
+
+.skeleton-spinner-md {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-blue);
+}
+
+.skeleton-spinner-lg {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-blue);
+}
+
+/* ============================================
+   Empty State
+   ============================================ */
+
+.skeleton-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.skeleton-empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: bounce 0.6s ease-out;
+}
+
+.skeleton-empty-title {
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.skeleton-empty-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ============================================
+   Loading Container
+   ============================================ */
+
+.loading-container {
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.loading-container.fade-out {
+  animation: fadeOut 0.2s ease-out forwards;
+}
+
+/* ============================================
+   Spin Animation (for spinners)
+   ============================================ */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -3,6 +3,7 @@
  * Modern monochrome design with Material Symbols Outlined icons
  */
 
+import './profile-window.css'
 import { Icon } from '../ui/Icon.js'
 
 /**
@@ -15,35 +16,31 @@ export async function renderProfileWindow(contentContainer, userData) {
   const memberSince = formatDate(userData.created_at)
 
   contentContainer.innerHTML = `
-    <div class="profile-window-content" style="height: 100%; overflow-y: auto; overflow-x: hidden;">
-      <div style="max-width: 900px; margin: 0 auto; padding: 48px 24px 96px;">
+    <div class="profile-window-content">
+      <div class="profile-window-inner">
 
         <!-- Hero Section -->
-        <div class="text-center" style="margin-bottom: 48px; animation: fadeIn 0.4s var(--ease-spring);">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px;
-                      border-radius: 50%; background: var(--white-10); border: 3px solid var(--border-subtle); margin-bottom: 24px;
-                      font-size: 48px; font-weight: 700; color: var(--text-primary);">
+        <div class="profile-hero">
+          <div class="profile-avatar">
             ${initials}
           </div>
-          <h1 style="font-size: clamp(28px, 5vw, 40px); font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.1; letter-spacing: -0.02em;">
+          <h1 class="profile-name">
             ${escapeHtml(userData.display_name || 'User')}
           </h1>
-          <p style="font-size: 16px; color: var(--text-subtle); margin-bottom: 16px;">
+          <p class="profile-email">
             ${escapeHtml(userData.email || 'email@stanford.edu')}
           </p>
 
           <!-- Status Badges -->
-          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <div class="profile-badges">
             ${userData.is_admin ? `
-              <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--white-5);
-                   border: 1px solid var(--border-subtle); border-radius: 24px; font-size: 14px; font-weight: 500; color: var(--text-primary);">
+              <div class="profile-badge">
                 ${Icon({ name: 'shield', className: '!text-[18px]' })}
                 <span>Admin</span>
               </div>
             ` : ''}
             ${userData.is_approved_member ? `
-              <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--white-5);
-                   border: 1px solid var(--border-subtle); border-radius: 24px; font-size: 14px; font-weight: 500; color: var(--text-primary);">
+              <div class="profile-badge">
                 ${Icon({ name: 'check_circle', className: '!text-[18px]' })}
                 <span>Approved Member</span>
               </div>
@@ -52,60 +49,56 @@ export async function renderProfileWindow(contentContainer, userData) {
         </div>
 
         <!-- Stats Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 48px;">
-          <div class="stat-card" style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px; text-align: center; transition: all 0.3s var(--ease-spring);">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px;
-                 border-radius: 12px; background: var(--white-10); margin-bottom: 16px;">
+        <div class="profile-stats-grid">
+          <div class="profile-stat-card">
+            <div class="profile-stat-icon">
               ${Icon({ name: 'auto_stories', className: 'text-white !text-[28px]' })}
             </div>
-            <p style="font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+            <p class="profile-stat-value">
               ${userData.total_prompts || 0}
             </p>
-            <p style="font-size: 14px; color: var(--text-subtle);">Prompts Created</p>
+            <p class="profile-stat-label">Prompts Created</p>
           </div>
 
-          <div class="stat-card" style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px; text-align: center; transition: all 0.3s var(--ease-spring);">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px;
-                 border-radius: 12px; background: var(--white-10); margin-bottom: 16px;">
+          <div class="profile-stat-card">
+            <div class="profile-stat-icon">
               ${Icon({ name: 'favorite', className: 'text-white !text-[28px]' })}
             </div>
-            <p style="font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+            <p class="profile-stat-value">
               ${userData.total_likes_received || 0}
             </p>
-            <p style="font-size: 14px; color: var(--text-subtle);">Total Likes</p>
+            <p class="profile-stat-label">Total Likes</p>
           </div>
 
-          <div class="stat-card" style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 24px; text-align: center; transition: all 0.3s var(--ease-spring);">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px;
-                 border-radius: 12px; background: var(--white-10); margin-bottom: 16px;">
+          <div class="profile-stat-card">
+            <div class="profile-stat-icon">
               ${Icon({ name: 'event', className: 'text-white !text-[28px]' })}
             </div>
-            <p style="font-size: 36px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+            <p class="profile-stat-value">
               ${memberSince}
             </p>
-            <p style="font-size: 14px; color: var(--text-subtle);">Member Since</p>
+            <p class="profile-stat-label">Member Since</p>
           </div>
         </div>
 
         <!-- Recent Activity -->
-        <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <div class="profile-activity-section">
+          <h3 class="profile-section-title">
             ${Icon({ name: 'history', className: '!text-[24px]' })}
             <span>Recent Activity</span>
           </h3>
-          <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px;">
+          <div class="profile-activity-container">
             ${userData.has_submitted_prompt ? `
-              <div class="activity-item" style="padding: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 12px; transition: all 0.2s;">
-                <div style="display: flex; align-items: start; gap: 12px;">
-                  <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-                       border-radius: 10px; background: var(--white-10); flex-shrink: 0;">
+              <div class="profile-activity-item">
+                <div class="profile-activity-content">
+                  <div class="profile-activity-icon">
                     ${Icon({ name: 'check_circle', className: 'text-white !text-[24px]' })}
                   </div>
-                  <div style="flex: 1;">
-                    <p style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">
+                  <div class="profile-activity-text">
+                    <p class="profile-activity-title">
                       Submitted your first prompt
                     </p>
-                    <p style="font-size: 13px; color: var(--text-subtle);">
+                    <p class="profile-activity-description">
                       Welcome to the community!
                     </p>
                   </div>
@@ -114,68 +107,66 @@ export async function renderProfileWindow(contentContainer, userData) {
             ` : ''}
 
             ${userData.is_approved_member ? `
-              <div class="activity-item" style="padding: 16px; background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 12px; transition: all 0.2s;">
-                <div style="display: flex; align-items: start; gap: 12px;">
-                  <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-                       border-radius: 10px; background: var(--white-10); flex-shrink: 0;">
+              <div class="profile-activity-item">
+                <div class="profile-activity-content">
+                  <div class="profile-activity-icon">
                     ${Icon({ name: 'celebration', className: 'text-white !text-[24px]' })}
                   </div>
-                  <div style="flex: 1;">
-                    <p style="font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px;">
+                  <div class="profile-activity-text">
+                    <p class="profile-activity-title">
                       Became an approved member
                     </p>
-                    <p style="font-size: 13px; color: var(--text-subtle);">
+                    <p class="profile-activity-description">
                       You now have full access to the library
                     </p>
                   </div>
                 </div>
               </div>
             ` : `
-              <div style="padding: 40px; text-align: center;">
-                <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px;
-                     border-radius: 12px; background: var(--white-5); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
+              <div class="profile-empty-activity">
+                <div class="profile-empty-icon-container">
                   ${Icon({ name: 'inbox', className: 'text-subtle-white !text-[32px]' })}
                 </div>
-                <p style="font-size: 16px; color: var(--text-subtle); margin-bottom: 8px;">No activity yet</p>
-                <p style="font-size: 14px; color: var(--text-subtle);">Start by submitting your first prompt!</p>
+                <p class="profile-empty-title">No activity yet</p>
+                <p class="profile-empty-description">Start by submitting your first prompt!</p>
               </div>
             `}
           </div>
         </div>
 
         <!-- Account Information -->
-        <div>
-          <h3 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <div class="profile-account-section">
+          <h3 class="profile-section-title">
             ${Icon({ name: 'badge', className: '!text-[24px]' })}
             <span>Account Information</span>
           </h3>
-          <div style="background: var(--white-5); border: 1px solid var(--border-subtle); border-radius: 16px; overflow: hidden;">
-            <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--white-5); transition: background 0.2s;">
-              <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="profile-info-container">
+            <div class="profile-info-row">
+              <div class="profile-info-label">
                 ${Icon({ name: 'verified_user', className: 'text-subtle-white !text-[20px]' })}
-                <span style="font-size: 14px; color: var(--text-subtle);">Account Status</span>
+                <span class="profile-info-label-text">Account Status</span>
               </div>
-              <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              <span class="profile-info-value">
                 ${userData.is_approved_member ? 'Active' : 'Pending'}
               </span>
             </div>
 
-            <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--white-5); transition: background 0.2s;">
-              <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="profile-info-row">
+              <div class="profile-info-label">
                 ${Icon({ name: 'description', className: 'text-subtle-white !text-[20px]' })}
-                <span style="font-size: 14px; color: var(--text-subtle);">Submitted Prompts</span>
+                <span class="profile-info-label-text">Submitted Prompts</span>
               </div>
-              <span style="font-size: 14px; font-weight: 600; color: var(--text-primary);">
+              <span class="profile-info-value">
                 ${userData.has_submitted_prompt ? 'Yes' : 'No'}
               </span>
             </div>
 
-            <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; transition: background 0.2s;">
-              <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="profile-info-row">
+              <div class="profile-info-label">
                 ${Icon({ name: 'fingerprint', className: 'text-subtle-white !text-[20px]' })}
-                <span style="font-size: 14px; color: var(--text-subtle);">User ID</span>
+                <span class="profile-info-label-text">User ID</span>
               </div>
-              <span style="font-size: 13px; font-family: 'Courier New', monospace; color: var(--text-subtle);">
+              <span class="profile-info-value-mono">
                 ${userData.id.substring(0, 8)}...
               </span>
             </div>
@@ -189,42 +180,8 @@ export async function renderProfileWindow(contentContainer, userData) {
   // Inject custom styles
   injectStyles()
 
-  // Add hover effects
-  const statCards = contentContainer.querySelectorAll('.stat-card')
-  statCards.forEach(card => {
-    card.addEventListener('mouseenter', (e) => {
-      e.currentTarget.style.background = 'var(--white-8)'
-      e.currentTarget.style.borderColor = 'var(--white-20)'
-      e.currentTarget.style.transform = 'translateY(-4px)'
-    })
-    card.addEventListener('mouseleave', (e) => {
-      e.currentTarget.style.background = 'var(--white-5)'
-      e.currentTarget.style.borderColor = 'var(--border-subtle)'
-      e.currentTarget.style.transform = 'translateY(0)'
-    })
-  })
-
-  const activityItems = contentContainer.querySelectorAll('.activity-item')
-  activityItems.forEach(item => {
-    item.addEventListener('mouseenter', (e) => {
-      e.currentTarget.style.background = 'var(--white-8)'
-      e.currentTarget.style.borderColor = 'var(--white-20)'
-    })
-    item.addEventListener('mouseleave', (e) => {
-      e.currentTarget.style.background = 'var(--white-5)'
-      e.currentTarget.style.borderColor = 'var(--border-subtle)'
-    })
-  })
-
-  const infoRows = contentContainer.querySelectorAll('.info-row')
-  infoRows.forEach(row => {
-    row.addEventListener('mouseenter', (e) => {
-      e.currentTarget.style.background = 'var(--white-5)'
-    })
-    row.addEventListener('mouseleave', (e) => {
-      e.currentTarget.style.background = 'transparent'
-    })
-  })
+  // Add hover effects are now handled by CSS :hover pseudo-class
+  // No JavaScript hover manipulation needed
 }
 
 /**
