@@ -1,0 +1,258 @@
+/**
+ * Error Pages CSS
+ * Styles for all error states and loading screens in main.js
+ */
+
+/* ============================================
+   Dark Error Pages (Global/Init Errors)
+   ============================================ */
+
+.error-page-dark {
+  padding: 2rem;
+  color: white;
+  background: #1a1a1a;
+  min-height: 100vh;
+}
+
+.error-page-dark-title {
+  color: #ef4444;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.error-page-dark-description {
+  color: #a0a0a0;
+  margin: 1rem 0;
+}
+
+.error-page-dark-code {
+  background: #0a0a0a;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+  color: #ef4444;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  margin: 1rem 0;
+}
+
+.error-page-dark-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.error-page-dark-btn:hover {
+  background: #2563eb;
+}
+
+/* ============================================
+   Gradient Glass Error Pages (OAuth/DB Errors)
+   ============================================ */
+
+.error-page-gradient-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  padding: 2rem;
+}
+
+.error-page-card {
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.error-page-icon {
+  font-size: 64px;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.error-page-title {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.error-page-description {
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.error-page-description code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   Instructions Box (Database Setup)
+   ============================================ */
+
+.error-page-instructions {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.error-page-instructions-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.error-page-instructions ol {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.error-page-instructions a {
+  color: #8b5cf6;
+  text-decoration: underline;
+}
+
+.error-page-instructions strong {
+  font-weight: 600;
+}
+
+.error-page-instructions code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+/* ============================================
+   Error Details (Collapsible)
+   ============================================ */
+
+.error-page-details {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.error-page-details details {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: left;
+}
+
+.error-page-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.error-page-details pre {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: auto;
+  font-size: 12px;
+  color: #ff6b6b;
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+  max-height: 300px;
+  font-family: 'Courier New', monospace;
+}
+
+/* ============================================
+   Action Buttons
+   ============================================ */
+
+.error-page-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.error-page-btn-primary {
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.error-page-btn-primary:hover {
+  background: #7c3aed;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.error-page-btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.error-page-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 640px) {
+  .error-page-card {
+    padding: 2rem;
+  }
+
+  .error-page-icon {
+    font-size: 48px;
+  }
+
+  .error-page-title {
+    font-size: 24px;
+  }
+
+  .error-page-description {
+    font-size: 14px;
+  }
+
+  .error-page-btn-primary,
+  .error-page-btn-secondary {
+    width: 100%;
+  }
+
+  .error-page-actions {
+    flex-direction: column;
+  }
+}

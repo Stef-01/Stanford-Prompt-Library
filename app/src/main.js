@@ -1,4 +1,5 @@
 import './style.css'
+import './components/error-pages.css'
 import { supabase } from './config/supabase.js'
 import { onAuthStateChange } from './services/auth.js'
 import { checkUserAccess } from './services/access-control.js'
@@ -14,12 +15,12 @@ window.addEventListener('error', (event) => {
   const app = document.querySelector('#app')
   if (app) {
     app.innerHTML = `
-      <div style="padding: 2rem; color: white; background: #1a1a1a; min-height: 100vh;">
-        <h1 style="color: #ef4444;">Uncaught Error</h1>
-        <p style="color: #a0a0a0; margin: 1rem 0;">An error occurred:</p>
-        <pre style="background: #0a0a0a; padding: 1rem; border-radius: 8px; overflow: auto; color: #ef4444;">${event.error?.message || event.message}\n\n${event.error?.stack || ''}</pre>
-        <p style="color: #a0a0a0; margin-top: 1rem;">Check browser console (F12) for more details.</p>
-        <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <div class="error-page-dark">
+        <h1 class="error-page-dark-title">Uncaught Error</h1>
+        <p class="error-page-dark-description">An error occurred:</p>
+        <pre class="error-page-dark-code">${event.error?.message || event.message}\n\n${event.error?.stack || ''}</pre>
+        <p class="error-page-dark-description">Check browser console (F12) for more details.</p>
+        <button onclick="window.location.reload()" class="error-page-dark-btn">
           Reload Page
         </button>
       </div>
@@ -77,14 +78,14 @@ async function init() {
 
         // Show error to user
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Authentication Failed</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">❌</div>
+              <h1 class="error-page-title">Authentication Failed</h1>
+              <p class="error-page-description">
                 ${errorDesc || error || 'An error occurred during sign-in'}
               </p>
-              <button onclick="window.location.href='/'" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+              <button onclick="window.location.href='/'" class="error-page-btn-primary">
                 Try Again
               </button>
             </div>
@@ -151,11 +152,11 @@ async function init() {
   } catch (error) {
     console.error('Initialization error:', error)
     app.innerHTML = `
-      <div style="padding: 2rem; color: white; background: #1a1a1a; min-height: 100vh;">
-        <h1 style="color: #ef4444;">Error Loading Application</h1>
-        <p style="color: #a0a0a0; margin: 1rem 0;">The application failed to initialize:</p>
-        <pre style="background: #0a0a0a; padding: 1rem; border-radius: 8px; overflow: auto;">${error.message}\n\n${error.stack || ''}</pre>
-        <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <div class="error-page-dark">
+        <h1 class="error-page-dark-title">Error Loading Application</h1>
+        <p class="error-page-dark-description">The application failed to initialize:</p>
+        <pre class="error-page-dark-code">${error.message}\n\n${error.stack || ''}</pre>
+        <button onclick="window.location.reload()" class="error-page-dark-btn">
           Retry
         </button>
       </div>
@@ -210,23 +211,23 @@ async function checkAccessAndRender() {
 
       case 'DATABASE_SETUP_REQUIRED':
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">🔧</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Database Setup Required</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
-                The <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">users</code> table doesn't exist in your Supabase database.
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">🔧</div>
+              <h1 class="error-page-title">Database Setup Required</h1>
+              <p class="error-page-description">
+                The <code>users</code> table doesn't exist in your Supabase database.
               </p>
-              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
-                <div style="color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 1rem;">Quick Fix (1 minute):</div>
-                <ol style="color: rgba(255,255,255,0.8); line-height: 1.8; padding-left: 1.5rem; margin: 0;">
-                  <li>Open <a href="https://app.supabase.com" target="_blank" style="color: #8b5cf6; text-decoration: underline;">Supabase Dashboard</a></li>
+              <div class="error-page-instructions">
+                <div class="error-page-instructions-title">Quick Fix (1 minute):</div>
+                <ol>
+                  <li>Open <a href="https://app.supabase.com" target="_blank">Supabase Dashboard</a></li>
                   <li>Go to <strong>SQL Editor</strong></li>
-                  <li>Run <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">app/database/schema.sql</code></li>
+                  <li>Run <code>app/database/schema.sql</code></li>
                   <li>Refresh this page</li>
                 </ol>
               </div>
-              <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+              <button onclick="window.location.reload()" class="error-page-btn-primary">
                 Refresh Page
               </button>
             </div>
@@ -237,24 +238,24 @@ async function checkAccessAndRender() {
       case 'DATABASE_ERROR':
       case 'PROFILE_CREATION_ERROR':
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">${accessStatus.reason === 'DATABASE_ERROR' ? 'Database Error' : 'Profile Creation Error'}</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">❌</div>
+              <h1 class="error-page-title">${accessStatus.reason === 'DATABASE_ERROR' ? 'Database Error' : 'Profile Creation Error'}</h1>
+              <p class="error-page-description">
                 ${accessStatus.message}
               </p>
-              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                <details style="color: rgba(255,255,255,0.8); text-align: left;">
-                  <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; text-align: center;">Show Error Details</summary>
-                  <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; overflow: auto; font-size: 12px; color: #ff6b6b; margin-top: 0.5rem; white-space: pre-wrap; max-height: 300px;">${JSON.stringify(accessStatus.error, null, 2)}</pre>
+              <div class="error-page-details">
+                <details>
+                  <summary>Show Error Details</summary>
+                  <pre>${JSON.stringify(accessStatus.error, null, 2)}</pre>
                 </details>
               </div>
-              <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+              <div class="error-page-actions">
+                <button onclick="window.location.reload()" class="error-page-btn-primary">
                   Refresh Page
                 </button>
-                <button onclick="window.open('https://app.supabase.com', '_blank')" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                <button onclick="window.open('https://app.supabase.com', '_blank')" class="error-page-btn-secondary">
                   Open Supabase
                 </button>
               </div>
