@@ -12,7 +12,7 @@ import { CACHE_TTL, validatePrompt } from '../config/constants.js'
 // Prompts Service Class
 // ============================================================================
 
-class PromptsService extends BaseService {
+export class PromptsService extends BaseService {
   constructor() {
     super('prompts', {
       cacheTTL: CACHE_TTL.MEDIUM,

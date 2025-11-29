@@ -148,7 +148,7 @@ export class BaseService {
    */
   async getCached(key, fetchFn, ttl = null) {
     if (!this.config.cacheEnabled) {
-      return await fetchFn()
+      return await this.executeQuery(fetchFn)
     }
 
     const cacheTTL = ttl || this.config.cacheTTL
@@ -169,7 +169,7 @@ export class BaseService {
       console.debug(`[${this.tableName}] Cache miss for key: ${key}`)
     }
 
-    const data = await fetchFn()
+    const data = await this.executeQuery(fetchFn)
 
     // Store in cache
     this.setCache(key, data)
@@ -196,14 +196,31 @@ export class BaseService {
   }
 
   /**
-   * Invalidate cache for specific key or all
-   * @param {string|null} key - Cache key to invalidate, or null for all
+   * Invalidate cache for specific key or pattern
+   * @param {string|null} key - Cache key to invalidate, pattern (e.g., 'user:'), or null for all
    */
   invalidateCache(key = null) {
     if (key) {
-      this.cache.delete(key)
-      if (this.config.enableMetrics) {
-        console.debug(`[${this.tableName}] Cache invalidated for key: ${key}`)
+      // Check if this is a pattern (ends with ':' or contains wildcard)
+      if (key.endsWith(':') || key.includes('*')) {
+        // Pattern-based invalidation
+        const keysToDelete = []
+        const pattern = key.replace('*', '')
+        for (const cacheKey of this.cache.keys()) {
+          if (cacheKey.startsWith(pattern)) {
+            keysToDelete.push(cacheKey)
+          }
+        }
+        keysToDelete.forEach(k => this.cache.delete(k))
+        if (this.config.enableMetrics) {
+          console.debug(`[${this.tableName}] Cache invalidated for pattern: ${key} (${keysToDelete.length} entries)`)
+        }
+      } else {
+        // Exact key invalidation
+        this.cache.delete(key)
+        if (this.config.enableMetrics) {
+          console.debug(`[${this.tableName}] Cache invalidated for key: ${key}`)
+        }
       }
     } else {
       this.cache.clear()
