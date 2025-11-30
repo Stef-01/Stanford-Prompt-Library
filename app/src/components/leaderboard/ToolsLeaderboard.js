@@ -17,7 +17,7 @@ export function createToolsLeaderboard(tools, options = {}) {
     onFilterChange = null,
     onVote = null,
     onSubmitTool = null,
-    userVotes = new Map(),
+    userVotes = {},
     showCategories = true
   } = options
 
@@ -90,7 +90,7 @@ export function createToolsLeaderboard(tools, options = {}) {
 function renderToolCard(tool, options) {
   const { onVote, userVotes } = options
 
-  const userVote = userVotes.get(tool.id)
+  const userVote = userVotes[tool.id]
   const upvoted = userVote === 'up'
   const downvoted = userVote === 'down'
 

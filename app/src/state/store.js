@@ -278,7 +278,7 @@ export const leaderboardStore = new Store('leaderboard', {
   currentFilter: 'all',
   toolsFilter: 'all',
   isLoading: false,
-  userVotes: new Map(),
+  userVotes: {},  // Plain object for localStorage serialization
   toolCategories: []
 })
 

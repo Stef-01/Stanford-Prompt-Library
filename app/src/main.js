@@ -9,6 +9,9 @@ import { renderSubmitPromptGate } from './components/SubmitPromptGate.js'
 import { renderPendingApprovalGate } from './components/PendingApprovalGate.js'
 import { renderMainApp } from './components/MainApp.js'
 import { validateAuthConfig, displayConfigValidation } from './utils/validate-config.js'
+import { createLogger } from './utils/logger.js'
+
+const log = createLogger('App')
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -48,7 +51,7 @@ const app = document.querySelector('#app')
  */
 async function init() {
   try {
-    console.log('🚀 Stanford Prompt Library initializing...')
+    log.info('🚀 Stanford Prompt Library initializing...')
 
     // Validate configuration first
     validateAuthConfig()
@@ -67,9 +70,9 @@ async function init() {
       hashParams.has('error_description')
 
     if (hasOAuthParams) {
-      console.log('🔄 OAuth callback detected in URL')
-      console.log('🔄 Hash params:', Array.from(hashParams.keys()).join(', ') || 'none')
-      console.log('🔄 Query params:', Array.from(queryParams.keys()).join(', ') || 'none')
+      log.debug('🔄 OAuth callback detected in URL')
+      log.debug('🔄 Hash params:', Array.from(hashParams.keys()).join(', ') || 'none')
+      log.debug('🔄 Query params:', Array.from(queryParams.keys()).join(', ') || 'none')
 
       // Check for error in OAuth callback
       if (hashParams.has('error') || queryParams.has('error')) {
@@ -95,13 +98,13 @@ async function init() {
         return
       }
 
-      console.log('🔄 Processing OAuth callback...')
+      log.debug('🔄 Processing OAuth callback...')
 
       // Wait a moment for Supabase to process the callback
       await new Promise(resolve => setTimeout(resolve, 500))
 
       // Clean URL after processing to prevent re-processing
-      console.log('🔄 Cleaning URL...')
+      log.debug('🔄 Cleaning URL...')
       window.history.replaceState({}, document.title, '/')
     }
 
@@ -113,7 +116,7 @@ async function init() {
       throw sessionError
     }
 
-    console.log('Initial session check:', session ? 'Session exists' : 'No session')
+    log.debug('Initial session check:', session ? 'Session exists' : 'No session')
 
     if (session) {
       console.log('✅ User:', session.user.email)
@@ -124,7 +127,7 @@ async function init() {
     // This prevents race conditions between listener and initial check
     authListenerActive = true
     onAuthStateChange(async (event, session, profile) => {
-      console.log('Auth event:', event, session?.user?.email || 'no user')
+      log.debug('Auth event:', event, session?.user?.email || 'no user')
 
       currentUser = session?.user || null
       currentProfile = profile
@@ -171,7 +174,7 @@ async function init() {
 async function checkAccessAndRender() {
   // Prevent concurrent renders - if already rendering, skip this call
   if (isRendering) {
-    console.log('Render already in progress, skipping...')
+    log.debug('Render already in progress, skipping...')
     return
   }
 
@@ -191,7 +194,7 @@ async function checkAccessAndRender() {
       timeoutPromise
     ])
 
-    console.log('Access status:', accessStatus)
+    log.debug('Access status:', accessStatus)
 
     // Clear loading state
     app.innerHTML = ''

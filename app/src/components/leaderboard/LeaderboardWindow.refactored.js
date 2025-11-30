@@ -52,7 +52,7 @@ function initializeLeaderboardState() {
       currentFilter: 'all',
       toolsFilter: 'all',
       isLoading: false,
-      userVotes: new Map()
+      userVotes: {}
     }, 'initialize')
   }
 }
@@ -316,14 +316,14 @@ async function handleToolVote(toolId, voteType) {
   const state = leaderboardStore.getState()
 
   // Optimistic update
-  const currentVote = state.userVotes.get(toolId)
+  const currentVote = state.userVotes[toolId]
   const newVote = currentVote === voteType ? null : voteType
 
-  const updatedVotes = new Map(state.userVotes)
+  const updatedVotes = { ...state.userVotes }
   if (newVote) {
-    updatedVotes.set(toolId, newVote)
+    updatedVotes[toolId] = newVote
   } else {
-    updatedVotes.delete(toolId)
+    delete updatedVotes[toolId]
   }
 
   const updatedTools = state.tools.map(tool => {
