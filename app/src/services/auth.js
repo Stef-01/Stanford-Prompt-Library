@@ -1,4 +1,7 @@
 import { supabase } from '../config/supabase.js'
+import { createLogger } from '../utils/logger.js'
+
+const log = createLogger('Auth')
 
 /**
  * Sign in with Google OAuth
@@ -9,10 +12,10 @@ export async function signInWithGoogle() {
     // Use environment variable if available, fallback to current origin
     const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin
 
-    console.log('🔐 [Auth] Starting Google OAuth flow...')
-    console.log('🔐 [Auth] Current URL:', window.location.origin)
-    console.log('🔐 [Auth] Redirect URL:', redirectUrl)
-    console.log('🔐 [Auth] Using env var:', import.meta.env.VITE_APP_URL ? 'Yes' : 'No (dynamic)')
+    log.debug('🔐 Starting Google OAuth flow...')
+    log.debug('🔐 Current URL:', window.location.origin)
+    log.debug('🔐 Redirect URL:', redirectUrl)
+    log.debug('🔐 Using env var:', import.meta.env.VITE_APP_URL ? 'Yes' : 'No (dynamic)')
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -30,15 +33,15 @@ export async function signInWithGoogle() {
     })
 
     if (error) {
-      console.error('❌ [Auth] OAuth initiation error:', error)
+      log.error('❌ [Auth] OAuth initiation error:', error)
       throw error
     }
 
-    console.log('✅ [Auth] OAuth redirect initiated')
+    log.debug('✅ [Auth] OAuth redirect initiated')
     return data
   } catch (error) {
-    console.error('❌ [Auth] Sign in error:', error)
-    console.error('❌ [Auth] Error details:', {
+    log.error('❌ [Auth] Sign in error:', error)
+    log.error('❌ [Auth] Error details:', {
       message: error.message,
       status: error.status,
       name: error.name
@@ -58,7 +61,7 @@ export async function signOut() {
     // Reload page to clear state
     window.location.href = '/'
   } catch (error) {
-    console.error('Sign out error:', error)
+    log.error('Sign out error:', error)
     throw error
   }
 }
@@ -71,7 +74,7 @@ export async function getCurrentUser() {
     const { data: { user } } = await supabase.auth.getUser()
     return user
   } catch (error) {
-    console.error('Get user error:', error)
+    log.error('Get user error:', error)
     return null
   }
 }
@@ -84,7 +87,7 @@ export async function getSession() {
     const { data: { session } } = await supabase.auth.getSession()
     return session
   } catch (error) {
-    console.error('Get session error:', error)
+    log.error('Get session error:', error)
     return null
   }
 }
@@ -131,7 +134,7 @@ export async function createUserProfile(user) {
 
     return data
   } catch (error) {
-    console.error('Create profile error:', error)
+    log.error('Create profile error:', error)
     throw error
   }
 }
@@ -150,7 +153,7 @@ export async function getUserProfile(userId) {
     if (error) throw error
     return data
   } catch (error) {
-    console.error('Get profile error:', error)
+    log.error('Get profile error:', error)
     return null
   }
 }
@@ -161,16 +164,16 @@ export async function getUserProfile(userId) {
  */
 export function onAuthStateChange(callback) {
   return supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('🔐 Auth event:', event, 'User:', session?.user?.email || 'none')
-    console.log('🔐 Session details:', session ? 'exists' : 'null')
+    log.debug('🔐 Auth event:', event, 'User:', session?.user?.email || 'none')
+    log.debug('🔐 Session details:', session ? 'exists' : 'null')
 
     if (event === 'SIGNED_IN' && session?.user) {
       try {
-        console.log('✅ User signed in:', session.user.email)
+        log.debug('✅ User signed in:', session.user.email)
 
         // Validate Stanford email
         if (!isStanfordEmail(session.user.email)) {
-          console.error('❌ Non-Stanford email detected:', session.user.email)
+          log.error('❌ Non-Stanford email detected:', session.user.email)
           // Don't auto sign out - let user see the error
           alert(`❌ Access Denied\n\nOnly Stanford email addresses (@stanford.edu) are allowed.\n\nYou signed in with: ${session.user.email}\n\nPlease sign in with your Stanford email.`)
           await supabase.auth.signOut({ scope: 'local' })
@@ -178,22 +181,22 @@ export function onAuthStateChange(callback) {
           return
         }
 
-        console.log('✅ Stanford email validated')
+        log.debug('✅ Stanford email validated')
 
         // Create/update user profile
-        console.log('📝 Creating/updating user profile...')
+        log.debug('📝 Creating/updating user profile...')
         const profileData = await createUserProfile(session.user)
-        console.log('✅ Profile created/updated:', profileData)
+        log.debug('✅ Profile created/updated:', profileData)
 
         // Get full profile
-        console.log('📋 Fetching user profile...')
+        log.debug('📋 Fetching user profile...')
         const profile = await getUserProfile(session.user.id)
-        console.log('✅ Profile fetched:', profile ? 'success' : 'failed')
+        log.debug('✅ Profile fetched:', profile ? 'success' : 'failed')
 
         callback(event, session, profile)
       } catch (error) {
-        console.error('❌ Auth callback error:', error)
-        console.error('Error details:', {
+        log.error('❌ Auth callback error:', error)
+        log.error('Error details:', {
           message: error.message,
           code: error.code,
           details: error.details,
@@ -208,10 +211,10 @@ export function onAuthStateChange(callback) {
         window.location.href = '/'
       }
     } else if (event === 'SIGNED_OUT') {
-      console.log('👋 User signed out')
+      log.debug('👋 User signed out')
       callback(event, null, null)
     } else {
-      console.log('🔄 Other auth event:', event)
+      log.debug('🔄 Other auth event:', event)
       callback(event, session, null)
     }
   })
