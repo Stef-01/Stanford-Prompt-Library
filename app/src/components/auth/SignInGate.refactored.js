@@ -3,6 +3,7 @@
  * Main authentication gate using modular components
  */
 
+import './auth.css'
 import { signInWithGoogle } from '../../services/auth.js'
 import { showAccessCodeModal, activateBypass } from '../../utils/access-code.js'
 import { checkAccessAndRender } from '../../main.js'

@@ -3,6 +3,7 @@
  * Main admin panel using modular components
  */
 
+import './admin.css'
 import { adminStore, appStore } from '../../state/store.js'
 import { createStatsPanel, updateStatsPanel } from './StatsPanel.js'
 import { createPromptReviewCard } from './PromptReviewCard.js'

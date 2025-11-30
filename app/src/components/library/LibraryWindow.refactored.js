@@ -4,6 +4,7 @@
  * Uses modular components and centralized state management
  */
 
+import './library.css'
 import { libraryStore, appStore } from '../../state/store.js'
 import { createFilterBar } from './FilterBar.js'
 import { createPromptGrid, createLoadingGrid, updateGrid } from './PromptGrid.js'

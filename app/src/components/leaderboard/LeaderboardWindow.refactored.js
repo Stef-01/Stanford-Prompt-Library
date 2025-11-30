@@ -3,6 +3,7 @@
  * Main leaderboard container using modular components
  */
 
+import './leaderboard.css'
 import { leaderboardStore, appStore } from '../../state/store.js'
 import { createUserLeaderboard } from './UserLeaderboard.js'
 import { createToolsLeaderboard, filterToolsByCategory, sortTools } from './ToolsLeaderboard.js'

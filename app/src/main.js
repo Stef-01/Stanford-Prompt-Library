@@ -1,5 +1,6 @@
 import './style.css'
 import './components/error-pages.css'
+import './components/ui/ui-components.css'
 import { supabase } from './config/supabase.js'
 import { onAuthStateChange } from './services/auth.js'
 import { checkUserAccess } from './services/access-control.js'
