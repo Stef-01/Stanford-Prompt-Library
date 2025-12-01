@@ -180,7 +180,7 @@ export class GameEngine {
 
     // Progressive difficulty: Exponential growth for balanced scaling
     // Wave 1: 10, Wave 5: 16, Wave 10: 31, Wave 20: 96
-    const bearsThisWave = Math.floor(10 * Math.pow(1.12, this.wave - 1));
+    const bearsThisWave = Math.floor(10 * (1.12 ** (this.wave - 1)));
 
     // Take only the first N bears from the pattern based on wave number
     const bearsToSpawn = BEAR_WAVE.slice(0, Math.min(bearsThisWave, BEAR_WAVE.length));

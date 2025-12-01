@@ -133,5 +133,5 @@ export const UPGRADES = {
 export function getUpgradeCost(upgradeKey, currentLevel) {
   const upgrade = UPGRADES[upgradeKey];
   if (currentLevel >= upgrade.maxLevel) return Infinity;
-  return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, currentLevel));
+  return Math.floor(upgrade.baseCost * (upgrade.costMultiplier ** currentLevel));
 }
