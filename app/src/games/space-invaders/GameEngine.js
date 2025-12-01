@@ -140,9 +140,9 @@ export class GameEngine {
     this.invaderOffsetY = 0;
     this.invaderDirection = 1;
 
-    // Progressive difficulty: Exponential growth for balanced scaling
-    // Wave 1: 10, Wave 5: 16, Wave 10: 31, Wave 20: 96
-    const bearsThisWave = Math.floor(10 * (1.12 ** (this.wave - 1)));
+    // Progressive difficulty: Wave 1 = 10 bears, then increases
+    // Calculate how many bears to spawn based on wave number
+    const bearsThisWave = 10 + ((this.wave - 1) * 5); // Wave 1: 10, Wave 2: 15, Wave 3: 20, etc.
 
     // Take only the first N bears from the pattern based on wave number
     const bearsToSpawn = BEAR_WAVE.slice(0, Math.min(bearsThisWave, BEAR_WAVE.length));
@@ -202,13 +202,9 @@ export class GameEngine {
   purchaseUpgrade(upgradeKey) {
     const success = this.upgradeSystem.purchaseUpgrade(upgradeKey);
     if (success) {
-      // Apply specific upgrades based on what was purchased
-      if (upgradeKey === 'speed') {
-        this.player.speed = this.upgradeSystem.getSpeed();
-      }
-      if (upgradeKey === 'shield') {
-        this.player.maxLives = this.upgradeSystem.getMaxShield();
-      }
+      // Apply upgrades immediately
+      this.player.speed = this.upgradeSystem.getSpeed();
+      this.player.maxLives = this.upgradeSystem.getMaxShield();
       this.notifyStateChange();
     }
     return success;
