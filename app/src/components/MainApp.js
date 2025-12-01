@@ -14,6 +14,9 @@ import { initDockMagnification } from '../utils/dock-magnification.js'
 import { initWallpaper } from '../services/wallpaper.js'
 import { initMobileDetection, isMobileDevice } from '../utils/mobile-detection.js'
 import { renderMobileNavigation, setActiveNavItem } from './MobileNavigation.js'
+import { createLogger } from '../utils/logger.js'
+
+const log = createLogger('MainApp')
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
@@ -39,17 +42,17 @@ export async function renderMainApp(container, user) {
   try {
     // Initialize mobile detection and add appropriate mode classes
     const viewport = initMobileDetection()
-    console.log('📱 Viewport detected:', viewport.deviceType)
+    log.debug('📱 Viewport detected:', viewport.deviceType)
 
-    console.log('🎨 Rendering main app for user:', user.display_name)
+    log.debug('🎨 Rendering main app for user:', user.display_name)
 
     // Store user data
     userData = user
 
     // Check if user is admin
-    console.log('🔍 Checking admin status...')
+    log.debug('🔍 Checking admin status...')
     userIsAdmin = await isAdmin()
-    console.log('✅ Admin status:', userIsAdmin)
+    log.debug('✅ Admin status:', userIsAdmin)
 
     // Render desktop layout
     container.innerHTML = `
@@ -157,7 +160,7 @@ export async function renderMainApp(container, user) {
     initDockMagnification()
 
     // Render mobile navigation
-    console.log('📱 Rendering mobile navigation...')
+    log.debug('📱 Rendering mobile navigation...')
     renderMobileNavigation(document.body, userData, userIsAdmin)
 
     // Open Explore window by default
@@ -166,7 +169,7 @@ export async function renderMainApp(container, user) {
     // Set initial active nav item for mobile
     setActiveNavItem('explore')
 
-    console.log('✅ Desktop app rendered successfully!')
+    log.debug('✅ Desktop app rendered successfully!')
 
   } catch (error) {
     console.error('❌ Error rendering main app:', error)

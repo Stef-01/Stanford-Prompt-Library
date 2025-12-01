@@ -4,6 +4,9 @@
  */
 
 import { wallpapers, DEFAULT_WALLPAPER, DEFAULT_INTENSITY, DEFAULT_PALETTE } from '../config/wallpapers.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('Wallpaper');
 import { startNeuralNetwork } from '../wallpapers/animations/neural-network.js';
 import { startWaveField } from '../wallpapers/animations/wave-field.js';
 import { startParticleField } from '../wallpapers/animations/particle-field.js';
@@ -48,7 +51,7 @@ export function initWallpaper() {
  * Apply wallpaper to desktop
  */
 function applyWallpaper(wallpaper, intensity, palette) {
-  console.log('[Wallpaper Service] Applying wallpaper:', {
+  log.debug(' Applying wallpaper:', {
     wallpaper: wallpaper.id,
     type: wallpaper.type,
     intensity,
@@ -57,28 +60,28 @@ function applyWallpaper(wallpaper, intensity, palette) {
 
   const desktop = document.querySelector('body.desktop-mode');
   if (!desktop) {
-    console.warn('[Wallpaper Service] Desktop mode not active');
+    log.warn(' Desktop mode not active');
     currentWallpaper = wallpaper;
     return;
   }
 
-  console.log('[Wallpaper Service] Desktop element found:', desktop);
+  log.debug(' Desktop element found:', desktop);
 
   // Stop current animation if any
   if (currentStopFunction) {
-    console.log('[Wallpaper Service] Stopping previous animation');
+    log.debug(' Stopping previous animation');
     currentStopFunction();
     currentStopFunction = null;
   }
 
   // Clean up existing elements
   if (backgroundCanvas) {
-    console.log('[Wallpaper Service] Removing previous canvas');
+    log.debug(' Removing previous canvas');
     backgroundCanvas.remove();
     backgroundCanvas = null;
   }
   if (backgroundContainer) {
-    console.log('[Wallpaper Service] Removing previous container');
+    log.debug(' Removing previous container');
     backgroundContainer.remove();
     backgroundContainer = null;
   }
@@ -88,13 +91,13 @@ function applyWallpaper(wallpaper, intensity, palette) {
 
   // Apply wallpaper based on type
   if (wallpaper.type === 'css') {
-    console.log('[Wallpaper Service] Applying CSS wallpaper');
+    log.debug(' Applying CSS wallpaper');
     desktop.style.backgroundImage = wallpaper.css;
     desktop.style.backgroundSize = 'cover';
     desktop.style.backgroundPosition = 'center';
     desktop.style.backgroundRepeat = 'no-repeat';
   } else if (wallpaper.type === 'canvas') {
-    console.log('[Wallpaper Service] Creating canvas wallpaper');
+    log.debug(' Creating canvas wallpaper');
     // Clear CSS background
     desktop.style.backgroundImage = 'none';
 
@@ -110,14 +113,14 @@ function applyWallpaper(wallpaper, intensity, palette) {
     backgroundCanvas.style.pointerEvents = 'none';
     desktop.insertBefore(backgroundCanvas, desktop.firstChild);
 
-    console.log('[Wallpaper Service] Canvas created, starting animation:', wallpaper.animation);
+    log.debug(' Canvas created, starting animation:', wallpaper.animation);
 
     // Start animation
     currentStopFunction = startCanvasAnimation(wallpaper.animation, backgroundCanvas, intensity, palette);
 
-    console.log('[Wallpaper Service] Animation started, canvas in DOM:', document.getElementById('wallpaper-canvas') !== null);
+    log.debug(' Animation started, canvas in DOM:', document.getElementById('wallpaper-canvas') !== null);
   } else if (wallpaper.type === 'css-animation') {
-    console.log('[Wallpaper Service] Creating CSS animation wallpaper');
+    log.debug(' Creating CSS animation wallpaper');
     // Clear CSS background
     desktop.style.backgroundImage = 'none';
 
@@ -133,16 +136,16 @@ function applyWallpaper(wallpaper, intensity, palette) {
     backgroundContainer.style.pointerEvents = 'none';
     desktop.insertBefore(backgroundContainer, desktop.firstChild);
 
-    console.log('[Wallpaper Service] Container created, starting CSS animation');
+    log.debug(' Container created, starting CSS animation');
 
     // Start CSS animation
     currentStopFunction = startGradientMesh(backgroundContainer, intensity, palette);
 
-    console.log('[Wallpaper Service] CSS animation started');
+    log.debug(' CSS animation started');
   }
 
   currentWallpaper = wallpaper;
-  console.log('[Wallpaper Service] Wallpaper applied successfully');
+  log.debug(' Wallpaper applied successfully');
 }
 
 /**

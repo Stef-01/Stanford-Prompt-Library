@@ -79,7 +79,7 @@ export async function checkUserAccess() {
 
     // If user doesn't exist in database, create profile
     if (!userData) {
-      console.log('User profile not found, creating...')
+      log.debug('User profile not found, creating...')
       try {
         await createUserProfile(user)
 
@@ -238,7 +238,7 @@ export function subscribeToAccessChanges(userId, callback) {
         filter: `id=eq.${userId}`
       },
       (payload) => {
-        console.log('Access status changed:', payload)
+        log.debug('Access status changed:', payload)
         callback(payload.new)
       }
     )

@@ -4,6 +4,9 @@
  */
 
 import { supabase } from '../config/supabase.js'
+import { createLogger } from '../utils/logger.js'
+
+const log = createLogger('Opportunities')
 
 /**
  * Get all public opportunities with optional filters
@@ -17,7 +20,7 @@ export async function getOpportunities({
   featured = false
 } = {}) {
   try {
-    console.log('[Opportunities Service] Fetching opportunities with filters:', {
+    log.debug(' Fetching opportunities with filters:', {
       category,
       status,
       limit,
@@ -68,7 +71,7 @@ export async function getOpportunities({
       throw error
     }
 
-    console.log('[Opportunities Service] ✅ Successfully fetched', data?.length || 0, 'opportunities')
+    log.debug(' ✅ Successfully fetched', data?.length || 0, 'opportunities')
     return data || []
   } catch (error) {
     console.error('[Opportunities Service] Caught error in getOpportunities:', error)
