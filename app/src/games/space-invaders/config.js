@@ -55,7 +55,7 @@ export const GAME_CONFIG = {
 
   // Invaders
   INVADER_CELL_SIZE: 16,
-  INVADER_SCALE: 0.8,
+  INVADER_SCALE: 1.04, // 30% larger than original 0.8
   INVADER_OFFSET_X: 100,
   INVADER_OFFSET_Y: 40,
   INVADER_MOVE_SPEED: 0.15,  // Slower horizontal movement

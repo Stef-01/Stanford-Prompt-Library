@@ -11,6 +11,43 @@ import { EnemyBullet } from './entities/EnemyBullet.js';
 import { CollisionSystem } from './systems/CollisionSystem.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 
+/**
+ * FloatingText - Displays animated currency/score text
+ */
+class FloatingText {
+  constructor(x, y, text, color = '#FFD700') {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.color = color;
+    this.velocity = -1.5; // Float upward
+    this.lifetime = 60; // Frames (about 1 second at 60fps)
+    this.age = 0;
+    this.active = true;
+  }
+
+  update() {
+    this.y += this.velocity;
+    this.age++;
+    if (this.age >= this.lifetime) {
+      this.active = false;
+    }
+  }
+
+  draw(ctx) {
+    const alpha = 1 - (this.age / this.lifetime); // Fade out
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = this.color;
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.strokeText(this.text, this.x, this.y);
+    ctx.fillText(this.text, this.x, this.y);
+    ctx.restore();
+  }
+}
+
 export class GameEngine {
   constructor(canvas) {
     this.canvas = canvas;
@@ -38,6 +75,7 @@ export class GameEngine {
     this.invaders = [];
     this.bullets = [];
     this.enemyBullets = [];
+    this.floatingTexts = [];
 
     // Invader movement
     this.invaderOffsetX = 0;
@@ -140,9 +178,9 @@ export class GameEngine {
     this.invaderOffsetY = 0;
     this.invaderDirection = 1;
 
-    // Progressive difficulty: Wave 1 = 10 bears, then increases
-    // Calculate how many bears to spawn based on wave number
-    const bearsThisWave = 10 + ((this.wave - 1) * 5); // Wave 1: 10, Wave 2: 15, Wave 3: 20, etc.
+    // Progressive difficulty: Exponential growth for balanced scaling
+    // Wave 1: 10, Wave 5: 16, Wave 10: 31, Wave 20: 96
+    const bearsThisWave = Math.floor(10 * Math.pow(1.12, this.wave - 1));
 
     // Take only the first N bears from the pattern based on wave number
     const bearsToSpawn = BEAR_WAVE.slice(0, Math.min(bearsThisWave, BEAR_WAVE.length));
@@ -202,9 +240,13 @@ export class GameEngine {
   purchaseUpgrade(upgradeKey) {
     const success = this.upgradeSystem.purchaseUpgrade(upgradeKey);
     if (success) {
-      // Apply upgrades immediately
-      this.player.speed = this.upgradeSystem.getSpeed();
-      this.player.maxLives = this.upgradeSystem.getMaxShield();
+      // Apply specific upgrades based on what was purchased
+      if (upgradeKey === 'speed') {
+        this.player.speed = this.upgradeSystem.getSpeed();
+      }
+      if (upgradeKey === 'shield') {
+        this.player.maxLives = this.upgradeSystem.getMaxShield();
+      }
       this.notifyStateChange();
     }
     return success;
@@ -249,6 +291,10 @@ export class GameEngine {
     // Update enemy bullets
     this.enemyBullets.forEach(bullet => bullet.update());
     this.enemyBullets = this.enemyBullets.filter(bullet => bullet.active);
+
+    // Update floating texts
+    this.floatingTexts.forEach(text => text.update());
+    this.floatingTexts = this.floatingTexts.filter(text => text.active);
 
     // Update invaders movement
     this.updateInvaders();
@@ -331,9 +377,18 @@ export class GameEngine {
     // Bullet vs Invader
     const hits = CollisionSystem.checkBulletInvaderCollisions(this.bullets, this.invaders);
     hits.forEach(({ invader }) => {
+      // Get invader position before it's destroyed
+      const invaderBounds = invader.getBounds();
+      const floatX = invaderBounds.x + invaderBounds.width / 2;
+      const floatY = invaderBounds.y;
+
       invader.hit();
       this.score += GAME_CONFIG.POINTS_PER_BEAR;
       this.upgradeSystem.addCurrency(GAME_CONFIG.CURRENCY_PER_BEAR);
+
+      // Create floating currency text
+      this.floatingTexts.push(new FloatingText(floatX, floatY, `+${GAME_CONFIG.CURRENCY_PER_BEAR}💰`, '#FFD700'));
+
       this.notifyScoreUpdate();
     });
 
@@ -384,6 +439,9 @@ export class GameEngine {
 
     // Draw enemy bullets
     this.enemyBullets.forEach(bullet => bullet.draw(this.ctx));
+
+    // Draw floating texts (on top of everything)
+    this.floatingTexts.forEach(text => text.draw(this.ctx));
 
     // Draw player
     this.player.draw(this.ctx);
