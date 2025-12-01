@@ -24,11 +24,16 @@ window.addEventListener('error', (event) => {
         <p class="error-page-dark-description">An error occurred:</p>
         <pre class="error-page-dark-code">${event.error?.message || event.message}\n\n${event.error?.stack || ''}</pre>
         <p class="error-page-dark-description">Check browser console (F12) for more details.</p>
-        <button onclick="window.location.reload()" class="error-page-dark-btn">
+        <button class="error-page-dark-btn" data-action="reload">
           Reload Page
         </button>
       </div>
     `
+    // Attach event listener after DOM is updated
+    const reloadBtn = app.querySelector('[data-action="reload"]')
+    if (reloadBtn) {
+      reloadBtn.addEventListener('click', () => window.location.reload())
+    }
   }
 })
 
@@ -89,12 +94,16 @@ async function init() {
               <p class="error-page-description">
                 ${errorDesc || error || 'An error occurred during sign-in'}
               </p>
-              <button onclick="window.location.href='/'" class="error-page-btn-primary">
+              <button class="error-page-btn-primary" data-action="home">
                 Try Again
               </button>
             </div>
           </div>
         `
+        const homeBtn = app.querySelector('[data-action="home"]')
+        if (homeBtn) {
+          homeBtn.addEventListener('click', () => window.location.href = '/')
+        }
         return
       }
 
@@ -160,11 +169,15 @@ async function init() {
         <h1 class="error-page-dark-title">Error Loading Application</h1>
         <p class="error-page-dark-description">The application failed to initialize:</p>
         <pre class="error-page-dark-code">${error.message}\n\n${error.stack || ''}</pre>
-        <button onclick="window.location.reload()" class="error-page-dark-btn">
+        <button class="error-page-dark-btn" data-action="reload">
           Retry
         </button>
       </div>
     `
+    const retryBtn = app.querySelector('[data-action="reload"]')
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => window.location.reload())
+    }
   }
 }
 
@@ -231,12 +244,13 @@ async function checkAccessAndRender() {
                   <li>Refresh this page</li>
                 </ol>
               </div>
-              <button onclick="window.location.reload()" class="error-page-btn-primary">
+              <button class="error-page-btn-primary" data-action="reload">
                 Refresh Page
               </button>
             </div>
           </div>
         `
+        app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
         break
 
       case 'DATABASE_ERROR':
@@ -256,16 +270,18 @@ async function checkAccessAndRender() {
                 </details>
               </div>
               <div class="error-page-actions">
-                <button onclick="window.location.reload()" class="error-page-btn-primary">
+                <button class="error-page-btn-primary" data-action="reload">
                   Refresh Page
                 </button>
-                <button onclick="window.open('https://app.supabase.com', '_blank')" class="error-page-btn-secondary">
+                <button class="error-page-btn-secondary" data-action="supabase">
                   Open Supabase
                 </button>
               </div>
             </div>
           </div>
         `
+        app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
+        app.querySelector('[data-action="supabase"]')?.addEventListener('click', () => window.open('https://app.supabase.com', '_blank'))
         break
 
       default:
@@ -277,11 +293,12 @@ async function checkAccessAndRender() {
             <div class="error-state">
               <h1>⚠️ Access Error</h1>
               <p>${accessStatus.message || 'Unable to verify access'}</p>
-              <button onclick="window.location.reload()" class="btn-primary">
+              <button class="btn-primary" data-action="reload">
                 Try Again
               </button>
             </div>
           `
+          app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
         }
     }
   } catch (error) {
@@ -291,11 +308,12 @@ async function checkAccessAndRender() {
         <h1>⚠️ Error</h1>
         <p>Something went wrong. Please try refreshing the page.</p>
         <p style="color: #888; font-size: 0.9rem; margin-top: 1rem;">Error: ${error.message}</p>
-        <button onclick="window.location.reload()" class="btn-primary">
+        <button class="btn-primary" data-action="reload">
           Refresh
         </button>
       </div>
     `
+    app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
   } finally {
     // Always reset rendering flag
     isRendering = false

@@ -194,12 +194,14 @@ export async function renderMainApp(container, user) {
           <pre style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; overflow: auto; text-align: left; color: var(--accent-red); margin-bottom: 2rem; font-size: 0.875rem;">
 ${error.message}
           </pre>
-          <button onclick="window.location.reload()" class="btn-primary" style="padding: 0.75rem 1.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <button id="reload-btn" class="btn-primary" style="padding: 0.75rem 1.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
             Reload Page
           </button>
         </div>
       </div>
     `
+    // Attach event listener
+    document.getElementById('reload-btn')?.addEventListener('click', () => window.location.reload())
   }
 }
 

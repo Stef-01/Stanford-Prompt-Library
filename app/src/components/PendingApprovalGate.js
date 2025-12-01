@@ -61,7 +61,7 @@ export async function renderPendingApprovalGate(container, userData) {
         </div>
 
         <div class="gate-actions">
-          <button onclick="window.location.reload()" class="btn-primary">
+          <button id="check-status-btn" class="btn-primary">
             Check Status
           </button>
           <button id="signout-btn" class="btn-secondary">
@@ -73,6 +73,9 @@ export async function renderPendingApprovalGate(container, userData) {
   `
 
   // Attach event listeners
+  const checkStatusBtn = container.querySelector('#check-status-btn')
+  checkStatusBtn.addEventListener('click', () => window.location.reload())
+
   const signoutBtn = container.querySelector('#signout-btn')
   signoutBtn.addEventListener('click', async () => {
     if (confirm('Are you sure you want to sign out?')) {
