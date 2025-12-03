@@ -3,8 +3,9 @@
  * Provides a hamburger menu and mobile-optimized navigation experience
  */
 
+import './mobile-navigation.css'
 import { Icon } from './ui/Icon.js'
-import { toggleWindow, openWindow, closeAllWindows } from '../utils/desktop-windows.js'
+import { toggleWindow, openWindow } from '../utils/desktop-windows.js'
 
 let isMenuOpen = false
 let currentSection = 'explore'
@@ -17,367 +18,128 @@ export function renderMobileNavigation(container, userData, isAdmin = false) {
 
   const navHTML = `
     <!-- Mobile Navigation Overlay -->
-    <div id="mobile-nav-overlay" class="mobile-nav-overlay" style="
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 9998;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    ">
-    </div>
+    <div id="mobile-nav-overlay" class="mobile-nav-overlay"></div>
 
     <!-- Mobile Navigation Menu -->
-    <div id="mobile-nav-menu" class="mobile-nav-menu" style="
-      position: fixed;
-      top: 0;
-      right: -100%;
-      width: 80%;
-      max-width: 320px;
-      height: 100%;
-      background: var(--background-dark);
-      border-left: 1px solid var(--border-subtle);
-      z-index: 9999;
-      overflow-y: auto;
-      transition: right 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
-    ">
+    <div id="mobile-nav-menu" class="mobile-nav-menu">
       <!-- Mobile Menu Header -->
-      <div style="
-        padding: 24px;
-        border-bottom: 1px solid var(--border-subtle);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      ">
+      <div class="mobile-menu-header">
         <div>
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">
-            Menu
-          </h2>
-          <p style="font-size: 14px; color: var(--text-subtle);">
-            ${userData.display_name}
-          </p>
+          <h2 class="mobile-menu-title">Menu</h2>
+          <p class="mobile-menu-subtitle">${userData.display_name}</p>
         </div>
-        <button id="mobile-nav-close" style="
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: var(--white-10);
-          border: 1px solid var(--border-subtle);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        ">
+        <button id="mobile-nav-close" class="mobile-nav-close">
           ${Icon({ name: 'close', className: 'text-white !text-[20px]' })}
         </button>
       </div>
 
       <!-- Mobile Menu Items -->
-      <div style="padding: 16px 0;">
+      <div class="mobile-menu-items">
         <!-- Primary Navigation -->
-        <div style="padding: 0 12px; margin-bottom: 8px;">
-          <p style="
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-subtle);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 12px;
-          ">
-            Navigation
-          </p>
+        <div class="mobile-menu-section-header">
+          <p class="mobile-menu-section-title">Navigation</p>
         </div>
 
-        <button class="mobile-nav-item" data-window="explore" data-section="explore" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="explore" data-section="explore">
           ${Icon({ name: 'explore', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Explore
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Discover prompts
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Explore</div>
+            <div class="mobile-nav-item-description">Discover prompts</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="library" data-section="library" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="library" data-section="library">
           ${Icon({ name: 'auto_stories', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              My Library
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Your saved prompts
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">My Library</div>
+            <div class="mobile-nav-item-description">Your saved prompts</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="submit" data-section="submit" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="submit" data-section="submit">
           ${Icon({ name: 'add_circle', className: 'text-primary !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--primary);">
-              Submit Prompt
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Share your prompt
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title primary-color">Submit Prompt</div>
+            <div class="mobile-nav-item-description">Share your prompt</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="leaderboard" data-section="leaderboard" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="leaderboard" data-section="leaderboard">
           ${Icon({ name: 'leaderboard', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Leaderboard
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Top contributors
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Leaderboard</div>
+            <div class="mobile-nav-item-description">Top contributors</div>
           </div>
         </button>
 
         <!-- Divider -->
-        <div style="height: 1px; background: var(--border-subtle); margin: 12px 0;"></div>
+        <div class="mobile-menu-divider"></div>
 
         <!-- Secondary Navigation -->
-        <div style="padding: 0 12px; margin-bottom: 8px; margin-top: 16px;">
-          <p style="
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-subtle);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 12px;
-          ">
-            More
-          </p>
+        <div class="mobile-menu-section-header with-margin-top">
+          <p class="mobile-menu-section-title">More</p>
         </div>
 
-        <button class="mobile-nav-item" data-window="profile" data-section="profile" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="profile" data-section="profile">
           ${Icon({ name: 'person', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Profile
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Your account
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Profile</div>
+            <div class="mobile-nav-item-description">Your account</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="opportunities" data-section="opportunities" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="opportunities" data-section="opportunities">
           ${Icon({ name: 'work_outline', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Opportunities
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Jobs & internships
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Opportunities</div>
+            <div class="mobile-nav-item-description">Jobs & internships</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="games" data-section="games" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="games" data-section="games">
           ${Icon({ name: 'sports_esports', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Games
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Bear Invaders
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Games</div>
+            <div class="mobile-nav-item-description">Bear Invaders</div>
           </div>
         </button>
 
-        <button class="mobile-nav-item" data-window="learn" data-section="learn" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="learn" data-section="learn">
           ${Icon({ name: 'school', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Learn
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Tutorials & guides
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Learn</div>
+            <div class="mobile-nav-item-description">Tutorials & guides</div>
           </div>
         </button>
 
         ${isAdmin ? `
           <!-- Divider -->
-          <div style="height: 1px; background: var(--border-subtle); margin: 12px 0;"></div>
+          <div class="mobile-menu-divider"></div>
 
-          <button class="mobile-nav-item" data-window="admin" data-section="admin" style="
-            width: 100%;
-            padding: 16px 24px;
-            background: transparent;
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-          ">
+          <button class="mobile-nav-item" data-window="admin" data-section="admin">
             ${Icon({ name: 'shield_person', className: 'text-primary !text-[24px]' })}
-            <div style="flex: 1; text-align: left;">
-              <div style="font-size: 15px; font-weight: 600; color: var(--primary);">
-                Admin Panel
-              </div>
-              <div style="font-size: 12px; color: var(--text-subtle);">
-                Manage submissions
-              </div>
+            <div class="mobile-nav-item-content">
+              <div class="mobile-nav-item-title primary-color">Admin Panel</div>
+              <div class="mobile-nav-item-description">Manage submissions</div>
             </div>
           </button>
         ` : ''}
 
         <!-- Divider -->
-        <div style="height: 1px; background: var(--border-subtle); margin: 12px 0;"></div>
+        <div class="mobile-menu-divider"></div>
 
-        <button class="mobile-nav-item" data-window="settings" data-section="settings" style="
-          width: 100%;
-          padding: 16px 24px;
-          background: transparent;
-          border: none;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border-left: 3px solid transparent;
-        ">
+        <button class="mobile-nav-item" data-window="settings" data-section="settings">
           ${Icon({ name: 'settings', className: 'text-white !text-[24px]' })}
-          <div style="flex: 1; text-align: left;">
-            <div style="font-size: 15px; font-weight: 600; color: var(--text-primary);">
-              Settings
-            </div>
-            <div style="font-size: 12px; color: var(--text-subtle);">
-              Preferences
-            </div>
+          <div class="mobile-nav-item-content">
+            <div class="mobile-nav-item-title">Settings</div>
+            <div class="mobile-nav-item-description">Preferences</div>
           </div>
         </button>
       </div>
 
       <!-- Mobile Menu Footer -->
-      <div style="
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 20px 24px;
-        border-top: 1px solid var(--border-subtle);
-        background: var(--background-dark);
-      ">
-        <button id="mobile-nav-signout" style="
-          width: 100%;
-          padding: 14px;
-          background: var(--white-10);
-          border: 1px solid var(--border-subtle);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--text-primary);
-        ">
+      <div class="mobile-menu-footer">
+        <button id="mobile-nav-signout">
           ${Icon({ name: 'logout', className: '!text-[20px]' })}
           <span>Sign Out</span>
         </button>
@@ -385,50 +147,11 @@ export function renderMobileNavigation(container, userData, isAdmin = false) {
     </div>
 
     <!-- Mobile Hamburger Button (visible on mobile only) -->
-    <button id="mobile-nav-toggle" class="mobile-nav-toggle" style="
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: var(--background-dark);
-      border: 1px solid var(--border-subtle);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 9997;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    ">
-      <span class="hamburger-icon" style="
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        width: 20px;
-      ">
-        <span style="
-          width: 100%;
-          height: 2px;
-          background: var(--text-primary);
-          transition: all 0.3s ease;
-          border-radius: 2px;
-        "></span>
-        <span style="
-          width: 100%;
-          height: 2px;
-          background: var(--text-primary);
-          transition: all 0.3s ease;
-          border-radius: 2px;
-        "></span>
-        <span style="
-          width: 100%;
-          height: 2px;
-          background: var(--text-primary);
-          transition: all 0.3s ease;
-          border-radius: 2px;
-        "></span>
+    <button id="mobile-nav-toggle" class="mobile-nav-toggle">
+      <span class="hamburger-icon">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
       </span>
     </button>
   `
@@ -482,15 +205,7 @@ function setupMobileNavListeners() {
       console.log('📱 Mobile nav item clicked:', windowId)
 
       // Update active state
-      navItems.forEach(i => {
-        i.style.background = 'transparent'
-        i.style.borderLeftColor = 'transparent'
-      })
-      item.style.background = 'var(--white-5)'
-      item.style.borderLeftColor = 'var(--primary)'
-
-      // Update current section
-      currentSection = section
+      setActiveNavItem(section)
 
       // Open window
       if (windowId) {
@@ -550,13 +265,10 @@ export function openMobileMenu() {
 
     // Update hamburger icon to X
     if (toggle) {
-      const icon = toggle.querySelector('.hamburger-icon')
-      if (icon) {
-        const lines = icon.querySelectorAll('span')
-        lines[0].style.transform = 'rotate(45deg) translateY(9px)'
-        lines[1].style.opacity = '0'
-        lines[2].style.transform = 'rotate(-45deg) translateY(-9px)'
-      }
+      const lines = toggle.querySelectorAll('.hamburger-line')
+      lines[0].style.transform = 'rotate(45deg) translateY(9px)'
+      lines[1].style.opacity = '0'
+      lines[2].style.transform = 'rotate(-45deg) translateY(-9px)'
     }
 
     // Prevent body scroll
@@ -586,13 +298,10 @@ export function closeMobileMenu() {
 
     // Reset hamburger icon
     if (toggle) {
-      const icon = toggle.querySelector('.hamburger-icon')
-      if (icon) {
-        const lines = icon.querySelectorAll('span')
-        lines[0].style.transform = 'none'
-        lines[1].style.opacity = '1'
-        lines[2].style.transform = 'none'
-      }
+      const lines = toggle.querySelectorAll('.hamburger-line')
+      lines[0].style.transform = 'none'
+      lines[1].style.opacity = '1'
+      lines[2].style.transform = 'none'
     }
 
     // Restore body scroll
@@ -627,11 +336,9 @@ export function setActiveNavItem(section) {
 
   navItems.forEach(item => {
     if (item.dataset.section === section) {
-      item.style.background = 'var(--white-5)'
-      item.style.borderLeftColor = 'var(--primary)'
+      item.classList.add('active')
     } else {
-      item.style.background = 'transparent'
-      item.style.borderLeftColor = 'transparent'
+      item.classList.remove('active')
     }
   })
 }

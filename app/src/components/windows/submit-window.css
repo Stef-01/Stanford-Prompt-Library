@@ -1,0 +1,213 @@
+/**
+ * Submit Window CSS
+ * Prompt submission form styling
+ */
+
+/* ============================================
+   Submit Window Container
+   ============================================ */
+
+.submit-window-content {
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.submit-window-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* ============================================
+   Submit Window Title
+   ============================================ */
+
+.submit-window-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ============================================
+   Submit Form
+   ============================================ */
+
+.submit-prompt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ============================================
+   Form Groups
+   ============================================ */
+
+.submit-form-group {
+  /* Container for label + input */
+}
+
+.submit-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.submit-form-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--white-5);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.submit-form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--white-8);
+}
+
+.submit-form-input::placeholder {
+  color: var(--text-subtle);
+  opacity: 0.6;
+}
+
+/* Textarea specific */
+.submit-form-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--white-5);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.submit-form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--white-8);
+}
+
+.submit-form-textarea.mono {
+  font-family: monospace;
+}
+
+/* ============================================
+   Tags Container
+   ============================================ */
+
+.submit-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.submit-tag-btn {
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border-subtle);
+  background: var(--white-5);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.submit-tag-btn:hover {
+  background: var(--white-8);
+  border-color: var(--white-20);
+}
+
+.submit-tag-btn.selected {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* ============================================
+   Submit Button
+   ============================================ */
+
+.submit-prompt-btn {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.submit-prompt-btn:hover {
+  background: var(--primary-dark, #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.submit-prompt-btn:active {
+  transform: translateY(0);
+}
+
+.submit-prompt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 640px) {
+  .submit-window-content {
+    padding: 16px;
+  }
+
+  .submit-window-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .submit-prompt-form {
+    gap: 16px;
+  }
+
+  .submit-form-input,
+  .submit-form-textarea {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .submit-tags-container {
+    gap: 6px;
+  }
+
+  .submit-tag-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .submit-prompt-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+}

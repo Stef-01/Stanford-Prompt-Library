@@ -173,12 +173,19 @@ export function displayConfigValidation(containerEl) {
         <div style="color: #a0a0a0; font-size: 10px; margin-bottom: 0.5rem;">Current: ${currentOrigin}</div>
         ${configuredUrl ? `<div style="color: #a0a0a0; font-size: 10px;">Config: ${configuredUrl}</div>` : ''}
       </div>
-      <button onclick="this.parentElement.style.display='none'" style="position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: white; cursor: pointer; font-size: 18px;">×</button>
+      <button data-action="close-validation" style="position: absolute; top: 0.5rem; right: 0.5rem; background: none; border: none; color: white; cursor: pointer; font-size: 18px;">×</button>
     </div>
   `
 
   if (containerEl) {
     containerEl.insertAdjacentHTML('beforeend', html)
+    // Attach event listener after inserting HTML
+    const closeBtn = containerEl.querySelector('[data-action="close-validation"]')
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function() {
+        this.parentElement.style.display = 'none'
+      })
+    }
   }
 
   return true // Issues found

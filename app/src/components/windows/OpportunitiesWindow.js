@@ -12,6 +12,7 @@ import {
   toggleOpportunitySave,
   trackOpportunityClick
 } from '../../services/opportunities.js'
+import { debounce, escapeHtml } from '../../utils/helpers/formatters.js'
 
 let currentFilter = 'all'
 let currentSearch = ''
@@ -582,19 +583,4 @@ function injectStyles() {
     }
   `
   document.head.appendChild(style)
-}
-
-// Utility functions
-function debounce(func, wait) {
-  let timeout
-  return function(...args) {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => func(...args), wait)
-  }
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
 }

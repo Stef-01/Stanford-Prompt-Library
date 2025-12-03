@@ -4,7 +4,7 @@
  */
 
 export function renderGameHUD(gameState) {
-  const { score, wave, lives, maxLives, currency } = gameState;
+  const { score, wave, lives, maxLives, currency, weapon } = gameState;
 
   return `
     <div style="
@@ -20,7 +20,7 @@ export function renderGameHUD(gameState) {
       z-index: 10;
     ">
       <!-- Exit Button -->
-      <button id="exit-game-btn" style="
+      <button id="exit-game-btn" class="exit-game-btn" style="
         position: absolute;
         top: 10px;
         right: 10px;
@@ -41,7 +41,7 @@ export function renderGameHUD(gameState) {
         padding: 0;
         line-height: 1;
         z-index: 1000;
-      " onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'; this.style.color='white';" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'; this.style.color='rgba(255, 255, 255, 0.8)';">
+      ">
         ✕
       </button>
 
@@ -81,6 +81,30 @@ export function renderGameHUD(gameState) {
           </div>
         </div>
       </div>
+
+      <!-- Weapon Indicator -->
+      ${weapon ? `
+        <div style="
+          margin-top: 10px;
+          padding: 8px 16px;
+          background: rgba(0, 0, 0, 0.6);
+          border-left: 3px solid ${weapon.color};
+          border-radius: 4px;
+          display: inline-block;
+        ">
+          <div style="
+            font-size: 14px;
+            font-weight: bold;
+            color: ${weapon.color};
+            text-shadow: 0 0 8px ${weapon.color};
+          ">
+            ⚔️ ${weapon.name}
+          </div>
+          <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">
+            Press 1-6 to switch weapons
+          </div>
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -160,6 +184,7 @@ export function renderMenuOverlay() {
       ">
         <div><span style="color: rgba(255, 255, 255, 0.8);">Move:</span> ← → / A D</div>
         <div><span style="color: rgba(255, 255, 255, 0.8);">Shoot:</span> SPACE</div>
+        <div><span style="color: rgba(255, 255, 255, 0.8);">Weapons:</span> 1 2 3 4 5 6</div>
         <div><span style="color: rgba(255, 255, 255, 0.8);">Shop:</span> U</div>
         <div><span style="color: rgba(255, 255, 255, 0.8);">Pause:</span> ESC</div>
       </div>

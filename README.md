@@ -23,6 +23,31 @@ The Stanford Prompt Library is a community-driven wiki where Stanford students c
 
 This repository contains comprehensive planning and implementation documentation:
 
+### Latest: Refactoring & Testing
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System Architecture & Design Patterns
+  - Complete architecture overview with diagrams
+  - Service layer pattern explanation
+  - State management with pub/sub
+  - Caching strategy and performance optimizations
+  - Security considerations
+  - Data flow diagrams
+
+- **[TEST_GUIDE.md](./TEST_GUIDE.md)** - Testing Documentation
+  - 68 unit tests covering core modules
+  - 64.75% overall code coverage
+  - Testing best practices and examples
+  - CI/CD integration guide
+  - Debugging and troubleshooting
+
+- **[PHASE_5_NOTES.md](./PHASE_5_NOTES.md)** - Refactoring Progress
+  - Phase-by-phase refactoring plan
+  - Testing infrastructure setup
+  - Documentation strategy
+  - Success metrics and progress tracking
+
+### Planning & Implementation
+
 ### 1. [DEPLOYMENT_PLAN.md](./DEPLOYMENT_PLAN.md) - Master Plan
 **70+ pages** of detailed technical specifications including:
 - Complete architecture overview
@@ -462,24 +487,40 @@ Full API documentation available via Supabase auto-generated docs.
 
 ## 🧪 Testing
 
+### Current Test Coverage
+- **68 tests passing** across core modules
+- **64.75% overall coverage** (statements)
+- **BaseService**: 25 tests, 55% coverage
+- **Store**: 43 tests, 74% coverage
+- Test framework: **Vitest** with Happy-DOM
+
+### Running Tests
+
 ```bash
-# Run all tests
-npm run test
+# Run all tests (watch mode)
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
 
 # Run with coverage
 npm run test:coverage
 
+# Run with UI
+npm run test:ui
+
 # Run specific test file
-npm run test auth.test.js
-
-# Run E2E tests
-npm run test:e2e
-
-# Load testing
-k6 run tests/load/basic.js
+npm test -- tests/services/base-service.test.js
 ```
 
-See [IMPLEMENTATION_GUIDE.md Phase 5](./IMPLEMENTATION_GUIDE.md#phase-5-testing-week-5-6) for testing guide.
+### What We Test
+
+✅ BaseService - Caching, error handling, metrics
+✅ Store - State management, subscriptions, middleware
+✅ Custom error classes
+✅ Cache invalidation patterns
+
+See **[TEST_GUIDE.md](./TEST_GUIDE.md)** for complete testing documentation.
 
 ---
 

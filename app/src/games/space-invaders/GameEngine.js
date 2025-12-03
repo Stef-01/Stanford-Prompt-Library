@@ -8,6 +8,7 @@ import { Player } from './entities/Player.js';
 import { BearInvader } from './entities/BearInvader.js';
 import { Bullet } from './entities/Bullet.js';
 import { EnemyBullet } from './entities/EnemyBullet.js';
+import { Weapon, WEAPON_TYPES, ExplosiveBullet, PiercingBullet, BouncyBullet } from './entities/Weapon.js';
 import { CollisionSystem } from './systems/CollisionSystem.js';
 import { UpgradeSystem } from './systems/UpgradeSystem.js';
 
@@ -32,6 +33,10 @@ export class GameEngine {
 
     // Systems
     this.upgradeSystem = new UpgradeSystem();
+
+    // Weapons
+    this.currentWeapon = new Weapon(WEAPON_TYPES.STANDARD);
+    this.availableWeapons = Object.values(WEAPON_TYPES);
 
     // Entities
     this.player = null;
@@ -78,6 +83,17 @@ export class GameEngine {
     if (e.key === ' ' && this.state === 'playing') {
       e.preventDefault();
       // Don't shoot here - handled in update loop for continuous shooting
+    }
+
+    // Weapon switching (1-6 keys)
+    if (this.state === 'playing' && e.key >= '1' && e.key <= '6') {
+      const weaponIndex = parseInt(e.key) - 1;
+      if (weaponIndex < this.availableWeapons.length) {
+        const weaponPowerLevel = this.upgradeSystem.getWeaponPower();
+        this.currentWeapon = new Weapon(this.availableWeapons[weaponIndex], weaponPowerLevel);
+        console.log(`[SpaceInvaders] Switched to weapon: ${this.currentWeapon.name}`);
+        this.notifyStateChange();
+      }
     }
 
     if (e.key === 'Escape') {
@@ -140,15 +156,15 @@ export class GameEngine {
     this.invaderOffsetY = 0;
     this.invaderDirection = 1;
 
-    // Progressive difficulty: Wave 1 = 10 bears, then increases
-    // Calculate how many bears to spawn based on wave number
-    const bearsThisWave = 10 + ((this.wave - 1) * 5); // Wave 1: 10, Wave 2: 15, Wave 3: 20, etc.
+    // Progressive difficulty: Exponential growth for balanced scaling
+    // Wave 1: 10, Wave 5: 16, Wave 10: 31, Wave 20: 96
+    const bearsThisWave = Math.floor(10 * (1.12 ** (this.wave - 1)));
 
     // Take only the first N bears from the pattern based on wave number
     const bearsToSpawn = BEAR_WAVE.slice(0, Math.min(bearsThisWave, BEAR_WAVE.length));
 
     bearsToSpawn.forEach(({ x, y }) => {
-      this.invaders.push(new BearInvader(x, y));
+      this.invaders.push(new BearInvader(x, y, this.wave));
     });
 
     console.log(`[SpaceInvaders] Created ${this.invaders.length} bears for wave ${this.wave}`);
@@ -156,7 +172,9 @@ export class GameEngine {
 
   shoot() {
     const now = Date.now();
-    const fireRate = this.upgradeSystem.getFireRate();
+    // Apply weapon fire rate modifier
+    const baseFireRate = this.upgradeSystem.getFireRate();
+    const fireRate = baseFireRate / this.currentWeapon.fireRate;
 
     if (now - this.lastShotTime < fireRate) return;
 
@@ -164,21 +182,9 @@ export class GameEngine {
     const damage = this.upgradeSystem.getDamage();
     const multiShot = this.upgradeSystem.getMultiShotCount();
 
-    // Create bullets based on multi-shot level
-    const playerCenterX = this.player.x + this.player.width / 2;
-    const bulletY = this.player.y;
-
-    if (multiShot === 1) {
-      // Single bullet
-      this.bullets.push(new Bullet(playerCenterX, bulletY, damage));
-    } else {
-      // Multiple bullets in a spread
-      const spread = 15;
-      for (let i = 0; i < multiShot; i++) {
-        const offset = (i - (multiShot - 1) / 2) * spread;
-        this.bullets.push(new Bullet(playerCenterX + offset, bulletY, damage));
-      }
-    }
+    // Use weapon system to create bullets
+    const newBullets = this.currentWeapon.createBullets(this.player, damage, multiShot);
+    this.bullets.push(...newBullets);
   }
 
   pause() {
@@ -202,9 +208,18 @@ export class GameEngine {
   purchaseUpgrade(upgradeKey) {
     const success = this.upgradeSystem.purchaseUpgrade(upgradeKey);
     if (success) {
-      // Apply upgrades immediately
-      this.player.speed = this.upgradeSystem.getSpeed();
-      this.player.maxLives = this.upgradeSystem.getMaxShield();
+      // Apply specific upgrades based on what was purchased
+      if (upgradeKey === 'speed') {
+        this.player.speed = this.upgradeSystem.getSpeed();
+      }
+      if (upgradeKey === 'shield') {
+        this.player.maxLives = this.upgradeSystem.getMaxShield();
+      }
+      if (upgradeKey === 'weaponPower') {
+        // Refresh current weapon to apply evolution
+        const weaponPowerLevel = this.upgradeSystem.getWeaponPower();
+        this.currentWeapon = new Weapon(this.currentWeapon.type, weaponPowerLevel);
+      }
       this.notifyStateChange();
     }
     return success;
@@ -328,19 +343,63 @@ export class GameEngine {
   }
 
   checkCollisions() {
-    // Bullet vs Invader
+    // Bullet vs Invader - handle special bullet types
     const hits = CollisionSystem.checkBulletInvaderCollisions(this.bullets, this.invaders);
-    hits.forEach(({ invader }) => {
-      invader.hit();
-      this.score += GAME_CONFIG.POINTS_PER_BEAR;
-      this.upgradeSystem.addCurrency(GAME_CONFIG.CURRENCY_PER_BEAR);
-      this.notifyScoreUpdate();
+    const damage = this.upgradeSystem.getDamage();
+
+    hits.forEach(({ bullet, invader }) => {
+      // Check for explosive bullets
+      if (bullet instanceof ExplosiveBullet && !bullet.hasExploded) {
+        // Damage all invaders in radius
+        const explosionX = bullet.x;
+        const explosionY = bullet.y;
+        const radius = bullet.explosionRadius;
+
+        this.invaders.forEach(inv => {
+          if (!inv.alive) return;
+
+          const dx = inv.x - explosionX;
+          const dy = inv.y - explosionY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance <= radius) {
+            const died = inv.hit(damage);
+            if (died) {
+              this.score += GAME_CONFIG.POINTS_PER_BEAR;
+              this.upgradeSystem.addCurrency(GAME_CONFIG.CURRENCY_PER_BEAR);
+            }
+          }
+        });
+
+        bullet.explode();
+        this.notifyScoreUpdate();
+      }
+      // Check for piercing bullets
+      else if (bullet instanceof PiercingBullet) {
+        const died = invader.hit(damage);
+        if (died) {
+          this.score += GAME_CONFIG.POINTS_PER_BEAR;
+          this.upgradeSystem.addCurrency(GAME_CONFIG.CURRENCY_PER_BEAR);
+        }
+        // Piercing bullets continue after hitting
+        bullet.hit(); // Returns true if bullet should continue
+        this.notifyScoreUpdate();
+      }
+      // Normal bullets (including bouncy)
+      else {
+        const died = invader.hit(damage);
+        if (died) {
+          this.score += GAME_CONFIG.POINTS_PER_BEAR;
+          this.upgradeSystem.addCurrency(GAME_CONFIG.CURRENCY_PER_BEAR);
+        }
+        this.notifyScoreUpdate();
+      }
     });
 
     // Player vs Invader
     const hitInvader = CollisionSystem.checkPlayerInvaderCollisions(this.player, this.invaders);
     if (hitInvader) {
-      hitInvader.hit();
+      hitInvader.hit(999); // Instant kill on collision with player
       if (this.player.takeDamage()) {
         if (this.player.lives <= 0) {
           this.gameOver();
@@ -398,7 +457,12 @@ export class GameEngine {
         lives: this.player ? this.player.lives : 0,
         maxLives: this.player ? this.player.maxLives : 3,
         currency: this.upgradeSystem.currency,
-        upgrades: this.upgradeSystem.getAllUpgrades()
+        upgrades: this.upgradeSystem.getAllUpgrades(),
+        weapon: {
+          name: this.currentWeapon.name,
+          type: this.currentWeapon.type,
+          color: this.currentWeapon.color
+        }
       });
     }
   }

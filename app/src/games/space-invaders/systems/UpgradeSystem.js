@@ -14,7 +14,8 @@ export class UpgradeSystem {
       damage: 0,
       multiShot: 0,
       shield: 0,
-      speed: 0
+      speed: 0,
+      weaponPower: 0
     };
   }
 
@@ -66,6 +67,10 @@ export class UpgradeSystem {
     return UPGRADES.speed.effect(this.upgrades.speed);
   }
 
+  getWeaponPower() {
+    return UPGRADES.weaponPower.effect(this.upgrades.weaponPower);
+  }
+
   getAllUpgrades() {
     return Object.keys(UPGRADES).map(key => ({
       key,
@@ -79,6 +84,15 @@ export class UpgradeSystem {
   reset() {
     // Keep half the currency on game over
     this.currency = Math.floor(this.currency / 2);
-    // Upgrades persist between games
+
+    // Reset all upgrades (you have to survive to keep them)
+    this.upgrades = {
+      fireRate: 0,
+      damage: 0,
+      multiShot: 0,
+      shield: 0,
+      speed: 0,
+      weaponPower: 0
+    };
   }
 }

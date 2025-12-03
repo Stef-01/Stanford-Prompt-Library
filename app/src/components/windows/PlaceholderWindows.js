@@ -9,10 +9,10 @@ import { initSpaceInvaders } from '../../games/space-invaders/SpaceInvaders.js';
 let gameCleanup = null;
 
 /**
- * Render Games Window - Space Invaders Game
+ * Render Games Window - Game Selection Menu
  */
 export function renderGamesWindow(contentContainer) {
-  console.log('[GamesWindow] Rendering Space Invaders');
+  console.log('[GamesWindow] Rendering game selection menu');
 
   // Clean up previous game instance if exists
   if (gameCleanup) {
@@ -22,8 +22,195 @@ export function renderGamesWindow(contentContainer) {
 
   // Clear container
   contentContainer.innerHTML = '';
+  contentContainer.style.padding = '40px';
+  contentContainer.style.overflow = 'auto';
+
+  // Show game selection menu
+  renderGameSelectionMenu(contentContainer);
+}
+
+/**
+ * Render Game Selection Menu
+ */
+function renderGameSelectionMenu(contentContainer) {
+  contentContainer.innerHTML = `
+    <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+      <div style="font-size: 64px; margin-bottom: 20px;">🎮</div>
+      <h2 style="font-size: 32px; margin-bottom: 15px; color: var(--text-primary); font-weight: 700;">
+        Stanford Games
+      </h2>
+      <p style="color: var(--text-secondary); margin-bottom: 40px; font-size: 16px;">
+        Choose a game to play
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <!-- Bear Invaders -->
+        <div
+          id="game-bear-invaders"
+          class="game-card"
+          style="
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 146, 60, 0.1));
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+          "
+        >
+          <div style="font-size: 72px; margin-bottom: 15px;">🐻</div>
+          <h3 style="font-size: 24px; margin-bottom: 10px; color: #fdb515; font-weight: 700;">
+            Bear Invaders
+          </h3>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+            Defend against the golden bear invasion! Upgrade your ship with 6 unique weapons and survive the waves.
+          </p>
+          <div style="
+            display: inline-block;
+            padding: 10px 24px;
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            border-radius: 8px;
+            color: #fdb515;
+            font-size: 14px;
+            font-weight: 600;
+          ">
+            PLAY NOW
+          </div>
+        </div>
+
+        <!-- Stanford Simulator -->
+        <div
+          id="game-stanford-sim"
+          class="game-card"
+          style="
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1));
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+            opacity: 0.7;
+          "
+        >
+          <div style="font-size: 72px; margin-bottom: 15px;">🎓</div>
+          <h3 style="font-size: 24px; margin-bottom: 10px; color: var(--accent-purple); font-weight: 700;">
+            Stanford Simulator
+          </h3>
+          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+            Experience life at Stanford! Navigate classes, activities, and campus adventures.
+          </p>
+          <div style="
+            display: inline-block;
+            padding: 10px 24px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 8px;
+            color: var(--accent-purple);
+            font-size: 14px;
+            font-weight: 600;
+          ">
+            COMING SOON
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Add event listeners
+  const bearInvadersCard = contentContainer.querySelector('#game-bear-invaders');
+  const stanfordSimCard = contentContainer.querySelector('#game-stanford-sim');
+
+  if (bearInvadersCard) {
+    bearInvadersCard.addEventListener('click', () => {
+      launchBearInvaders(contentContainer);
+    });
+
+    bearInvadersCard.addEventListener('mouseenter', (e) => {
+      e.currentTarget.style.transform = 'translateY(-8px)';
+      e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.6)';
+      e.currentTarget.style.boxShadow = '0 12px 24px rgba(251, 191, 36, 0.2)';
+    });
+
+    bearInvadersCard.addEventListener('mouseleave', (e) => {
+      e.currentTarget.style.transform = '';
+      e.currentTarget.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+      e.currentTarget.style.boxShadow = '';
+    });
+  }
+
+  if (stanfordSimCard) {
+    stanfordSimCard.addEventListener('mouseenter', (e) => {
+      e.currentTarget.style.opacity = '0.8';
+    });
+
+    stanfordSimCard.addEventListener('mouseleave', (e) => {
+      e.currentTarget.style.opacity = '0.7';
+    });
+  }
+}
+
+/**
+ * Launch Bear Invaders game
+ */
+function launchBearInvaders(contentContainer) {
+  console.log('[GamesWindow] Launching Bear Invaders');
+
+  // Clear container
+  contentContainer.innerHTML = '';
   contentContainer.style.padding = '0';
   contentContainer.style.overflow = 'hidden';
+
+  // Create back button container
+  const backButtonContainer = document.createElement('div');
+  backButtonContainer.style.cssText = `
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+  `;
+
+  const backButton = document.createElement('button');
+  backButton.id = 'back-to-menu-btn';
+  backButton.textContent = '← Back';
+  backButton.style.cssText = `
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  `;
+
+  backButton.addEventListener('click', () => {
+    // Clean up game
+    if (gameCleanup) {
+      gameCleanup();
+      gameCleanup = null;
+    }
+    // Return to menu
+    contentContainer.innerHTML = '';
+    contentContainer.style.padding = '40px';
+    contentContainer.style.overflow = 'auto';
+    renderGameSelectionMenu(contentContainer);
+  });
+
+  backButton.addEventListener('mouseenter', () => {
+    backButton.style.background = 'rgba(0, 0, 0, 0.9)';
+    backButton.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+  });
+
+  backButton.addEventListener('mouseleave', () => {
+    backButton.style.background = 'rgba(0, 0, 0, 0.7)';
+    backButton.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+  });
+
+  backButtonContainer.appendChild(backButton);
+  contentContainer.appendChild(backButtonContainer);
 
   // Initialize Space Invaders
   gameCleanup = initSpaceInvaders(contentContainer);

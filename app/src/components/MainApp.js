@@ -14,13 +14,16 @@ import { initDockMagnification } from '../utils/dock-magnification.js'
 import { initWallpaper } from '../services/wallpaper.js'
 import { initMobileDetection, isMobileDevice } from '../utils/mobile-detection.js'
 import { renderMobileNavigation, setActiveNavItem } from './MobileNavigation.js'
+import { createLogger } from '../utils/logger.js'
+
+const log = createLogger('MainApp')
 
 // Window render functions
 import { renderExploreWindow } from './windows/ExploreWindow.js'
-import { renderLeaderboardWindow } from './windows/LeaderboardWindow.js'
+import { renderLeaderboardWindow as renderLeaderboard } from './leaderboard/LeaderboardWindow.refactored.js'
 import { renderProfileWindow } from './windows/ProfileWindow.js'
 import { renderAdminWindow } from './windows/AdminWindow.js'
-import { renderLibraryWindow } from './windows/LibraryWindow.js'
+import { renderLibraryWindow as renderLibrary } from './library/LibraryWindow.refactored.js'
 import { renderSubmitWindow } from './windows/SubmitWindow.js'
 import {
   renderGamesWindow,
@@ -39,17 +42,17 @@ export async function renderMainApp(container, user) {
   try {
     // Initialize mobile detection and add appropriate mode classes
     const viewport = initMobileDetection()
-    console.log('📱 Viewport detected:', viewport.deviceType)
+    log.debug('📱 Viewport detected:', viewport.deviceType)
 
-    console.log('🎨 Rendering main app for user:', user.display_name)
+    log.debug('🎨 Rendering main app for user:', user.display_name)
 
     // Store user data
     userData = user
 
     // Check if user is admin
-    console.log('🔍 Checking admin status...')
+    log.debug('🔍 Checking admin status...')
     userIsAdmin = await isAdmin()
-    console.log('✅ Admin status:', userIsAdmin)
+    log.debug('✅ Admin status:', userIsAdmin)
 
     // Render desktop layout
     container.innerHTML = `
@@ -157,7 +160,7 @@ export async function renderMainApp(container, user) {
     initDockMagnification()
 
     // Render mobile navigation
-    console.log('📱 Rendering mobile navigation...')
+    log.debug('📱 Rendering mobile navigation...')
     renderMobileNavigation(document.body, userData, userIsAdmin)
 
     // Open Explore window by default
@@ -166,7 +169,7 @@ export async function renderMainApp(container, user) {
     // Set initial active nav item for mobile
     setActiveNavItem('explore')
 
-    console.log('✅ Desktop app rendered successfully!')
+    log.debug('✅ Desktop app rendered successfully!')
 
   } catch (error) {
     console.error('❌ Error rendering main app:', error)
@@ -191,12 +194,14 @@ export async function renderMainApp(container, user) {
           <pre style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; overflow: auto; text-align: left; color: var(--accent-red); margin-bottom: 2rem; font-size: 0.875rem;">
 ${error.message}
           </pre>
-          <button onclick="window.location.reload()" class="btn-primary" style="padding: 0.75rem 1.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <button id="reload-btn" class="btn-primary" style="padding: 0.75rem 1.5rem; background: var(--accent-blue); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
             Reload Page
           </button>
         </div>
       </div>
     `
+    // Attach event listener
+    document.getElementById('reload-btn')?.addEventListener('click', () => window.location.reload())
   }
 }
 
@@ -262,19 +267,19 @@ async function renderWindowContent(windowId, contentContainer) {
         await renderExploreWindow(contentContainer)
         break
       case 'library':
-        await renderLibraryWindow(contentContainer, userData)
+        await renderLibrary(contentContainer, userData)
         break
       case 'submit':
         await renderSubmitWindow(contentContainer, userData, () => {
           // Refresh library window after successful submission
           const libraryContent = document.getElementById('window-content-library')
           if (libraryContent) {
-            renderLibraryWindow(libraryContent, userData)
+            renderLibrary(libraryContent, userData)
           }
         })
         break
       case 'leaderboard':
-        await renderLeaderboardWindow(contentContainer)
+        await renderLeaderboard(contentContainer)
         break
       case 'profile':
         await renderProfileWindow(contentContainer, userData)

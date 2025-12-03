@@ -1,12 +1,17 @@
 import './style.css'
+import './components/error-pages.css'
+import './components/ui/ui-components.css'
 import { supabase } from './config/supabase.js'
 import { onAuthStateChange } from './services/auth.js'
 import { checkUserAccess } from './services/access-control.js'
-import { renderSignInGate } from './components/SignInGate.js'
+import { renderSignInGate } from './components/auth/SignInGate.refactored.js'
 import { renderSubmitPromptGate } from './components/SubmitPromptGate.js'
 import { renderPendingApprovalGate } from './components/PendingApprovalGate.js'
 import { renderMainApp } from './components/MainApp.js'
 import { validateAuthConfig, displayConfigValidation } from './utils/validate-config.js'
+import { createLogger } from './utils/logger.js'
+
+const log = createLogger('App')
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -14,16 +19,21 @@ window.addEventListener('error', (event) => {
   const app = document.querySelector('#app')
   if (app) {
     app.innerHTML = `
-      <div style="padding: 2rem; color: white; background: #1a1a1a; min-height: 100vh;">
-        <h1 style="color: #ef4444;">Uncaught Error</h1>
-        <p style="color: #a0a0a0; margin: 1rem 0;">An error occurred:</p>
-        <pre style="background: #0a0a0a; padding: 1rem; border-radius: 8px; overflow: auto; color: #ef4444;">${event.error?.message || event.message}\n\n${event.error?.stack || ''}</pre>
-        <p style="color: #a0a0a0; margin-top: 1rem;">Check browser console (F12) for more details.</p>
-        <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <div class="error-page-dark">
+        <h1 class="error-page-dark-title">Uncaught Error</h1>
+        <p class="error-page-dark-description">An error occurred:</p>
+        <pre class="error-page-dark-code">${event.error?.message || event.message}\n\n${event.error?.stack || ''}</pre>
+        <p class="error-page-dark-description">Check browser console (F12) for more details.</p>
+        <button class="error-page-dark-btn" data-action="reload">
           Reload Page
         </button>
       </div>
     `
+    // Attach event listener after DOM is updated
+    const reloadBtn = app.querySelector('[data-action="reload"]')
+    if (reloadBtn) {
+      reloadBtn.addEventListener('click', () => window.location.reload())
+    }
   }
 })
 
@@ -46,7 +56,7 @@ const app = document.querySelector('#app')
  */
 async function init() {
   try {
-    console.log('🚀 Stanford Prompt Library initializing...')
+    log.info('🚀 Stanford Prompt Library initializing...')
 
     // Validate configuration first
     validateAuthConfig()
@@ -65,9 +75,9 @@ async function init() {
       hashParams.has('error_description')
 
     if (hasOAuthParams) {
-      console.log('🔄 OAuth callback detected in URL')
-      console.log('🔄 Hash params:', Array.from(hashParams.keys()).join(', ') || 'none')
-      console.log('🔄 Query params:', Array.from(queryParams.keys()).join(', ') || 'none')
+      log.debug('🔄 OAuth callback detected in URL')
+      log.debug('🔄 Hash params:', Array.from(hashParams.keys()).join(', ') || 'none')
+      log.debug('🔄 Query params:', Array.from(queryParams.keys()).join(', ') || 'none')
 
       // Check for error in OAuth callback
       if (hashParams.has('error') || queryParams.has('error')) {
@@ -77,29 +87,33 @@ async function init() {
 
         // Show error to user
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Authentication Failed</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">❌</div>
+              <h1 class="error-page-title">Authentication Failed</h1>
+              <p class="error-page-description">
                 ${errorDesc || error || 'An error occurred during sign-in'}
               </p>
-              <button onclick="window.location.href='/'" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+              <button class="error-page-btn-primary" data-action="home">
                 Try Again
               </button>
             </div>
           </div>
         `
+        const homeBtn = app.querySelector('[data-action="home"]')
+        if (homeBtn) {
+          homeBtn.addEventListener('click', () => window.location.href = '/')
+        }
         return
       }
 
-      console.log('🔄 Processing OAuth callback...')
+      log.debug('🔄 Processing OAuth callback...')
 
       // Wait a moment for Supabase to process the callback
       await new Promise(resolve => setTimeout(resolve, 500))
 
       // Clean URL after processing to prevent re-processing
-      console.log('🔄 Cleaning URL...')
+      log.debug('🔄 Cleaning URL...')
       window.history.replaceState({}, document.title, '/')
     }
 
@@ -111,7 +125,7 @@ async function init() {
       throw sessionError
     }
 
-    console.log('Initial session check:', session ? 'Session exists' : 'No session')
+    log.debug('Initial session check:', session ? 'Session exists' : 'No session')
 
     if (session) {
       console.log('✅ User:', session.user.email)
@@ -122,7 +136,7 @@ async function init() {
     // This prevents race conditions between listener and initial check
     authListenerActive = true
     onAuthStateChange(async (event, session, profile) => {
-      console.log('Auth event:', event, session?.user?.email || 'no user')
+      log.debug('Auth event:', event, session?.user?.email || 'no user')
 
       currentUser = session?.user || null
       currentProfile = profile
@@ -151,15 +165,19 @@ async function init() {
   } catch (error) {
     console.error('Initialization error:', error)
     app.innerHTML = `
-      <div style="padding: 2rem; color: white; background: #1a1a1a; min-height: 100vh;">
-        <h1 style="color: #ef4444;">Error Loading Application</h1>
-        <p style="color: #a0a0a0; margin: 1rem 0;">The application failed to initialize:</p>
-        <pre style="background: #0a0a0a; padding: 1rem; border-radius: 8px; overflow: auto;">${error.message}\n\n${error.stack || ''}</pre>
-        <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      <div class="error-page-dark">
+        <h1 class="error-page-dark-title">Error Loading Application</h1>
+        <p class="error-page-dark-description">The application failed to initialize:</p>
+        <pre class="error-page-dark-code">${error.message}\n\n${error.stack || ''}</pre>
+        <button class="error-page-dark-btn" data-action="reload">
           Retry
         </button>
       </div>
     `
+    const retryBtn = app.querySelector('[data-action="reload"]')
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => window.location.reload())
+    }
   }
 }
 
@@ -169,7 +187,7 @@ async function init() {
 async function checkAccessAndRender() {
   // Prevent concurrent renders - if already rendering, skip this call
   if (isRendering) {
-    console.log('Render already in progress, skipping...')
+    log.debug('Render already in progress, skipping...')
     return
   }
 
@@ -189,7 +207,7 @@ async function checkAccessAndRender() {
       timeoutPromise
     ])
 
-    console.log('Access status:', accessStatus)
+    log.debug('Access status:', accessStatus)
 
     // Clear loading state
     app.innerHTML = ''
@@ -210,57 +228,60 @@ async function checkAccessAndRender() {
 
       case 'DATABASE_SETUP_REQUIRED':
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">🔧</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">Database Setup Required</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
-                The <code style="background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px;">users</code> table doesn't exist in your Supabase database.
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">🔧</div>
+              <h1 class="error-page-title">Database Setup Required</h1>
+              <p class="error-page-description">
+                The <code>users</code> table doesn't exist in your Supabase database.
               </p>
-              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
-                <div style="color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 1rem;">Quick Fix (1 minute):</div>
-                <ol style="color: rgba(255,255,255,0.8); line-height: 1.8; padding-left: 1.5rem; margin: 0;">
-                  <li>Open <a href="https://app.supabase.com" target="_blank" style="color: #8b5cf6; text-decoration: underline;">Supabase Dashboard</a></li>
+              <div class="error-page-instructions">
+                <div class="error-page-instructions-title">Quick Fix (1 minute):</div>
+                <ol>
+                  <li>Open <a href="https://app.supabase.com" target="_blank">Supabase Dashboard</a></li>
                   <li>Go to <strong>SQL Editor</strong></li>
-                  <li>Run <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">app/database/schema.sql</code></li>
+                  <li>Run <code>app/database/schema.sql</code></li>
                   <li>Refresh this page</li>
                 </ol>
               </div>
-              <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: 600;">
+              <button class="error-page-btn-primary" data-action="reload">
                 Refresh Page
               </button>
             </div>
           </div>
         `
+        app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
         break
 
       case 'DATABASE_ERROR':
       case 'PROFILE_CREATION_ERROR':
         app.innerHTML = `
-          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); padding: 2rem;">
-            <div style="max-width: 600px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 3rem; text-align: center;">
-              <div style="font-size: 64px; margin-bottom: 1rem;">❌</div>
-              <h1 style="color: white; font-size: 28px; margin-bottom: 1rem;">${accessStatus.reason === 'DATABASE_ERROR' ? 'Database Error' : 'Profile Creation Error'}</h1>
-              <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; line-height: 1.6;">
+          <div class="error-page-gradient-container">
+            <div class="error-page-card">
+              <div class="error-page-icon">❌</div>
+              <h1 class="error-page-title">${accessStatus.reason === 'DATABASE_ERROR' ? 'Database Error' : 'Profile Creation Error'}</h1>
+              <p class="error-page-description">
                 ${accessStatus.message}
               </p>
-              <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
-                <details style="color: rgba(255,255,255,0.8); text-align: left;">
-                  <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem; text-align: center;">Show Error Details</summary>
-                  <pre style="background: rgba(0,0,0,0.5); padding: 1rem; border-radius: 8px; overflow: auto; font-size: 12px; color: #ff6b6b; margin-top: 0.5rem; white-space: pre-wrap; max-height: 300px;">${JSON.stringify(accessStatus.error, null, 2)}</pre>
+              <div class="error-page-details">
+                <details>
+                  <summary>Show Error Details</summary>
+                  <pre>${JSON.stringify(accessStatus.error, null, 2)}</pre>
                 </details>
               </div>
-              <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <button onclick="window.location.reload()" style="background: #8b5cf6; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+              <div class="error-page-actions">
+                <button class="error-page-btn-primary" data-action="reload">
                   Refresh Page
                 </button>
-                <button onclick="window.open('https://app.supabase.com', '_blank')" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600;">
+                <button class="error-page-btn-secondary" data-action="supabase">
                   Open Supabase
                 </button>
               </div>
             </div>
           </div>
         `
+        app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
+        app.querySelector('[data-action="supabase"]')?.addEventListener('click', () => window.open('https://app.supabase.com', '_blank'))
         break
 
       default:
@@ -272,11 +293,12 @@ async function checkAccessAndRender() {
             <div class="error-state">
               <h1>⚠️ Access Error</h1>
               <p>${accessStatus.message || 'Unable to verify access'}</p>
-              <button onclick="window.location.reload()" class="btn-primary">
+              <button class="btn-primary" data-action="reload">
                 Try Again
               </button>
             </div>
           `
+          app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
         }
     }
   } catch (error) {
@@ -286,11 +308,12 @@ async function checkAccessAndRender() {
         <h1>⚠️ Error</h1>
         <p>Something went wrong. Please try refreshing the page.</p>
         <p style="color: #888; font-size: 0.9rem; margin-top: 1rem;">Error: ${error.message}</p>
-        <button onclick="window.location.reload()" class="btn-primary">
+        <button class="btn-primary" data-action="reload">
           Refresh
         </button>
       </div>
     `
+    app.querySelector('[data-action="reload"]')?.addEventListener('click', () => window.location.reload())
   } finally {
     // Always reset rendering flag
     isRendering = false

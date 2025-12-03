@@ -1,262 +1,260 @@
 /**
- * AI Tools Service
- * Handles all AI tool recommendation operations including CRUD, voting, and leaderboard
+ * AI Tools Service (Refactored)
+ * Uses BaseService for standardized error handling and caching
  */
 
+import { BaseService, AuthenticationError, ValidationError } from './base-service.js'
 import { supabase } from '../config/supabase.js'
+import { getCurrentUser } from './auth.js'
+import { CACHE_TTL } from '../config/constants.js'
 
-/**
- * Submit a new AI tool recommendation
- * @param {Object} toolData - Tool information
- * @returns {Object} Result with success status and message
- */
-export async function submitAITool(toolData) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+// ============================================================================
+// AI Tools Service Class
+// ============================================================================
 
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .insert({
-        user_id: user.id,
-        name: toolData.name,
-        description: toolData.description,
-        category: toolData.category,
-        url: toolData.url,
-        tags: toolData.tags || [],
-        status: 'approved', // Auto-approve for now, can be changed to 'pending'
-        is_public: true
+class AIToolsService extends BaseService {
+  constructor() {
+    super('ai_tools', {
+      cacheTTL: CACHE_TTL.MEDIUM,
+      enableMetrics: true
+    })
+  }
+
+  /**
+   * Submit a new AI tool recommendation
+   */
+  async submitAITool(toolData) {
+    const user = await getCurrentUser()
+    if (!user) throw new AuthenticationError()
+
+    // Validate required fields
+    if (!toolData.name || !toolData.description || !toolData.url) {
+      throw new ValidationError('Missing required fields', {
+        name: !toolData.name,
+        description: !toolData.description,
+        url: !toolData.url
       })
-      .select()
-      .single()
+    }
 
-    if (error) throw error
+    const data = await this.executeQuery(() =>
+      supabase
+        .from('ai_tools')
+        .insert({
+          user_id: user.id,
+          name: toolData.name,
+          description: toolData.description,
+          category: toolData.category,
+          url: toolData.url,
+          tags: toolData.tags || [],
+          status: 'approved',
+          is_public: true
+        })
+        .select()
+        .single()
+    )
+
+    // Invalidate cache after new submission
+    this.invalidateCache('approved_tools')
+    this.invalidateCache(`my_tools:${user.id}`)
 
     return {
       success: true,
       message: '✅ AI tool submitted successfully!',
       data
     }
-  } catch (error) {
-    console.error('Error submitting AI tool:', error)
-    throw error
   }
-}
 
-/**
- * Get all approved AI tools
- * @param {Object} options - Filter options
- * @returns {Array} List of approved tools
- */
-export async function getApprovedAITools(options = {}) {
-  try {
-    let query = supabase
-      .from('ai_tools')
-      .select(`
-        *,
-        users:user_id (
-          display_name,
-          avatar_url
-        )
-      `)
-      .eq('status', 'approved')
-      .eq('is_public', true)
+  /**
+   * Get all approved AI tools with filters
+   */
+  async getApprovedAITools(options = {}) {
+    const cacheKey = `approved_tools:${JSON.stringify(options)}`
 
-    // Filter by category
-    if (options.category && options.category !== 'all') {
-      query = query.eq('category', options.category)
-    }
+    return this.getCached(cacheKey, async () => {
+      let query = supabase
+        .from('ai_tools')
+        .select(`
+          *,
+          users:user_id (
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq('status', 'approved')
+        .eq('is_public', true)
 
-    // Filter by time period for leaderboard
-    if (options.timeFilter) {
-      const now = new Date()
-      let dateThreshold
+      // Filter by category
+      if (options.category && options.category !== 'all') {
+        query = query.eq('category', options.category)
+      }
 
-      switch (options.timeFilter) {
-        case 'week':
-          dateThreshold = new Date(now.setDate(now.getDate() - 7))
+      // Filter by time period
+      if (options.timeFilter) {
+        const now = new Date()
+        let dateThreshold
+
+        switch (options.timeFilter) {
+          case 'week':
+            dateThreshold = new Date(now.setDate(now.getDate() - 7))
+            break
+          case 'month':
+            dateThreshold = new Date(now.setMonth(now.getMonth() - 1))
+            break
+          default:
+            dateThreshold = null
+        }
+
+        if (dateThreshold) {
+          query = query.gte('created_at', dateThreshold.toISOString())
+        }
+      }
+
+      // Search by query
+      if (options.searchQuery) {
+        query = query.textSearch('search_vector', options.searchQuery)
+      }
+
+      // Sort
+      const sortBy = options.sortBy || 'net_score'
+      switch (sortBy) {
+        case 'net_score':
+          query = query.order('net_score', { ascending: false })
           break
-        case 'month':
-          dateThreshold = new Date(now.setMonth(now.getMonth() - 1))
+        case 'upvotes':
+          query = query.order('upvotes_count', { ascending: false })
+          break
+        case 'newest':
+          query = query.order('created_at', { ascending: false })
+          break
+        case 'oldest':
+          query = query.order('created_at', { ascending: true })
           break
         default:
-          dateThreshold = null
+          query = query.order('net_score', { ascending: false })
       }
 
-      if (dateThreshold) {
-        query = query.gte('created_at', dateThreshold.toISOString())
+      // Pagination
+      if (options.limit) {
+        query = query.limit(options.limit)
       }
-    }
 
-    // Search by query
-    if (options.searchQuery) {
-      query = query.textSearch('search_vector', options.searchQuery)
-    }
-
-    // Sort
-    const sortBy = options.sortBy || 'net_score'
-    switch (sortBy) {
-      case 'net_score':
-        query = query.order('net_score', { ascending: false })
-        break
-      case 'upvotes':
-        query = query.order('upvotes_count', { ascending: false })
-        break
-      case 'newest':
-        query = query.order('created_at', { ascending: false })
-        break
-      case 'oldest':
-        query = query.order('created_at', { ascending: true })
-        break
-      default:
-        query = query.order('net_score', { ascending: false })
-    }
-
-    // Pagination
-    if (options.limit) {
-      query = query.limit(options.limit)
-    }
-
-    const { data, error } = await query
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('Error fetching AI tools:', error)
-    return []
+      return this.executeQuery(() => query)
+    })
   }
-}
 
-/**
- * Get user's submitted AI tools
- * @returns {Array} User's tools
- */
-export async function getMyAITools() {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
+  /**
+   * Get user's submitted AI tools
+   */
+  async getMyAITools() {
+    const user = await getCurrentUser()
     if (!user) return []
 
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .select(`
-        *,
-        users:user_id (
-          display_name,
-          avatar_url
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+    const cacheKey = `my_tools:${user.id}`
 
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('Error fetching my AI tools:', error)
-    return []
+    return this.getCached(cacheKey, async () => {
+      return this.executeQuery(() =>
+        supabase
+          .from('ai_tools')
+          .select(`
+            *,
+            users:user_id (
+              display_name,
+              avatar_url
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      )
+    })
   }
-}
 
-/**
- * Get a single AI tool by ID
- * @param {string} toolId - Tool UUID
- * @returns {Object|null} Tool data
- */
-export async function getAIToolById(toolId) {
-  try {
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .select(`
-        *,
-        users:user_id (
-          display_name,
-          avatar_url
-        )
-      `)
-      .eq('id', toolId)
-      .single()
+  /**
+   * Get a single AI tool by ID
+   */
+  async getAIToolById(toolId) {
+    const cacheKey = `tool:${toolId}`
 
-    if (error) throw error
-
-    return data
-  } catch (error) {
-    console.error('Error fetching AI tool:', error)
-    return null
+    return this.getCached(cacheKey, async () => {
+      return this.executeQuery(() =>
+        supabase
+          .from('ai_tools')
+          .select(`
+            *,
+            users:user_id (
+              display_name,
+              avatar_url
+            )
+          `)
+          .eq('id', toolId)
+          .single()
+      )
+    })
   }
-}
 
-/**
- * Get tool categories
- * @returns {Array} List of categories
- */
-export async function getToolCategories() {
-  try {
-    const { data, error } = await supabase
-      .from('tool_categories')
-      .select('*')
-      .order('name', { ascending: true })
-
-    if (error) throw error
-
-    return data || []
-  } catch (error) {
-    console.error('Error fetching tool categories:', error)
-    return []
+  /**
+   * Get tool categories
+   */
+  async getToolCategories() {
+    return this.getCached('tool_categories', async () => {
+      return this.executeQuery(() =>
+        supabase
+          .from('tool_categories')
+          .select('*')
+          .order('name', { ascending: true })
+      )
+    })
   }
-}
 
-/**
- * Vote on an AI tool (upvote or downvote)
- * @param {string} toolId - Tool UUID
- * @param {string} voteType - 'upvote' or 'downvote'
- * @returns {Object} Result
- */
-export async function voteOnTool(toolId, voteType) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+  /**
+   * Vote on an AI tool
+   */
+  async voteOnTool(toolId, voteType) {
+    const user = await getCurrentUser()
+    if (!user) throw new AuthenticationError()
 
     if (!['upvote', 'downvote'].includes(voteType)) {
-      throw new Error('Invalid vote type')
+      throw new ValidationError('Invalid vote type')
     }
 
-    // Check if user has already voted
-    const { data: existingVote } = await supabase
-      .from('tool_votes')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('tool_id', toolId)
-      .maybeSingle()
+    // Check for existing vote
+    const existingVote = await this.executeQuery(() =>
+      supabase
+        .from('tool_votes')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('tool_id', toolId)
+        .maybeSingle()
+    )
+
+    let result
 
     if (existingVote) {
-      // User has already voted
       if (existingVote.vote_type === voteType) {
-        // Same vote - remove it (toggle off)
-        const { error } = await supabase
-          .from('tool_votes')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId)
+        // Remove vote
+        await this.executeQuery(() =>
+          supabase
+            .from('tool_votes')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('tool_id', toolId)
+        )
 
-        if (error) throw error
-
-        return {
+        result = {
           success: true,
           action: 'removed',
           message: 'Vote removed'
         }
       } else {
-        // Different vote - update it
-        const { error } = await supabase
-          .from('tool_votes')
-          .update({ vote_type: voteType })
-          .eq('user_id', user.id)
-          .eq('tool_id', toolId)
+        // Update vote
+        await this.executeQuery(() =>
+          supabase
+            .from('tool_votes')
+            .update({ vote_type: voteType })
+            .eq('user_id', user.id)
+            .eq('tool_id', toolId)
+        )
 
-        if (error) throw error
-
-        return {
+        result = {
           success: true,
           action: 'updated',
           message: `Vote changed to ${voteType}`
@@ -264,156 +262,165 @@ export async function voteOnTool(toolId, voteType) {
       }
     } else {
       // New vote
-      const { error } = await supabase
-        .from('tool_votes')
-        .insert({
-          user_id: user.id,
-          tool_id: toolId,
-          vote_type: voteType
-        })
+      await this.executeQuery(() =>
+        supabase
+          .from('tool_votes')
+          .insert({
+            user_id: user.id,
+            tool_id: toolId,
+            vote_type: voteType
+          })
+      )
 
-      if (error) throw error
-
-      return {
+      result = {
         success: true,
         action: 'added',
         message: `${voteType} recorded`
       }
     }
-  } catch (error) {
-    console.error('Error voting on tool:', error)
-    throw error
-  }
-}
 
-/**
- * Check if current user has voted on a tool
- * @param {string} toolId - Tool UUID
- * @returns {Object|null} Vote data or null
- */
-export async function getUserVote(toolId) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
+    // Invalidate relevant caches
+    this.invalidateCache(`tool:${toolId}`)
+    this.invalidateCache(`user_vote:${user.id}:${toolId}`)
+    this.invalidateCache('approved_tools')
+
+    return result
+  }
+
+  /**
+   * Check if current user has voted on a tool
+   */
+  async getUserVote(toolId) {
+    const user = await getCurrentUser()
     if (!user) return null
 
-    const { data, error } = await supabase
-      .from('tool_votes')
-      .select('vote_type')
-      .eq('user_id', user.id)
-      .eq('tool_id', toolId)
-      .maybeSingle()
+    const cacheKey = `user_vote:${user.id}:${toolId}`
 
-    if (error) throw error
-
-    return data
-  } catch (error) {
-    console.error('Error checking user vote:', error)
-    return null
+    return this.getCached(cacheKey, async () => {
+      return this.executeQuery(() =>
+        supabase
+          .from('tool_votes')
+          .select('vote_type')
+          .eq('user_id', user.id)
+          .eq('tool_id', toolId)
+          .maybeSingle()
+      )
+    })
   }
-}
 
-/**
- * Get leaderboard of AI tools
- * @param {string} timeFilter - 'all', 'month', 'week'
- * @param {number} limit - Number of results
- * @returns {Array} Top tools
- */
-export async function getAIToolsLeaderboard(timeFilter = 'all', limit = 50) {
-  return getApprovedAITools({
-    timeFilter,
-    limit,
-    sortBy: 'net_score'
-  })
-}
+  /**
+   * Get leaderboard of AI tools
+   */
+  async getAIToolsLeaderboard(timeFilter = 'all', limit = 50) {
+    return this.getApprovedAITools({
+      timeFilter,
+      limit,
+      sortBy: 'net_score'
+    })
+  }
 
-/**
- * Delete an AI tool (user can only delete their own)
- * @param {string} toolId - Tool UUID
- * @returns {Object} Result
- */
-export async function deleteAITool(toolId) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+  /**
+   * Delete an AI tool
+   */
+  async deleteAITool(toolId) {
+    const user = await getCurrentUser()
+    if (!user) throw new AuthenticationError()
 
     // Verify ownership
-    const { data: tool } = await supabase
-      .from('ai_tools')
-      .select('user_id')
-      .eq('id', toolId)
-      .single()
+    const tool = await this.executeQuery(() =>
+      supabase
+        .from('ai_tools')
+        .select('user_id')
+        .eq('id', toolId)
+        .single()
+    )
 
     if (tool.user_id !== user.id) {
-      throw new Error('Unauthorized to delete this tool')
+      throw new ValidationError('Unauthorized to delete this tool')
     }
 
-    const { error } = await supabase
-      .from('ai_tools')
-      .delete()
-      .eq('id', toolId)
+    await this.executeQuery(() =>
+      supabase
+        .from('ai_tools')
+        .delete()
+        .eq('id', toolId)
+    )
 
-    if (error) throw error
+    // Invalidate caches
+    this.invalidateCache(`tool:${toolId}`)
+    this.invalidateCache(`my_tools:${user.id}`)
+    this.invalidateCache('approved_tools')
 
     return {
       success: true,
       message: 'Tool deleted successfully'
     }
-  } catch (error) {
-    console.error('Error deleting AI tool:', error)
-    throw error
   }
-}
 
-/**
- * Update an AI tool (user can only update their own pending tools)
- * @param {string} toolId - Tool UUID
- * @param {Object} updates - Fields to update
- * @returns {Object} Result
- */
-export async function updateAITool(toolId, updates) {
-  try {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+  /**
+   * Update an AI tool
+   */
+  async updateAITool(toolId, updates) {
+    const user = await getCurrentUser()
+    if (!user) throw new AuthenticationError()
 
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .update(updates)
-      .eq('id', toolId)
-      .eq('user_id', user.id)
-      .select()
-      .single()
+    const data = await this.executeQuery(() =>
+      supabase
+        .from('ai_tools')
+        .update(updates)
+        .eq('id', toolId)
+        .eq('user_id', user.id)
+        .select()
+        .single()
+    )
 
-    if (error) throw error
+    // Invalidate caches
+    this.invalidateCache(`tool:${toolId}`)
+    this.invalidateCache(`my_tools:${user.id}`)
+    this.invalidateCache('approved_tools')
 
     return {
       success: true,
       message: 'Tool updated successfully',
       data
     }
-  } catch (error) {
-    console.error('Error updating AI tool:', error)
-    throw error
+  }
+
+  /**
+   * Get vote statistics for a tool
+   */
+  async getToolVoteStats(toolId) {
+    const cacheKey = `vote_stats:${toolId}`
+
+    return this.getCached(cacheKey, async () => {
+      return this.executeQuery(() =>
+        supabase
+          .from('ai_tools')
+          .select('upvotes_count, downvotes_count, net_score')
+          .eq('id', toolId)
+          .single()
+      )
+    }, CACHE_TTL.SHORT) // Shorter TTL for vote stats
   }
 }
 
-/**
- * Get vote statistics for a tool
- * @param {string} toolId - Tool UUID
- * @returns {Object} Stats
- */
-export async function getToolVoteStats(toolId) {
-  try {
-    const { data, error } = await supabase
-      .from('ai_tools')
-      .select('upvotes_count, downvotes_count, net_score')
-      .eq('id', toolId)
-      .single()
+// ============================================================================
+// Export singleton instance and convenience functions
+// ============================================================================
 
-    if (error) throw error
+export const aiToolsService = new AIToolsService()
 
-    return data || { upvotes_count: 0, downvotes_count: 0, net_score: 0 }
-  } catch (error) {
-    console.error('Error fetching vote stats:', error)
-    return { upvotes_count: 0, downvotes_count: 0, net_score: 0 }
-  }
-}
+// Export convenience functions that delegate to the service
+export const submitAITool = (data) => aiToolsService.submitAITool(data)
+export const getApprovedAITools = (options) => aiToolsService.getApprovedAITools(options)
+export const getMyAITools = () => aiToolsService.getMyAITools()
+export const getAIToolById = (id) => aiToolsService.getAIToolById(id)
+export const getToolCategories = () => aiToolsService.getToolCategories()
+export const voteOnTool = (id, type) => aiToolsService.voteOnTool(id, type)
+export const getUserVote = (id) => aiToolsService.getUserVote(id)
+export const getAIToolsLeaderboard = (filter, limit) => aiToolsService.getAIToolsLeaderboard(filter, limit)
+export const deleteAITool = (id) => aiToolsService.deleteAITool(id)
+export const updateAITool = (id, updates) => aiToolsService.updateAITool(id, updates)
+export const getToolVoteStats = (id) => aiToolsService.getToolVoteStats(id)
+
+export default aiToolsService
