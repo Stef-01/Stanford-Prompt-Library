@@ -114,7 +114,7 @@ function updateUI(gameState, game, container) {
       hudDiv.innerHTML = hudHTML;
       container.appendChild(hudDiv);
 
-      // Add exit button event listener
+      // Add exit button event listeners
       const exitBtn = container.querySelector('#exit-game-btn');
       if (exitBtn) {
         exitBtn.addEventListener('click', () => {
@@ -125,6 +125,18 @@ function updateUI(gameState, game, container) {
             const closeBtn = windowElement.querySelector('.window-close-btn');
             if (closeBtn) closeBtn.click();
           }
+        });
+
+        // Add hover effects
+        exitBtn.addEventListener('mouseenter', (e) => {
+          e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+          e.target.style.color = 'white';
+        });
+        exitBtn.addEventListener('mouseleave', (e) => {
+          e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+          e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+          e.target.style.color = 'rgba(255, 255, 255, 0.8)';
         });
       }
       break;
