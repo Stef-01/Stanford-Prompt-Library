@@ -26,7 +26,12 @@ const COMMON_TAGS = [
  */
 export async function renderSubmitWindow(contentContainer, userData, onSuccess) {
   // Load categories
-  categories = await getCategories()
+  try {
+    categories = await getCategories() || []
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+    categories = []
+  }
   selectedTags = []
 
   contentContainer.innerHTML = `

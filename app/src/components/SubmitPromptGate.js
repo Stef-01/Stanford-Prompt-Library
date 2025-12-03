@@ -8,7 +8,13 @@ import { validatePromptSubmission } from '../utils/validation.js'
  */
 export async function renderSubmitPromptGate(container, userData) {
   // Get categories for the form
-  const categories = await getCategories()
+  let categories = []
+  try {
+    categories = await getCategories() || []
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+    categories = []
+  }
 
   container.innerHTML = `
     <div class="access-gate">
