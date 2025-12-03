@@ -89,7 +89,12 @@ export const UPGRADES = {
     maxLevel: Infinity,
     baseCost: 50,
     costMultiplier: 1.5,
-    effect: (level) => GAME_CONFIG.BASE_FIRE_RATE / (1 + level * 0.3)
+    // Improved scaling: More impactful at early levels, diminishing returns later
+    effect: (level) => {
+      if (level === 0) return GAME_CONFIG.BASE_FIRE_RATE;
+      // Level 1: 400ms, Level 2: 330ms, Level 3: 280ms, Level 5: 215ms, Level 10: 145ms
+      return Math.max(100, GAME_CONFIG.BASE_FIRE_RATE * Math.pow(0.8, level));
+    }
   },
   damage: {
     name: 'Bullet Damage',
@@ -126,6 +131,16 @@ export const UPGRADES = {
     baseCost: 60,
     costMultiplier: 1.6,
     effect: (level) => GAME_CONFIG.PLAYER_SPEED * (1 + level * 0.4)
+  },
+  // Weapon evolution upgrades
+  weaponPower: {
+    name: 'Weapon Evolution',
+    description: 'Evolve your weapon (5+ for advanced form)',
+    icon: '⚔️',
+    maxLevel: Infinity,
+    baseCost: 200,
+    costMultiplier: 2.2,
+    effect: (level) => level // Returns upgrade level for weapon evolution
   }
 };
 

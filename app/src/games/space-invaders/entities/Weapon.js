@@ -16,14 +16,28 @@ export const WEAPON_TYPES = {
 };
 
 export class Weapon {
-  constructor(type = WEAPON_TYPES.STANDARD) {
+  constructor(type = WEAPON_TYPES.STANDARD, weaponPowerLevel = 0) {
     this.type = type;
+    this.weaponPowerLevel = weaponPowerLevel;
+    this.isEvolved = weaponPowerLevel >= 5;
     this.name = this.getWeaponName();
     this.color = this.getWeaponColor();
     this.fireRate = this.getBaseFireRate();
   }
 
   getWeaponName() {
+    if (this.isEvolved) {
+      const evolvedNames = {
+        [WEAPON_TYPES.STANDARD]: 'Mega Cannon',
+        [WEAPON_TYPES.SPREAD]: 'Nova Burst',
+        [WEAPON_TYPES.LASER]: 'X-Ray Disintegrator',
+        [WEAPON_TYPES.EXPLOSIVE]: 'Nuke Launcher',
+        [WEAPON_TYPES.PIERCING]: 'Rail Gun',
+        [WEAPON_TYPES.BOUNCY]: 'Chaos Orb'
+      };
+      return evolvedNames[this.type] || 'Unknown';
+    }
+
     const names = {
       [WEAPON_TYPES.STANDARD]: 'Standard',
       [WEAPON_TYPES.SPREAD]: 'Spread Shot',
@@ -92,32 +106,32 @@ export class Weapon {
         break;
 
       case WEAPON_TYPES.LASER:
-        // Continuous laser beam
-        bullets.push(new LaserBullet(centerX, bulletY, damage, this.color));
+        // Continuous laser beam - evolved form is thicker and more powerful
+        bullets.push(new LaserBullet(centerX, bulletY, damage, this.color, this.isEvolved));
         break;
 
       case WEAPON_TYPES.EXPLOSIVE:
-        // Single explosive bullet
-        bullets.push(new ExplosiveBullet(centerX, bulletY, damage * 2, this.color));
+        // Single explosive bullet - evolved form has much bigger radius
+        bullets.push(new ExplosiveBullet(centerX, bulletY, damage * 2, this.color, this.isEvolved));
         break;
 
       case WEAPON_TYPES.PIERCING:
-        // Piercing bullets that go through enemies
+        // Piercing bullets that go through enemies - evolved form pierces more
         const piercingCount = Math.min(Math.ceil(multiShotCount / 2), 5);
         const piercingSpread = piercingCount * 12;
         const piercingStartX = centerX - piercingSpread / 2;
         for (let i = 0; i < piercingCount; i++) {
           const x = piercingStartX + (piercingSpread / (piercingCount - 1 || 1)) * i;
-          bullets.push(new PiercingBullet(x, bulletY, damage, this.color));
+          bullets.push(new PiercingBullet(x, bulletY, damage, this.color, this.isEvolved));
         }
         break;
 
       case WEAPON_TYPES.BOUNCY:
-        // Bouncy pong-ball style bullets
+        // Bouncy pong-ball style bullets - evolved form bounces more and is faster
         const bouncyCount = Math.min(Math.ceil(multiShotCount / 3), 3);
         for (let i = 0; i < bouncyCount; i++) {
           const offsetX = (i - (bouncyCount - 1) / 2) * 20;
-          bullets.push(new BouncyBullet(centerX + offsetX, bulletY, damage, this.color));
+          bullets.push(new BouncyBullet(centerX + offsetX, bulletY, damage, this.color, this.isEvolved));
         }
         break;
     }
@@ -151,10 +165,13 @@ class SpreadBullet extends Bullet {
 
 // Laser beam (tall, fast)
 class LaserBullet extends Bullet {
-  constructor(x, y, damage, color) {
+  constructor(x, y, damage, color, isEvolved = false) {
     super(x, y, damage, color);
-    this.height = 40; // Taller laser beam
-    this.speed = GAME_CONFIG.BULLET_SPEED * 2;
+    // Evolved form: X-Ray Disintegrator - much thicker, taller, faster
+    this.isEvolved = isEvolved;
+    this.height = isEvolved ? 60 : 40;
+    this.width = isEvolved ? 12 : GAME_CONFIG.BULLET_WIDTH;
+    this.speed = GAME_CONFIG.BULLET_SPEED * (isEvolved ? 3 : 2);
   }
 
   update() {
@@ -169,12 +186,12 @@ class LaserBullet extends Bullet {
     if (!this.active) return;
 
     ctx.fillStyle = this.color;
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = this.isEvolved ? 20 : 10;
     ctx.shadowColor = this.color;
     ctx.fillRect(
-      this.x - GAME_CONFIG.BULLET_WIDTH / 2,
+      this.x - this.width / 2,
       this.y,
-      GAME_CONFIG.BULLET_WIDTH,
+      this.width,
       this.height
     );
     ctx.shadowBlur = 0;
@@ -182,9 +199,9 @@ class LaserBullet extends Bullet {
 
   getBounds() {
     return {
-      x: this.x - GAME_CONFIG.BULLET_WIDTH / 2,
+      x: this.x - this.width / 2,
       y: this.y,
-      width: GAME_CONFIG.BULLET_WIDTH,
+      width: this.width,
       height: this.height
     };
   }
@@ -192,9 +209,11 @@ class LaserBullet extends Bullet {
 
 // Explosive bullet (damages multiple enemies)
 class ExplosiveBullet extends Bullet {
-  constructor(x, y, damage, color) {
+  constructor(x, y, damage, color, isEvolved = false) {
     super(x, y, damage, color);
-    this.explosionRadius = 50;
+    // Evolved form: Nuke Launcher - much bigger explosion radius
+    this.isEvolved = isEvolved;
+    this.explosionRadius = isEvolved ? 120 : 50;
     this.hasExploded = false;
   }
 
@@ -220,10 +239,12 @@ class ExplosiveBullet extends Bullet {
 
 // Piercing bullet (goes through enemies)
 class PiercingBullet extends Bullet {
-  constructor(x, y, damage, color) {
-    super(x, y, damage * 0.7, color); // Lower damage per hit
+  constructor(x, y, damage, color, isEvolved = false) {
+    // Evolved form: Rail Gun - more pierces, higher damage
+    super(x, y, damage * (isEvolved ? 1.0 : 0.7), color);
+    this.isEvolved = isEvolved;
     this.pierceCount = 0;
-    this.maxPierces = 5;
+    this.maxPierces = isEvolved ? 15 : 5;
   }
 
   hit() {
@@ -261,13 +282,15 @@ class PiercingBullet extends Bullet {
 
 // Bouncy pong-ball style bullet
 class BouncyBullet extends Bullet {
-  constructor(x, y, damage, color) {
+  constructor(x, y, damage, color, isEvolved = false) {
     super(x, y, damage, color);
-    this.speedX = (Math.random() - 0.5) * 3;
-    this.speedY = -GAME_CONFIG.BULLET_SPEED;
+    // Evolved form: Chaos Orb - faster, more bounces, bigger
+    this.isEvolved = isEvolved;
+    this.speedX = (Math.random() - 0.5) * (isEvolved ? 5 : 3);
+    this.speedY = -GAME_CONFIG.BULLET_SPEED * (isEvolved ? 1.5 : 1);
     this.bounces = 0;
-    this.maxBounces = 4;
-    this.radius = 6;
+    this.maxBounces = isEvolved ? 12 : 4;
+    this.radius = isEvolved ? 9 : 6;
   }
 
   update() {

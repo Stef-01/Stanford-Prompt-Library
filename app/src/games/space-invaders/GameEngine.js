@@ -89,7 +89,8 @@ export class GameEngine {
     if (this.state === 'playing' && e.key >= '1' && e.key <= '6') {
       const weaponIndex = parseInt(e.key) - 1;
       if (weaponIndex < this.availableWeapons.length) {
-        this.currentWeapon = new Weapon(this.availableWeapons[weaponIndex]);
+        const weaponPowerLevel = this.upgradeSystem.getWeaponPower();
+        this.currentWeapon = new Weapon(this.availableWeapons[weaponIndex], weaponPowerLevel);
         console.log(`[SpaceInvaders] Switched to weapon: ${this.currentWeapon.name}`);
         this.notifyStateChange();
       }
@@ -213,6 +214,11 @@ export class GameEngine {
       }
       if (upgradeKey === 'shield') {
         this.player.maxLives = this.upgradeSystem.getMaxShield();
+      }
+      if (upgradeKey === 'weaponPower') {
+        // Refresh current weapon to apply evolution
+        const weaponPowerLevel = this.upgradeSystem.getWeaponPower();
+        this.currentWeapon = new Weapon(this.currentWeapon.type, weaponPowerLevel);
       }
       this.notifyStateChange();
     }
